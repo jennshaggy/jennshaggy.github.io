@@ -1,1 +1,19 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url><loc>https://jennshaggy.github.io/</loc></url><url><loc>https://jennshaggy.github.io/ciat-portfolio/projects/</loc></url><url><loc>https://jennshaggy.github.io/ciat-portfolio/projects/project-01/</loc></url><url><loc>https://jennshaggy.github.io/ciat-portfolio/projects/project-02/</loc></url><url><loc>https://jennshaggy.github.io/categories/</loc></url><url><loc>https://jennshaggy.github.io/ciat-portfolio/</loc></url><url><loc>https://jennshaggy.github.io/tags/</loc></url></urlset>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://jennshaggy.github.io/</loc>
+  </url><url>
+    <loc>https://jennshaggy.github.io/ciat-portfolio/projects/</loc>
+  </url><url>
+    <loc>https://jennshaggy.github.io/ciat-portfolio/projects/project-01/</loc>
+  </url><url>
+    <loc>https://jennshaggy.github.io/ciat-portfolio/projects/project-02/</loc>
+  </url><url>
+    <loc>https://jennshaggy.github.io/categories/</loc>
+  </url><url>
+    <loc>https://jennshaggy.github.io/ciat-portfolio/</loc>
+  </url><url>
+    <loc>https://jennshaggy.github.io/tags/</loc>
+  </url>
+</urlset>
