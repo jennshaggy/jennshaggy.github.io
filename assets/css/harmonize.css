@@ -1,0 +1,94 @@
+/* Harmonize — clean “baller” polish layer for PaperMod output */
+
+:root{
+  --content-max-width: 760px;
+  --radius: 14px;
+}
+
+/* Typography + rhythm */
+body{
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  letter-spacing: .005em;
+  line-height: 1.65;
+  font-size: 0.98rem;
+}
+
+h1,h2,h3,h4{
+  letter-spacing: -0.01em;
+  font-weight: 520;
+}
+
+.page-header h1,
+.post-title{ letter-spacing: -0.015em; }
+
+/* Layout */
+.main{
+  max-width: calc(var(--content-max-width) + (var(--gap) * 2));
+}
+
+.post-content{
+  max-width: var(--content-max-width);
+}
+
+/* Links */
+a{
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Code blocks look intentional */
+.post-content pre,
+.post-content .highlight pre,
+.post-content .chroma pre{
+  padding: 1.25rem 1.35rem;
+  border-radius: 14px;
+  line-height: 1.6;
+  font-size: .95rem;
+  box-shadow: inset 0 0 0 1px rgba(127,127,127,.18);
+}
+
+/* Tables */
+.post-content table{
+  display:block;
+  width:100%;
+  overflow-x:auto;
+  border-collapse:collapse;
+  margin: 1.5rem 0;
+  font-size: .95rem;
+}
+
+.post-content thead th{
+  text-align:left;
+  font-weight: 650;
+  padding: .75rem .85rem;
+  border-bottom: 1px solid rgba(127,127,127,.22);
+}
+
+.post-content tbody td{
+  padding: .75rem .85rem;
+  border-bottom: 1px solid rgba(127,127,127,.14);
+  vertical-align: top;
+}
+
+.post-content tbody tr:nth-child(odd) td{
+  background: rgba(127,127,127,.05);
+}
+
+/* ProfileMode polish */
+.profile img{
+  width: 120px !important;
+  height: 120px !important;
+  object-fit: cover !important;
+  border-radius: 999px !important;
+}
+
+.profile .buttons a{
+  border-radius: 12px;
+  font-weight: 560;
+  padding: .65rem .95rem;
+}
+
+.profile .buttons a:first-child{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+}
