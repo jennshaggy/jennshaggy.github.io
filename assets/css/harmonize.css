@@ -159,3 +159,41 @@ a{
 .main{
   max-width: 1040px;
 }
+/* HERO / PROFILE REFINEMENT */
+.profile{
+  gap: 1.25rem;
+}
+
+.profile_inner{
+  gap: .85rem;
+}
+
+.profile_inner h1{
+  margin-top: .75rem;
+  margin-bottom: .25rem;
+}
+
+.profile_inner p{
+  max-width: 42ch;
+  opacity: .85;
+}
+
+/* Buttons: weight + hierarchy */
+.profile .buttons{
+  margin-top: 1.25rem;
+}
+
+.profile .buttons a{
+  padding: .6rem .9rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.profile .buttons a:first-child{
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+  transform: translateY(-1px);
+}
+
+.profile .buttons a:not(:first-child){
+  opacity: .92;
+}
