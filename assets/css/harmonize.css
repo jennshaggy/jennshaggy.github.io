@@ -114,3 +114,48 @@ a{
 .profile img {
   box-shadow: 0 10px 30px rgba(0,0,0,.18);
 }
+/* Typography rhythm + readability */
+.post-content{
+  font-size: 1rem;
+}
+
+.post-content p{
+  margin-bottom: 1.15rem;
+  max-width: 72ch;
+}
+
+.post-content li{
+  margin: .45rem 0;
+}
+
+.post-content h2{
+  margin-top: 3.25rem;
+  margin-bottom: 1.1rem;
+  font-size: 1.55rem;
+}
+
+.post-content h3{
+  margin-top: 2.25rem;
+  margin-bottom: .85rem;
+  font-size: 1.22rem;
+}
+
+.post-content h2:not(:first-of-type){
+  padding-top: 2.0rem;
+  border-top: 1px solid rgba(127,127,127,.18);
+}
+
+.post-content h2::after{
+  content:"";
+  display:block;
+  width:56px;
+  height:2px;
+  margin-top:.7rem;
+  background: rgba(127,127,127,.25);
+  border-radius: 999px;
+}
+
+/* Constrain wide content a touch */
+.main{
+  max-width: 1040px;
+}
