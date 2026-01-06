@@ -199,3 +199,37 @@ a{
 .profile .buttons a:not(:first-child){
   opacity: .92;
 }
+
+/* Homepage: make ProfileMode feel intentional */
+.main .profile {
+  min-height: auto;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.profile .profile_inner h1 {
+  font-size: 2.4rem;
+  letter-spacing: -0.02em;
+}
+
+.profile .profile_inner p {
+  font-size: 1.05rem;
+  opacity: 0.86;
+  max-width: 52ch;
+  margin-inline: auto;
+}
+
+.profile .buttons {
+  margin-top: 1.25rem;
+  gap: 12px;
+}
+
+.profile .button {
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.profile img {
+  width: 128px !important;
+  height: 128px !important;
+}
