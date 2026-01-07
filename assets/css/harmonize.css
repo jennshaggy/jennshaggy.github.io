@@ -420,3 +420,33 @@ header.header {
 #theme-toggle{
   border-radius: 10px;
 }
+/* PASS 2 — Hero tightening */
+.profile{
+  padding-top: 10px;
+  padding-bottom: 6px;
+}
+
+.profile .profile_inner{
+  gap: 14px;
+}
+
+.profile img{
+  margin-bottom: 2px;
+}
+
+.profile h1{
+  margin: 0;
+  line-height: 1.1;
+}
+
+.profile .entry-content{
+  margin-top: 8px;
+  margin-bottom: 10px;
+  max-width: var(--content-max-width);
+}
+
+/* tighten the button row slightly */
+.profile .buttons{
+  margin-top: 10px;
+  gap: 12px;
+}
