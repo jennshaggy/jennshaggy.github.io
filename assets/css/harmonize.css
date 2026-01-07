@@ -387,3 +387,36 @@ header.header {
   border-radius: 14px;
   box-shadow: inset 0 0 0 1px rgba(127,127,127,.18);
 }
+/* PASS 1 — Nav polish (inline, no bullets, left-aligned) */
+.header .nav,
+.header nav{
+  max-width: calc(var(--content-max-width) + (var(--gap) * 2));
+  margin: 0 auto;
+}
+
+#menu{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#menu li{ margin: 0; padding: 0; }
+
+#menu a{
+  text-decoration: none;
+  font-weight: 520;
+}
+
+#menu a:hover{
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* keep the theme toggle button from looking like a random box */
+#theme-toggle{
+  border-radius: 10px;
+}
