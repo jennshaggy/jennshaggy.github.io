@@ -232,3 +232,17 @@ a{
   width: 128px !important;
   height: 128px !important;
 }
+/* Header cleanup */
+header.header {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.logo a {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+#theme-toggle {
+  opacity: 0.8;
+}
