@@ -282,3 +282,48 @@ header.header {
 #theme-toggle {
   opacity: 0.8;
 }
+/* === PASS 2: Profile + Buttons hierarchy === */
+
+/* Profile spacing + readable width */
+.profile{
+  padding-top: 12px;
+}
+
+.profile .profile_inner{
+  gap: 14px;
+  max-width: 760px;
+}
+
+.profile .entry-content{
+  max-width: 64ch;
+  opacity: 0.92;
+}
+
+/* Button row: intentional, not “default PaperMod” */
+.profile .buttons,
+.buttons{
+  gap: 10px;
+}
+
+.profile .buttons a,
+.button{
+  border-radius: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  background: var(--theme);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  text-decoration: none;
+}
+
+/* Primary button = first one */
+.profile .buttons a:first-child{
+  background: var(--primary);
+  color: var(--theme);
+  border-color: transparent;
+  box-shadow: 0 10px 26px rgba(0,0,0,.18);
+}
+
+.profile .buttons a:hover,
+.button:hover{
+  transform: translateY(-1px);
+}
