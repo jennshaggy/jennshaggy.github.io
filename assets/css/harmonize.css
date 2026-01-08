@@ -450,3 +450,32 @@ header.header {
   margin-top: 10px;
   gap: 12px;
 }
+/* PASS 3 — CIAT structure (cards) */
+.cards{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.card{
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--entry);
+  text-decoration: none;
+}
+
+.card h3{
+  margin: 0 0 6px 0;
+}
+
+.card p{
+  margin: 0;
+  color: var(--secondary);
+}
+
+.card:hover{
+  transform: translateY(-1px);
+}
