@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto" data-theme="auto">
 
-<head><meta charset="utf-8">
+<head>
+	<meta name="generator" content="Hugo 0.153.5"><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>CIAT Portfolio | Jenn Shagrin</title>
-<meta name="keywords" content="">
-<meta name="description" content="This section will host (or link to) my CIAT Year 1 portfolio.
+<title>Jenn Shagrin</title>
 
-Coming next: index &#43; project pages
-">
+<meta name="description" content="">
 <meta name="author" content="">
-<link rel="canonical" href="https://jennshaggy.github.io/ciat-portfolio/">
+<link rel="canonical" href="https://jennshaggy.github.io/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" integrity="sha256-CGy&#43;FY5IpKdPT&#43;wemaqEbjtDwfSruOly862JIfFAgpE=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -21,8 +19,8 @@ Coming next: index &#43; project pages
 <link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="https://jennshaggy.github.io/ciat-portfolio/index.xml" title="rss">
-<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/ciat-portfolio/">
+<link rel="alternate" type="application/rss+xml" href="https://jennshaggy.github.io/index.xml" title="rss">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/">
 <noscript>
     <style>
         #theme-toggle,
@@ -78,32 +76,35 @@ Coming next: index &#43; project pages
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<meta property="og:url" content="https://jennshaggy.github.io/ciat-portfolio/">
+<meta property="og:url" content="https://jennshaggy.github.io/">
   <meta property="og:site_name" content="Jenn Shagrin">
-  <meta property="og:title" content="CIAT Portfolio">
-  <meta property="og:description" content="This section will host (or link to) my CIAT Year 1 portfolio.
-Coming next: index &#43; project pages ">
+  <meta property="og:title" content="Jenn Shagrin">
+  <meta property="og:description" content="## What this site is
+This is a professional entry point — not a blog or content feed.
+It functions as a low-noise navigation layer for applied cybersecurity work, including systems hardening, defensive practice, and academic portfolio material. The goal is clarity and signal, not exhaustiveness.
+### Primary focus areas
+- **Projects** — real systems, rebuilds, and security-oriented problem solving
+- **Systems &amp; Hardening** — endpoints, configurations, and defense-in-depth work">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="CIAT Portfolio">
+<meta name="twitter:title" content="">
 <meta name="twitter:description" content="">
-
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "CIAT Portfolio",
-      "item": "https://jennshaggy.github.io/ciat-portfolio/"
-    }
+  "@type": "Organization",
+  "name": "Jenn Shagrin",
+  "url": "https://jennshaggy.github.io/",
+  "description": "",
+  "logo": "https://jennshaggy.github.io/favicon.ico",
+  "sameAs": [
+      
   ]
 }
 </script>
+<link rel="stylesheet" href="/assets/css/harmonize.css?v=2">
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -134,65 +135,20 @@ Coming next: index &#43; project pages ">
             </div>
         </div>
         <ul id="menu">
-            <li>
-                <a href="https://jennshaggy.github.io/systems/" title="Systems">
-                    <span>Systems</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://jennshaggy.github.io/security/" title="Security">
-                    <span>Security</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://jennshaggy.github.io/networking/" title="Networking">
-                    <span>Networking</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://jennshaggy.github.io/projects/" title="Projects">
-                    <span>Projects</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://jennshaggy.github.io/platforms/" title="Platforms &amp; Training">
-                    <span>Platforms &amp; Training</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio">
-                    <span class="active">CIAT Portfolio</span>
-                </a>
-            </li>
         </ul>
     </nav>
 </header>
-<main class="main"> 
-<header class="page-header">
-  <h1>
-    CIAT Portfolio
-  </h1>
-</header>
-<div class="post-content"><p>This section will host (or link to) my CIAT Year 1 portfolio.</p>
-<ul>
-<li>Coming next: index + project pages</li>
-</ul>
-
-
+<main class="main"><div class="profile">
+    <div class="profile_inner">
+        <img draggable="false" src="https://jennshaggy.github.io/images/profile.png" alt="Jenn Shagrin" title="Jenn Shagrin"
+            height="150" width="150" />
+        <h1>Jenn Shagrin</h1>
+        <span></span><div class="social-icons" >
 </div>
 
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p> title: “CIAT Projects” draft: false This section contains CIAT coursework, labs, and applied security projects.
-</p>
-  </div>
-  <footer class="entry-footer"></footer>
-  <a class="entry-link" aria-label="post link to " href="https://jennshaggy.github.io/ciat-portfolio/projects/"></a>
-</article>
+    </div>
+</div>
+
     </main>
     
 <footer class="footer">
@@ -205,9 +161,6 @@ Coming next: index &#43; project pages ">
     </span>
 </footer>
 <a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
 </a>
 
 <script>
