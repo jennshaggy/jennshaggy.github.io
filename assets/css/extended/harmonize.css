@@ -1,0 +1,219 @@
+/* =========================
+   Phase 2 — Quiet Site Harmonization
+   Scope: typography + spacing only
+   Non-destructive, CIAT-safe
+   ========================= */
+
+/* Global reading comfort */
+:root {
+  --content-max-width: 760px;
+}
+
+/* Improve overall text rhythm */
+body {
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+}
+
+/* Headings: calmer, more modern */
+h1, h2, h3, h4 {
+  letter-spacing: -0.01em;
+  margin-top: 2.2rem;
+  margin-bottom: 1rem;
+}
+
+/* Paragraph spacing */
+p {
+  margin-bottom: 1.1rem;
+}
+
+/* Lists: reduce cramped feeling */
+ul, ol {
+  margin-top: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+
+/* CIAT Portfolio specific softening */
+.ciat-portfolio h1,
+.ciat-portfolio h2,
+.ciat-portfolio h3 {
+  margin-top: 2.4rem;
+}
+
+/* Reduce “wall of text” feel */
+.post-content {
+  max-width: var(--content-max-width);
+}
+
+/* Link tone: professional, not harsh */
+a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Tables: breathe */
+table {
+  margin: 1.5rem 0;
+}
+
+/* =========================
+   Code Block Readability (PaperMod/Hugo wrappers)
+   ========================= */
+
+/* Inline code */
+.post-content :not(pre) > code {
+  padding: 0.2em 0.45em;
+  border-radius: 6px;
+  font-size: 0.95em;
+  background: rgba(127, 127, 127, 0.14);
+}
+
+/* Hugo/PaperMod code block containers */
+.post-content pre,
+.post-content .highlight pre,
+.post-content .chroma pre {
+  padding: 1.35rem 1.5rem;
+  border-radius: 14px;
+  overflow-x: auto;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  background: rgba(127, 127, 127, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.18);
+  margin: 1.6rem 0;
+}
+
+/* Ensure the wrapper itself also has breathing room */
+.post-content .highlight,
+.post-content .chroma {
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 1.6rem 0;
+}
+
+/* Don’t double-pad nested code */
+.post-content pre code,
+.post-content .highlight pre code,
+.post-content .chroma pre code {
+  display: block;
+  padding: 0;
+}
+
+/* =========================
+   Typography — Inter (Neo-Brutalist)
+   ========================= */
+
+body {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  font-size: 0.95rem;
+}
+
+
+/* Headings: firm but not decorative */
+h1, h2, h3, h4 {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Paragraphs: neutral, not soft */
+p {
+  font-weight: 400;
+}
+
+/* =========================
+   Section Rhythm & Spacing
+   ========================= */
+
+/* Give sections room to breathe */
+main section,
+main article {
+  margin-bottom: 3rem;
+}
+
+/* Headings separation */
+h2 {
+  margin-top: 3.5rem;
+  margin-bottom: 1.25rem;
+}
+
+h3 {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Lists and paragraphs spacing */
+p,
+ul,
+ol {
+  margin-bottom: 1.25rem;
+}
+
+/* =========================
+   Subtle Section Dividers (PaperMod)
+   ========================= */
+
+/* Divider + breathing room before each H2 (except the first) */
+.post-content h2 {
+  scroll-margin-top: 90px;
+}
+
+.post-content h2:not(:first-of-type) {
+  margin-top: 3.25rem;
+  padding-top: 2.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Short accent rule under every H2 */
+.post-content h2::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin-top: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+/* =========================
+   Nav Title Alignment
+   ========================= */
+
+/* Make the site title in the header match the new typographic system */
+header .logo,
+header .logo a {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-size: 1.15rem;
+}
+
+/* Slightly tighten header spacing so it feels intentional */
+header.header {
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+/* =========================
+   Profile Mode — Button Hierarchy
+   ========================= */
+
+/* PaperMod profile buttons */
+.profile .buttons a {
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+/* Primary button (first) */
+.profile .buttons a:first-child {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+/* Secondary buttons (rest) */
+.profile .buttons a:not(:first-child) {
+  opacity: 0.92;
+}
+
+
+
