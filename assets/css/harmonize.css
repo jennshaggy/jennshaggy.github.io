@@ -242,6 +242,41 @@ header.header {
   margin-top: 10px;
 }
 
+/* PASS: Hero tighten (ProfileMode) — dual selectors */
+.profile,
+.profile-mode,
+.profileMode {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.profile .profile_inner,
+.profile-mode .profile_inner,
+.profileMode .profile_inner {
+  gap: 14px;
+}
+
+.profile h1,
+.profile-mode h1,
+.profileMode h1 {
+  margin: 0;
+  line-height: 1.08;
+}
+
+.profile .entry-content,
+.profile-mode .entry-content,
+.profileMode .entry-content {
+  max-width: 62ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.profile .buttons,
+.profile-mode .buttons,
+.profileMode .buttons {
+  gap: 12px;
+  margin-top: 10px;
+}
 
 
 
