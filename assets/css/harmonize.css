@@ -214,6 +214,8 @@ header.header {
 .profile .buttons a:not(:first-child) {
   opacity: 0.92;
 }
+/* Hide PaperMod back-to-top triangle */
+#top-link { display: none !important; }
 
 
 
