@@ -216,6 +216,32 @@ header.header {
 }
 /* Hide PaperMod back-to-top triangle */
 #top-link { display: none !important; }
+/* PASS: Hero tighten (ProfileMode) */
+.profile{
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.profile .profile_inner{
+  gap: 14px;
+}
+
+.profile h1{
+  margin: 0;
+  line-height: 1.08;
+}
+
+.profile .entry-content{
+  max-width: 62ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.profile .buttons{
+  gap: 12px;
+  margin-top: 10px;
+}
+
 
 
 
