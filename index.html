@@ -105,6 +105,18 @@ It functions as a low-noise navigation layer for applied cybersecurity work, inc
 }
 </script>
 <link rel="stylesheet" href="/assets/css/harmonize.css?v=2">
+<script>
+(function(){
+  const html=document.documentElement;
+  const pref=localStorage.getItem("pref-theme");
+  if(pref){ html.setAttribute("data-theme", pref); return; }
+  if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){
+    html.setAttribute("data-theme","dark");
+  } else {
+    html.setAttribute("data-theme","light");
+  }
+})();
+</script>
 </head>
 <body class="list" id="top">
     <header class="header">
