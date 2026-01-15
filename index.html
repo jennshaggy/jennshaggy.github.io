@@ -60,13 +60,13 @@
     </style>
 </noscript>
 
-<!-- Theme init (MATCHES working CIAT projects pattern) -->
+<!-- ✅ Initial theme (match working CIAT pages) -->
 <script>
     if (localStorage.getItem("pref-theme") === "dark") {
         document.documentElement.dataset.theme = "dark";
     } else if (localStorage.getItem("pref-theme") === "light") {
         document.documentElement.dataset.theme = "light";
-    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.documentElement.dataset.theme = "dark";
     } else {
         document.documentElement.dataset.theme = "light";
@@ -76,7 +76,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
 <meta property="og:url" content="https://jennshaggy.github.io/">
   <meta property="og:site_name" content="Jenn Shagrin">
   <meta property="og:title" content="Jenn Shagrin">
@@ -110,7 +109,7 @@ It functions as a low-noise navigation layer for applied cybersecurity work, inc
 </head>
 
 <body class="list" id="top">
-    <header class="header">
+<header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
@@ -140,7 +139,8 @@ It functions as a low-noise navigation layer for applied cybersecurity work, inc
     </nav>
 </header>
 
-<main class="main"><div class="profile">
+<main class="main">
+<div class="profile">
   <div class="profile_inner">
     <img draggable="false" src="https://jennshaggy.github.io/images/profile.png" alt="Jenn Shagrin" title="Jenn Shagrin" height="120" width="120">
 
@@ -167,12 +167,10 @@ It functions as a low-noise navigation layer for applied cybersecurity work, inc
     </div>
   </div>
 </div>
+</main>
 
-    </main>
-    
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> · 
-
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> · 
     <span>
         Powered by
         <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
@@ -180,8 +178,7 @@ It functions as a low-noise navigation layer for applied cybersecurity work, inc
     </span>
 </footer>
 
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-</a>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"></a>
 
 <script>
     let menu = document.getElementById('menu');
@@ -228,7 +225,7 @@ It functions as a low-noise navigation layer for applied cybersecurity work, inc
     };
 </script>
 
-<!-- Theme toggle click handler (MATCHES working CIAT projects pattern) -->
+<!-- ✅ Toggle click handler (match working CIAT pages) -->
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         if (document.documentElement.dataset.theme === "light") {
