@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Security &amp; Defense
+Status: Expanding
+Security &amp; Defense
+Applied defensive security across endpoints, networks, and cloud environments.
+This work prioritizes real systems, real telemetry, and real failure modes over theory.
+
+Scope
+This section documents defensive security work including:
+
+Endpoint hardening and system resilience
+SOC-style analysis and alert triage
+Detection logic and security automation
+Incident documentation and response workflows
+Identity, access control, and privilege management
+
+
+Endpoint Security &amp; Hardening
+Hands-on system defense performed on physical machines and VMs.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/security-defense/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b94d83909f07e0cbee01ac74d8672bb80deea6a9b5ec7bd8b4cac91492586df5.css" integrity="sha256-uU2DkJ8H4MvuAax02GcruA3upqm17HvYtMrJFJJYbfU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/security-defense/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/security-defense/">
+  <meta property="og:site_name" content="Jenn Shagrin">
+  <meta property="og:title" content="Jenn Shagrin">
+  <meta property="og:description" content="Security &amp; Defense Status: Expanding
+Security &amp; Defense Applied defensive security across endpoints, networks, and cloud environments.
+This work prioritizes real systems, real telemetry, and real failure modes over theory.
+Scope This section documents defensive security work including:
+Endpoint hardening and system resilience SOC-style analysis and alert triage Detection logic and security automation Incident documentation and response workflows Identity, access control, and privilege management Endpoint Security &amp; Hardening Hands-on system defense performed on physical machines and VMs.">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="">
+<meta name="twitter:description" content="Security &amp; Defense
+Status: Expanding
+Security &amp; Defense
+Applied defensive security across endpoints, networks, and cloud environments.
+This work prioritizes real systems, real telemetry, and real failure modes over theory.
+
+Scope
+This section documents defensive security work including:
+
+Endpoint hardening and system resilience
+SOC-style analysis and alert triage
+Detection logic and security automation
+Incident documentation and response workflows
+Identity, access control, and privilege management
+
+
+Endpoint Security &amp; Hardening
+Hands-on system defense performed on physical machines and VMs.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/security-defense/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "name": "",
+  "description": "Security \u0026amp; Defense Status: Expanding\nSecurity \u0026amp; Defense Applied defensive security across endpoints, networks, and cloud environments.\nThis work prioritizes real systems, real telemetry, and real failure modes over theory.\nScope This section documents defensive security work including:\nEndpoint hardening and system resilience SOC-style analysis and alert triage Detection logic and security automation Incident documentation and response workflows Identity, access control, and privilege management Endpoint Security \u0026amp; Hardening Hands-on system defense performed on physical machines and VMs.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "Security \u0026 Defense Status: Expanding\nSecurity \u0026 Defense Applied defensive security across endpoints, networks, and cloud environments.\nThis work prioritizes real systems, real telemetry, and real failure modes over theory.\nScope This section documents defensive security work including:\nEndpoint hardening and system resilience SOC-style analysis and alert triage Detection logic and security automation Incident documentation and response workflows Identity, access control, and privilege management Endpoint Security \u0026 Hardening Hands-on system defense performed on physical machines and VMs.\nHardened Windows 10/11 endpoints against ransomware and persistence Configured Defender, firewall rules, exploit protection, and application controls Disabled unnecessary services and reduced attack surface Implemented secure browser configurations and credential protections Validated hardening through simulated attack scenarios Primary reference: Operation Hard Dell\nSOC Operations \u0026 Incident Analysis Blue-team analysis performed across multiple platforms.\nInvestigated alerts including malware execution, suspicious PowerShell, and lateral movement Distinguished true positives from noise using host and network telemetry Correlated indicators across logs, timelines, and artifacts Mapped findings to MITRE ATT\u0026CK techniques Documented incidents using structured Markdown workflows Platforms used:\nLetsDefend Hack The Box CIAT lab environments Detection \u0026 Security Automation Detection engineering and automation concepts applied in simulated SOC environments.\nBuilt detection logic for phishing, malware payloads, and abnormal execution Tuned rules to reduce false positives Applied automation principles to accelerate triage Explored AI-assisted SOC workflows and alert enrichment Identity \u0026 Access Defense Access control and identity security across lab and organizational contexts.\nApplied RBAC and least-privilege principles Configured and analyzed AAA / TACACS+ authentication flows Evaluated identity misconfigurations and escalation risks Enforced policy-driven access boundaries Defensive Networking Concepts Security controls applied at the network layer.\nSegmented networks and enforced boundary controls Isolated management, IoT, guest, and private networks Applied firewall and routing logic to restrict lateral movement Designed networks with defense-in-depth principles Documentation \u0026 Methodology All defensive work is documented with an emphasis on:\nReproducibility Clarity Evidence-based conclusions Markdown-based workflows are used to preserve:\nIndicators of Compromise (IOCs) Timelines Investigation notes Remediation steps Status Active and expanding.\nAdditional incident case studies and screenshots will be incorporated as systems and labs progress.\n",
+  "wordCount" : "344",
+  "inLanguage": "en",
+  "datePublished": "0001-01-01T00:00:00Z",
+  "dateModified": "0001-01-01T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://jennshaggy.github.io/quietsite/security-defense/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Jenn Shagrin",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://jennshaggy.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation">
+                    <span>Systems Foundation</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects">
+                    <span>Applied Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training">
+                    <span>Platforms &amp; Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      
+    </h1>
+    <div class="post-meta">
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="security--defense">Security &amp; Defense<a hidden class="anchor" aria-hidden="true" href="#security--defense">#</a></h1>
+<p>Status: Expanding</p>
+<h1 id="security--defense-1">Security &amp; Defense<a hidden class="anchor" aria-hidden="true" href="#security--defense-1">#</a></h1>
+<p>Applied defensive security across endpoints, networks, and cloud environments.<br>
+This work prioritizes <em>real systems, real telemetry, and real failure modes</em> over theory.</p>
+<hr>
+<h2 id="scope">Scope<a hidden class="anchor" aria-hidden="true" href="#scope">#</a></h2>
+<p>This section documents defensive security work including:</p>
+<ul>
+<li>Endpoint hardening and system resilience</li>
+<li>SOC-style analysis and alert triage</li>
+<li>Detection logic and security automation</li>
+<li>Incident documentation and response workflows</li>
+<li>Identity, access control, and privilege management</li>
+</ul>
+<hr>
+<h2 id="endpoint-security--hardening">Endpoint Security &amp; Hardening<a hidden class="anchor" aria-hidden="true" href="#endpoint-security--hardening">#</a></h2>
+<p>Hands-on system defense performed on physical machines and VMs.</p>
+<ul>
+<li>Hardened Windows 10/11 endpoints against ransomware and persistence</li>
+<li>Configured Defender, firewall rules, exploit protection, and application controls</li>
+<li>Disabled unnecessary services and reduced attack surface</li>
+<li>Implemented secure browser configurations and credential protections</li>
+<li>Validated hardening through simulated attack scenarios</li>
+</ul>
+<p>Primary reference: <strong>Operation Hard Dell</strong></p>
+<hr>
+<h2 id="soc-operations--incident-analysis">SOC Operations &amp; Incident Analysis<a hidden class="anchor" aria-hidden="true" href="#soc-operations--incident-analysis">#</a></h2>
+<p>Blue-team analysis performed across multiple platforms.</p>
+<ul>
+<li>Investigated alerts including malware execution, suspicious PowerShell, and lateral movement</li>
+<li>Distinguished true positives from noise using host and network telemetry</li>
+<li>Correlated indicators across logs, timelines, and artifacts</li>
+<li>Mapped findings to MITRE ATT&amp;CK techniques</li>
+<li>Documented incidents using structured Markdown workflows</li>
+</ul>
+<p>Platforms used:</p>
+<ul>
+<li>LetsDefend</li>
+<li>Hack The Box</li>
+<li>CIAT lab environments</li>
+</ul>
+<hr>
+<h2 id="detection--security-automation">Detection &amp; Security Automation<a hidden class="anchor" aria-hidden="true" href="#detection--security-automation">#</a></h2>
+<p>Detection engineering and automation concepts applied in simulated SOC environments.</p>
+<ul>
+<li>Built detection logic for phishing, malware payloads, and abnormal execution</li>
+<li>Tuned rules to reduce false positives</li>
+<li>Applied automation principles to accelerate triage</li>
+<li>Explored AI-assisted SOC workflows and alert enrichment</li>
+</ul>
+<hr>
+<h2 id="identity--access-defense">Identity &amp; Access Defense<a hidden class="anchor" aria-hidden="true" href="#identity--access-defense">#</a></h2>
+<p>Access control and identity security across lab and organizational contexts.</p>
+<ul>
+<li>Applied RBAC and least-privilege principles</li>
+<li>Configured and analyzed AAA / TACACS+ authentication flows</li>
+<li>Evaluated identity misconfigurations and escalation risks</li>
+<li>Enforced policy-driven access boundaries</li>
+</ul>
+<hr>
+<h2 id="defensive-networking-concepts">Defensive Networking Concepts<a hidden class="anchor" aria-hidden="true" href="#defensive-networking-concepts">#</a></h2>
+<p>Security controls applied at the network layer.</p>
+<ul>
+<li>Segmented networks and enforced boundary controls</li>
+<li>Isolated management, IoT, guest, and private networks</li>
+<li>Applied firewall and routing logic to restrict lateral movement</li>
+<li>Designed networks with defense-in-depth principles</li>
+</ul>
+<hr>
+<h2 id="documentation--methodology">Documentation &amp; Methodology<a hidden class="anchor" aria-hidden="true" href="#documentation--methodology">#</a></h2>
+<p>All defensive work is documented with an emphasis on:</p>
+<ul>
+<li>Reproducibility</li>
+<li>Clarity</li>
+<li>Evidence-based conclusions</li>
+</ul>
+<p>Markdown-based workflows are used to preserve:</p>
+<ul>
+<li>Indicators of Compromise (IOCs)</li>
+<li>Timelines</li>
+<li>Investigation notes</li>
+<li>Remediation steps</li>
+</ul>
+<hr>
+<h2 id="status">Status<a hidden class="anchor" aria-hidden="true" href="#status">#</a></h2>
+<p>Active and expanding.<br>
+Additional incident case studies and screenshots will be incorporated as systems and labs progress.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Networking
+Status: Active
+Networking
+Design, implementation, and troubleshooting of real-world networks across home, lab, and hybrid environments.
+This work emphasizes reliability, segmentation, and security-by-design.
+
+Scope
+This section documents:
+
+Home and small-network architecture
+Mesh network design and optimization
+VLAN segmentation and traffic isolation
+Routing, switching, and physical infrastructure
+Network security controls and monitoring
+
+
+Home Network Architecture
+Designed and implemented a multi-layer home network with performance, isolation, and resilience as priorities.
+
+Xfinity fiber-optic service
+Xfinity gateway configured in bridge mode
+TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz bands)
+Network layout informed by physical heat-mapping of the property
+Separate IoT VLAN
+Separate guest network
+Private, hidden personal network using a Cudy AX3000 Wi-Fi 6 router
+
+Design goals:">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/networking/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b94d83909f07e0cbee01ac74d8672bb80deea6a9b5ec7bd8b4cac91492586df5.css" integrity="sha256-uU2DkJ8H4MvuAax02GcruA3upqm17HvYtMrJFJJYbfU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/networking/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/networking/">
+  <meta property="og:site_name" content="Jenn Shagrin">
+  <meta property="og:title" content="Jenn Shagrin">
+  <meta property="og:description" content="Networking Status: Active
+Networking Design, implementation, and troubleshooting of real-world networks across home, lab, and hybrid environments.
+This work emphasizes reliability, segmentation, and security-by-design.
+Scope This section documents:
+Home and small-network architecture Mesh network design and optimization VLAN segmentation and traffic isolation Routing, switching, and physical infrastructure Network security controls and monitoring Home Network Architecture Designed and implemented a multi-layer home network with performance, isolation, and resilience as priorities.
+Xfinity fiber-optic service Xfinity gateway configured in bridge mode TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz bands) Network layout informed by physical heat-mapping of the property Separate IoT VLAN Separate guest network Private, hidden personal network using a Cudy AX3000 Wi-Fi 6 router Design goals:">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="">
+<meta name="twitter:description" content="Networking
+Status: Active
+Networking
+Design, implementation, and troubleshooting of real-world networks across home, lab, and hybrid environments.
+This work emphasizes reliability, segmentation, and security-by-design.
+
+Scope
+This section documents:
+
+Home and small-network architecture
+Mesh network design and optimization
+VLAN segmentation and traffic isolation
+Routing, switching, and physical infrastructure
+Network security controls and monitoring
+
+
+Home Network Architecture
+Designed and implemented a multi-layer home network with performance, isolation, and resilience as priorities.
+
+Xfinity fiber-optic service
+Xfinity gateway configured in bridge mode
+TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz bands)
+Network layout informed by physical heat-mapping of the property
+Separate IoT VLAN
+Separate guest network
+Private, hidden personal network using a Cudy AX3000 Wi-Fi 6 router
+
+Design goals:">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/networking/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "name": "",
+  "description": "Networking Status: Active\nNetworking Design, implementation, and troubleshooting of real-world networks across home, lab, and hybrid environments.\nThis work emphasizes reliability, segmentation, and security-by-design.\nScope This section documents:\nHome and small-network architecture Mesh network design and optimization VLAN segmentation and traffic isolation Routing, switching, and physical infrastructure Network security controls and monitoring Home Network Architecture Designed and implemented a multi-layer home network with performance, isolation, and resilience as priorities.\nXfinity fiber-optic service Xfinity gateway configured in bridge mode TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz bands) Network layout informed by physical heat-mapping of the property Separate IoT VLAN Separate guest network Private, hidden personal network using a Cudy AX3000 Wi-Fi 6 router Design goals:\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "Networking Status: Active\nNetworking Design, implementation, and troubleshooting of real-world networks across home, lab, and hybrid environments.\nThis work emphasizes reliability, segmentation, and security-by-design.\nScope This section documents:\nHome and small-network architecture Mesh network design and optimization VLAN segmentation and traffic isolation Routing, switching, and physical infrastructure Network security controls and monitoring Home Network Architecture Designed and implemented a multi-layer home network with performance, isolation, and resilience as priorities.\nXfinity fiber-optic service Xfinity gateway configured in bridge mode TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz bands) Network layout informed by physical heat-mapping of the property Separate IoT VLAN Separate guest network Private, hidden personal network using a Cudy AX3000 Wi-Fi 6 router Design goals:\nEliminate single points of failure Reduce broadcast noise Enforce trust boundaries Maintain full coverage across physical space Mesh Network Design Hands-on mesh deployment and tuning.\nNode placement optimized via signal heat maps Band steering and channel optimization Load balancing across nodes Failover testing and throughput validation Implemented both consumer and prosumer-grade mesh systems.\nNetwork Segmentation \u0026 Isolation Applied segmentation to reduce lateral movement and limit blast radius.\nLogical separation of trusted, guest, and IoT devices Policy-based routing between segments Firewall rules enforcing least-privilege communication Validation through device isolation testing Switching \u0026 Physical Infrastructure Physical network work including cabling and switching.\nRackmount and unmanaged switches Patch panel wiring and punch-down termination CAT5 / CAT6 cable fabrication and testing Use of cable testers and remotes to validate integrity Troubleshooting \u0026 Recovery Network diagnostics performed under real constraints.\nDiagnosed intermittent connectivity and throughput drops Identified interference and misconfigured routing Recovered misbehaving devices and legacy hardware Restored service without data loss Status Active.\nAdditional diagrams, screenshots, and configurations will be added as systems evolve.\n",
+  "wordCount" : "289",
+  "inLanguage": "en",
+  "datePublished": "0001-01-01T00:00:00Z",
+  "dateModified": "0001-01-01T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://jennshaggy.github.io/quietsite/networking/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Jenn Shagrin",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://jennshaggy.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation">
+                    <span>Systems Foundation</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking">
+                    <span class="active">Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects">
+                    <span>Applied Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training">
+                    <span>Platforms &amp; Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      
+    </h1>
+    <div class="post-meta">
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="networking">Networking<a hidden class="anchor" aria-hidden="true" href="#networking">#</a></h1>
+<p>Status: Active</p>
+<h1 id="networking-1">Networking<a hidden class="anchor" aria-hidden="true" href="#networking-1">#</a></h1>
+<p>Design, implementation, and troubleshooting of real-world networks across home, lab, and hybrid environments.<br>
+This work emphasizes reliability, segmentation, and security-by-design.</p>
+<hr>
+<h2 id="scope">Scope<a hidden class="anchor" aria-hidden="true" href="#scope">#</a></h2>
+<p>This section documents:</p>
+<ul>
+<li>Home and small-network architecture</li>
+<li>Mesh network design and optimization</li>
+<li>VLAN segmentation and traffic isolation</li>
+<li>Routing, switching, and physical infrastructure</li>
+<li>Network security controls and monitoring</li>
+</ul>
+<hr>
+<h2 id="home-network-architecture">Home Network Architecture<a hidden class="anchor" aria-hidden="true" href="#home-network-architecture">#</a></h2>
+<p>Designed and implemented a multi-layer home network with performance, isolation, and resilience as priorities.</p>
+<ul>
+<li>Xfinity fiber-optic service</li>
+<li>Xfinity gateway configured in bridge mode</li>
+<li>TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz bands)</li>
+<li>Network layout informed by physical heat-mapping of the property</li>
+<li>Separate IoT VLAN</li>
+<li>Separate guest network</li>
+<li>Private, hidden personal network using a Cudy AX3000 Wi-Fi 6 router</li>
+</ul>
+<p>Design goals:</p>
+<ul>
+<li>Eliminate single points of failure</li>
+<li>Reduce broadcast noise</li>
+<li>Enforce trust boundaries</li>
+<li>Maintain full coverage across physical space</li>
+</ul>
+<hr>
+<h2 id="mesh-network-design">Mesh Network Design<a hidden class="anchor" aria-hidden="true" href="#mesh-network-design">#</a></h2>
+<p>Hands-on mesh deployment and tuning.</p>
+<ul>
+<li>Node placement optimized via signal heat maps</li>
+<li>Band steering and channel optimization</li>
+<li>Load balancing across nodes</li>
+<li>Failover testing and throughput validation</li>
+</ul>
+<p>Implemented both consumer and prosumer-grade mesh systems.</p>
+<hr>
+<h2 id="network-segmentation--isolation">Network Segmentation &amp; Isolation<a hidden class="anchor" aria-hidden="true" href="#network-segmentation--isolation">#</a></h2>
+<p>Applied segmentation to reduce lateral movement and limit blast radius.</p>
+<ul>
+<li>Logical separation of trusted, guest, and IoT devices</li>
+<li>Policy-based routing between segments</li>
+<li>Firewall rules enforcing least-privilege communication</li>
+<li>Validation through device isolation testing</li>
+</ul>
+<hr>
+<h2 id="switching--physical-infrastructure">Switching &amp; Physical Infrastructure<a hidden class="anchor" aria-hidden="true" href="#switching--physical-infrastructure">#</a></h2>
+<p>Physical network work including cabling and switching.</p>
+<ul>
+<li>Rackmount and unmanaged switches</li>
+<li>Patch panel wiring and punch-down termination</li>
+<li>CAT5 / CAT6 cable fabrication and testing</li>
+<li>Use of cable testers and remotes to validate integrity</li>
+</ul>
+<hr>
+<h2 id="troubleshooting--recovery">Troubleshooting &amp; Recovery<a hidden class="anchor" aria-hidden="true" href="#troubleshooting--recovery">#</a></h2>
+<p>Network diagnostics performed under real constraints.</p>
+<ul>
+<li>Diagnosed intermittent connectivity and throughput drops</li>
+<li>Identified interference and misconfigured routing</li>
+<li>Recovered misbehaving devices and legacy hardware</li>
+<li>Restored service without data loss</li>
+</ul>
+<hr>
+<h2 id="status">Status<a hidden class="anchor" aria-hidden="true" href="#status">#</a></h2>
+<p>Active.<br>
+Additional diagrams, screenshots, and configurations will be added as systems evolve.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

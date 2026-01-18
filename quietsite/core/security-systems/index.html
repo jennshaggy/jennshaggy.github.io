@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Security Systems &amp; Hardening
+Overview
+This section documents real-world system security work across personal infrastructure, enterprise-style labs, and hardened production endpoints. Work spans endpoint hardening, identity controls, monitoring, and secure network design.
+
+Endpoint Hardening
+
+Windows 11 hardening (ransomware protection, exploit mitigation, controlled folder access)
+Application control and service minimization
+Secure boot, BitLocker, firmware-level protections
+Event log tuning for privilege escalation, persistence, and lateral movement
+Defensive rebuilds following instability or misconfiguration
+
+
+Identity &amp; Access Control
+
+Role-Based Access Control (RBAC) design
+Least-privilege enforcement across systems
+AAA / TACACS&#43; concepts applied in lab and organizational contexts
+Account lifecycle management and access auditing
+
+
+Security Monitoring &amp; Detection
+
+Custom Windows Event Viewer filters
+IOC identification and documentation
+Alert triage and false-positive validation
+MITRE ATT&amp;CK–aligned investigation workflows
+SOC-style incident documentation using structured Markdown
+
+
+Secure Network Design (Integrated)
+
+Segmented networks (private, guest, IoT)
+VLAN-aware architecture
+Router hardening and firewall rule design
+Mesh network optimization based on heat-mapping
+Secure Wi-Fi configuration (hidden SSIDs, band management)
+
+
+Cryptography &amp; Data Protection
+
+Disk encryption and secure storage practices
+Hashing and encoding analysis
+Data recovery with chain-of-custody awareness
+Secure handling of rescued storage media
+
+
+Evidence &amp; Documentation
+
+Photo-documented builds and hardening steps
+Configuration screenshots and change records
+Long-term archival of systems work (digital &#43; physical)
+Cross-referenced with Operation Hard Dell and Systems Archive
+">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/core/security-systems/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b94d83909f07e0cbee01ac74d8672bb80deea6a9b5ec7bd8b4cac91492586df5.css" integrity="sha256-uU2DkJ8H4MvuAax02GcruA3upqm17HvYtMrJFJJYbfU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/core/security-systems/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/core/security-systems/">
+  <meta property="og:site_name" content="Jenn Shagrin">
+  <meta property="og:title" content="Jenn Shagrin">
+  <meta property="og:description" content="Security Systems &amp; Hardening Overview This section documents real-world system security work across personal infrastructure, enterprise-style labs, and hardened production endpoints. Work spans endpoint hardening, identity controls, monitoring, and secure network design.
+Endpoint Hardening Windows 11 hardening (ransomware protection, exploit mitigation, controlled folder access) Application control and service minimization Secure boot, BitLocker, firmware-level protections Event log tuning for privilege escalation, persistence, and lateral movement Defensive rebuilds following instability or misconfiguration Identity &amp; Access Control Role-Based Access Control (RBAC) design Least-privilege enforcement across systems AAA / TACACS&#43; concepts applied in lab and organizational contexts Account lifecycle management and access auditing Security Monitoring &amp; Detection Custom Windows Event Viewer filters IOC identification and documentation Alert triage and false-positive validation MITRE ATT&amp;CK–aligned investigation workflows SOC-style incident documentation using structured Markdown Secure Network Design (Integrated) Segmented networks (private, guest, IoT) VLAN-aware architecture Router hardening and firewall rule design Mesh network optimization based on heat-mapping Secure Wi-Fi configuration (hidden SSIDs, band management) Cryptography &amp; Data Protection Disk encryption and secure storage practices Hashing and encoding analysis Data recovery with chain-of-custody awareness Secure handling of rescued storage media Evidence &amp; Documentation Photo-documented builds and hardening steps Configuration screenshots and change records Long-term archival of systems work (digital &#43; physical) Cross-referenced with Operation Hard Dell and Systems Archive ">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="">
+<meta name="twitter:description" content="Security Systems &amp; Hardening
+Overview
+This section documents real-world system security work across personal infrastructure, enterprise-style labs, and hardened production endpoints. Work spans endpoint hardening, identity controls, monitoring, and secure network design.
+
+Endpoint Hardening
+
+Windows 11 hardening (ransomware protection, exploit mitigation, controlled folder access)
+Application control and service minimization
+Secure boot, BitLocker, firmware-level protections
+Event log tuning for privilege escalation, persistence, and lateral movement
+Defensive rebuilds following instability or misconfiguration
+
+
+Identity &amp; Access Control
+
+Role-Based Access Control (RBAC) design
+Least-privilege enforcement across systems
+AAA / TACACS&#43; concepts applied in lab and organizational contexts
+Account lifecycle management and access auditing
+
+
+Security Monitoring &amp; Detection
+
+Custom Windows Event Viewer filters
+IOC identification and documentation
+Alert triage and false-positive validation
+MITRE ATT&amp;CK–aligned investigation workflows
+SOC-style incident documentation using structured Markdown
+
+
+Secure Network Design (Integrated)
+
+Segmented networks (private, guest, IoT)
+VLAN-aware architecture
+Router hardening and firewall rule design
+Mesh network optimization based on heat-mapping
+Secure Wi-Fi configuration (hidden SSIDs, band management)
+
+
+Cryptography &amp; Data Protection
+
+Disk encryption and secure storage practices
+Hashing and encoding analysis
+Data recovery with chain-of-custody awareness
+Secure handling of rescued storage media
+
+
+Evidence &amp; Documentation
+
+Photo-documented builds and hardening steps
+Configuration screenshots and change records
+Long-term archival of systems work (digital &#43; physical)
+Cross-referenced with Operation Hard Dell and Systems Archive
+">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/core/security-systems/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "name": "",
+  "description": "Security Systems \u0026amp; Hardening Overview This section documents real-world system security work across personal infrastructure, enterprise-style labs, and hardened production endpoints. Work spans endpoint hardening, identity controls, monitoring, and secure network design.\nEndpoint Hardening Windows 11 hardening (ransomware protection, exploit mitigation, controlled folder access) Application control and service minimization Secure boot, BitLocker, firmware-level protections Event log tuning for privilege escalation, persistence, and lateral movement Defensive rebuilds following instability or misconfiguration Identity \u0026amp; Access Control Role-Based Access Control (RBAC) design Least-privilege enforcement across systems AAA / TACACS+ concepts applied in lab and organizational contexts Account lifecycle management and access auditing Security Monitoring \u0026amp; Detection Custom Windows Event Viewer filters IOC identification and documentation Alert triage and false-positive validation MITRE ATT\u0026amp;CK–aligned investigation workflows SOC-style incident documentation using structured Markdown Secure Network Design (Integrated) Segmented networks (private, guest, IoT) VLAN-aware architecture Router hardening and firewall rule design Mesh network optimization based on heat-mapping Secure Wi-Fi configuration (hidden SSIDs, band management) Cryptography \u0026amp; Data Protection Disk encryption and secure storage practices Hashing and encoding analysis Data recovery with chain-of-custody awareness Secure handling of rescued storage media Evidence \u0026amp; Documentation Photo-documented builds and hardening steps Configuration screenshots and change records Long-term archival of systems work (digital + physical) Cross-referenced with Operation Hard Dell and Systems Archive ",
+  "keywords": [
+    
+  ],
+  "articleBody": "Security Systems \u0026 Hardening Overview This section documents real-world system security work across personal infrastructure, enterprise-style labs, and hardened production endpoints. Work spans endpoint hardening, identity controls, monitoring, and secure network design.\nEndpoint Hardening Windows 11 hardening (ransomware protection, exploit mitigation, controlled folder access) Application control and service minimization Secure boot, BitLocker, firmware-level protections Event log tuning for privilege escalation, persistence, and lateral movement Defensive rebuilds following instability or misconfiguration Identity \u0026 Access Control Role-Based Access Control (RBAC) design Least-privilege enforcement across systems AAA / TACACS+ concepts applied in lab and organizational contexts Account lifecycle management and access auditing Security Monitoring \u0026 Detection Custom Windows Event Viewer filters IOC identification and documentation Alert triage and false-positive validation MITRE ATT\u0026CK–aligned investigation workflows SOC-style incident documentation using structured Markdown Secure Network Design (Integrated) Segmented networks (private, guest, IoT) VLAN-aware architecture Router hardening and firewall rule design Mesh network optimization based on heat-mapping Secure Wi-Fi configuration (hidden SSIDs, band management) Cryptography \u0026 Data Protection Disk encryption and secure storage practices Hashing and encoding analysis Data recovery with chain-of-custody awareness Secure handling of rescued storage media Evidence \u0026 Documentation Photo-documented builds and hardening steps Configuration screenshots and change records Long-term archival of systems work (digital + physical) Cross-referenced with Operation Hard Dell and Systems Archive ",
+  "wordCount" : "211",
+  "inLanguage": "en",
+  "datePublished": "0001-01-01T00:00:00Z",
+  "dateModified": "0001-01-01T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://jennshaggy.github.io/quietsite/core/security-systems/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Jenn Shagrin",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://jennshaggy.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation">
+                    <span>Systems Foundation</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects">
+                    <span>Applied Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training">
+                    <span>Platforms &amp; Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      
+    </h1>
+    <div class="post-meta">
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="security-systems--hardening">Security Systems &amp; Hardening<a hidden class="anchor" aria-hidden="true" href="#security-systems--hardening">#</a></h1>
+<h2 id="overview">Overview<a hidden class="anchor" aria-hidden="true" href="#overview">#</a></h2>
+<p>This section documents real-world system security work across personal infrastructure, enterprise-style labs, and hardened production endpoints. Work spans endpoint hardening, identity controls, monitoring, and secure network design.</p>
+<hr>
+<h2 id="endpoint-hardening">Endpoint Hardening<a hidden class="anchor" aria-hidden="true" href="#endpoint-hardening">#</a></h2>
+<ul>
+<li>Windows 11 hardening (ransomware protection, exploit mitigation, controlled folder access)</li>
+<li>Application control and service minimization</li>
+<li>Secure boot, BitLocker, firmware-level protections</li>
+<li>Event log tuning for privilege escalation, persistence, and lateral movement</li>
+<li>Defensive rebuilds following instability or misconfiguration</li>
+</ul>
+<hr>
+<h2 id="identity--access-control">Identity &amp; Access Control<a hidden class="anchor" aria-hidden="true" href="#identity--access-control">#</a></h2>
+<ul>
+<li>Role-Based Access Control (RBAC) design</li>
+<li>Least-privilege enforcement across systems</li>
+<li>AAA / TACACS+ concepts applied in lab and organizational contexts</li>
+<li>Account lifecycle management and access auditing</li>
+</ul>
+<hr>
+<h2 id="security-monitoring--detection">Security Monitoring &amp; Detection<a hidden class="anchor" aria-hidden="true" href="#security-monitoring--detection">#</a></h2>
+<ul>
+<li>Custom Windows Event Viewer filters</li>
+<li>IOC identification and documentation</li>
+<li>Alert triage and false-positive validation</li>
+<li>MITRE ATT&amp;CK–aligned investigation workflows</li>
+<li>SOC-style incident documentation using structured Markdown</li>
+</ul>
+<hr>
+<h2 id="secure-network-design-integrated">Secure Network Design (Integrated)<a hidden class="anchor" aria-hidden="true" href="#secure-network-design-integrated">#</a></h2>
+<ul>
+<li>Segmented networks (private, guest, IoT)</li>
+<li>VLAN-aware architecture</li>
+<li>Router hardening and firewall rule design</li>
+<li>Mesh network optimization based on heat-mapping</li>
+<li>Secure Wi-Fi configuration (hidden SSIDs, band management)</li>
+</ul>
+<hr>
+<h2 id="cryptography--data-protection">Cryptography &amp; Data Protection<a hidden class="anchor" aria-hidden="true" href="#cryptography--data-protection">#</a></h2>
+<ul>
+<li>Disk encryption and secure storage practices</li>
+<li>Hashing and encoding analysis</li>
+<li>Data recovery with chain-of-custody awareness</li>
+<li>Secure handling of rescued storage media</li>
+</ul>
+<hr>
+<h2 id="evidence--documentation">Evidence &amp; Documentation<a hidden class="anchor" aria-hidden="true" href="#evidence--documentation">#</a></h2>
+<ul>
+<li>Photo-documented builds and hardening steps</li>
+<li>Configuration screenshots and change records</li>
+<li>Long-term archival of systems work (digital + physical)</li>
+<li>Cross-referenced with Operation Hard Dell and Systems Archive</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

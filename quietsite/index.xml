@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Jenn Shagrin</title>
+    <link>https://jennshaggy.github.io/quietsite/</link>
+    <description>Recent content on Jenn Shagrin</description>
+    <generator>Hugo -- 0.153.5</generator>
+    <language>en-us</language>
+    <atom:link href="https://jennshaggy.github.io/quietsite/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/applied-projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/applied-projects/</guid>
+      <description>&lt;h1 id=&#34;projects&#34;&gt;Projects&lt;/h1&gt;
+&lt;p&gt;Focused technical projects spanning systems engineering, security, networking, and automation.&lt;/p&gt;
+&lt;p&gt;Each project documents:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The problem space&lt;/li&gt;
+&lt;li&gt;The system or environment&lt;/li&gt;
+&lt;li&gt;What was built, fixed, or analyzed&lt;/li&gt;
+&lt;li&gt;The outcome&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This section highlights depth, not demos.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;featured-projects&#34;&gt;Featured Projects&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Operation Hard Dell&lt;/strong&gt;&lt;br&gt;
+Endpoint hardening, OS rebuilds, security configuration, and recovery across real hardware.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Splunk Enablement &amp;amp; SOC Labs&lt;/strong&gt;&lt;br&gt;
+SIEM concepts, detection logic, alert triage, and analyst workflows.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Endpoint Hardening &amp;amp; Defense-in-Depth&lt;/strong&gt;&lt;br&gt;
+Windows security controls, identity policy enforcement, and event visibility.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/core/early-systems-and-builds/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/core/early-systems-and-builds/</guid>
+      <description>&lt;h1 id=&#34;early-systems-builds-and-repair-work&#34;&gt;Early Systems, Builds, and Repair Work&lt;/h1&gt;
+&lt;p&gt;This page documents hands-on systems work spanning early computing exposure through modern rebuilds, repairs, and custom configurations. It represents long-form, real-world experience across hardware, operating systems, networking, and recovery.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;early-computing-foundations&#34;&gt;Early Computing Foundations&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Proficient IBM DOS usage before age 4 (documented via family photographs).&lt;/li&gt;
+&lt;li&gt;Early exposure to command-line interfaces, system interaction, and computing fundamentals well before formal education.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;custom-builds--franken-systems&#34;&gt;Custom Builds &amp;amp; Franken-Systems&lt;/h2&gt;
+&lt;h3 id=&#34;cyberpowerpc-custom-gaming-build-2010&#34;&gt;CyberPowerPC Custom Gaming Build (2010)&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Full ground-up scratch build.&lt;/li&gt;
+&lt;li&gt;Dual-boot configuration (Windows / macOS).&lt;/li&gt;
+&lt;li&gt;Custom lighting (green internal illumination).&lt;/li&gt;
+&lt;li&gt;Built, tuned, and later decommissioned after resale.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;hackintosh--experimental-builds&#34;&gt;Hackintosh &amp;amp; Experimental Builds&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Acer EeePC configured as a Hackintosh.&lt;/li&gt;
+&lt;li&gt;Required custom bootloader configuration, driver adaptation, and hardware compatibility tuning.&lt;/li&gt;
+&lt;li&gt;Ongoing experimentation and rebuilds across years.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;thin-clients--mini-pcs&#34;&gt;Thin Clients &amp;amp; Mini PCs&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;ASUS EeeBox converted to Debian Linux.&lt;/li&gt;
+&lt;li&gt;Additional thin clients repurposed for Linux-based workloads and experimentation.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;repairs-recovery-and-persistence-projects&#34;&gt;Repairs, Recovery, and Persistence Projects&lt;/h2&gt;
+&lt;h3 id=&#34;samsung-all-in-one-touchscreen-pc&#34;&gt;Samsung All-in-One Touchscreen PC&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Original system functional → touchscreen driver failure after Windows upgrade.&lt;/li&gt;
+&lt;li&gt;Manufacturer declared touchscreen irrecoverable.&lt;/li&gt;
+&lt;li&gt;Successfully restored full touchscreen functionality years later through driver recovery, OS tuning, and persistence.&lt;/li&gt;
+&lt;li&gt;System remains fully operational.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;laptop--desktop-repairs&#34;&gt;Laptop &amp;amp; Desktop Repairs&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Multiple MacBook Pro, MacBook Air, and iMac repairs (2007–2015 era).&lt;/li&gt;
+&lt;li&gt;Battery replacements, keyboard replacements, RAM upgrades, SSD conversions.&lt;/li&gt;
+&lt;li&gt;Display cable repair (MacBook Pro).&lt;/li&gt;
+&lt;li&gt;Liquid-damage data recovery with full drive extraction.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;mobile-devices--embedded-systems&#34;&gt;Mobile Devices &amp;amp; Embedded Systems&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Rooted, flashed, and repaired multiple Android devices using custom ROMs.&lt;/li&gt;
+&lt;li&gt;Legacy phone resuscitation (Palm Pre, Pocket PC, flip phones, Nokia devices).&lt;/li&gt;
+&lt;li&gt;Reprogrammed embedded tablet hardware (DoorDash tablet repurposed after business closure).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;data-recovery--storage-repurposing&#34;&gt;Data Recovery &amp;amp; Storage Repurposing&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Numerous HDD and SSD data rescue operations.&lt;/li&gt;
+&lt;li&gt;Repurposed recovered drives into external storage systems.&lt;/li&gt;
+&lt;li&gt;NVMe enclosures built from raw components.&lt;/li&gt;
+&lt;li&gt;Legacy external drive repair and shell reuse (e.g., GoFlex conversions).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;networking--infrastructure-work&#34;&gt;Networking &amp;amp; Infrastructure Work&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Physical network hardware configuration (switches, cabling, patch panels).&lt;/li&gt;
+&lt;li&gt;CAT6 cable creation, punch-down termination, and validation with testers.&lt;/li&gt;
+&lt;li&gt;Home mesh network design informed by heat-mapping and signal analysis.&lt;/li&gt;
+&lt;li&gt;VLAN segmentation, guest networks, IoT isolation, and hidden personal networks.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;ongoing-work&#34;&gt;Ongoing Work&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Dell OptiPlex tower teardown and rebuild (DDR upgrades, NVMe expansion).&lt;/li&gt;
+&lt;li&gt;Continuous iteration on systems, networks, and recovery techniques.&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/core/hardware-and-infrastructure/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/core/hardware-and-infrastructure/</guid>
+      <description>&lt;h1 id=&#34;hardware--infrastructure&#34;&gt;Hardware &amp;amp; Infrastructure&lt;/h1&gt;
+&lt;p&gt;This page focuses on physical systems, infrastructure design, and hands-on hardware work that underpins higher-level security, cloud, and automation projects.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;desktop-systems&#34;&gt;Desktop Systems&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Dell OptiPlex 7020 Tower Plus&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Full teardown and rebuild&lt;/li&gt;
+&lt;li&gt;RAM upgrades and NVMe SSD expansion&lt;/li&gt;
+&lt;li&gt;Ongoing iterative build (documented with internal photos)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Apple iMac Systems&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;2007, 2010, 2012, and 2015 models&lt;/li&gt;
+&lt;li&gt;RAM upgrades, internal HDD/SSD replacements&lt;/li&gt;
+&lt;li&gt;Dual-boot and Linux-only configurations&lt;/li&gt;
+&lt;li&gt;External-boot configurations for extended system life&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Custom Gaming PC (2010)&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/core/security-systems/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/core/security-systems/</guid>
+      <description>&lt;h1 id=&#34;security-systems--hardening&#34;&gt;Security Systems &amp;amp; Hardening&lt;/h1&gt;
+&lt;h2 id=&#34;overview&#34;&gt;Overview&lt;/h2&gt;
+&lt;p&gt;This section documents real-world system security work across personal infrastructure, enterprise-style labs, and hardened production endpoints. Work spans endpoint hardening, identity controls, monitoring, and secure network design.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;endpoint-hardening&#34;&gt;Endpoint Hardening&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Windows 11 hardening (ransomware protection, exploit mitigation, controlled folder access)&lt;/li&gt;
+&lt;li&gt;Application control and service minimization&lt;/li&gt;
+&lt;li&gt;Secure boot, BitLocker, firmware-level protections&lt;/li&gt;
+&lt;li&gt;Event log tuning for privilege escalation, persistence, and lateral movement&lt;/li&gt;
+&lt;li&gt;Defensive rebuilds following instability or misconfiguration&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;identity--access-control&#34;&gt;Identity &amp;amp; Access Control&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Role-Based Access Control (RBAC) design&lt;/li&gt;
+&lt;li&gt;Least-privilege enforcement across systems&lt;/li&gt;
+&lt;li&gt;AAA / TACACS+ concepts applied in lab and organizational contexts&lt;/li&gt;
+&lt;li&gt;Account lifecycle management and access auditing&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;security-monitoring--detection&#34;&gt;Security Monitoring &amp;amp; Detection&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Custom Windows Event Viewer filters&lt;/li&gt;
+&lt;li&gt;IOC identification and documentation&lt;/li&gt;
+&lt;li&gt;Alert triage and false-positive validation&lt;/li&gt;
+&lt;li&gt;MITRE ATT&amp;amp;CK–aligned investigation workflows&lt;/li&gt;
+&lt;li&gt;SOC-style incident documentation using structured Markdown&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;secure-network-design-integrated&#34;&gt;Secure Network Design (Integrated)&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Segmented networks (private, guest, IoT)&lt;/li&gt;
+&lt;li&gt;VLAN-aware architecture&lt;/li&gt;
+&lt;li&gt;Router hardening and firewall rule design&lt;/li&gt;
+&lt;li&gt;Mesh network optimization based on heat-mapping&lt;/li&gt;
+&lt;li&gt;Secure Wi-Fi configuration (hidden SSIDs, band management)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;cryptography--data-protection&#34;&gt;Cryptography &amp;amp; Data Protection&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Disk encryption and secure storage practices&lt;/li&gt;
+&lt;li&gt;Hashing and encoding analysis&lt;/li&gt;
+&lt;li&gt;Data recovery with chain-of-custody awareness&lt;/li&gt;
+&lt;li&gt;Secure handling of rescued storage media&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;evidence--documentation&#34;&gt;Evidence &amp;amp; Documentation&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Photo-documented builds and hardening steps&lt;/li&gt;
+&lt;li&gt;Configuration screenshots and change records&lt;/li&gt;
+&lt;li&gt;Long-term archival of systems work (digital + physical)&lt;/li&gt;
+&lt;li&gt;Cross-referenced with Operation Hard Dell and Systems Archive&lt;/li&gt;
+&lt;/ul&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/home/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/home/</guid>
+      <description>&lt;h1 id=&#34;home&#34;&gt;Home&lt;/h1&gt;
+&lt;p&gt;Status: Active&lt;/p&gt;
+&lt;h1 id=&#34;jenn-shagrin&#34;&gt;Jenn Shagrin&lt;/h1&gt;
+&lt;p&gt;Cloud, Systems &amp;amp; Cybersecurity Practitioner&lt;br&gt;
+Albuquerque, NM&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;overview&#34;&gt;Overview&lt;/h2&gt;
+&lt;p&gt;This site documents my hands-on work across systems engineering, hardware rebuilds, networking, security hardening, and applied cybersecurity.&lt;/p&gt;
+&lt;p&gt;Everything here is grounded in real systems: machines I’ve rebuilt, networks I’ve designed, endpoints I’ve hardened, and labs I’ve executed across blue-team, cloud, and automation domains.&lt;/p&gt;
+&lt;p&gt;This is not a blog.&lt;br&gt;
+It is a living technical record.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;site-map&#34;&gt;Site Map&lt;/h2&gt;
+&lt;h2 id=&#34;site-map-1&#34;&gt;Site Map&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;&lt;a href=&#34;systems-foundation.md&#34;&gt;Systems Foundation&lt;/a&gt;&lt;/strong&gt;&lt;br&gt;
+Core systems, hardware, operating systems, rebuilds, and long-term technical work.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/networking/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/networking/</guid>
+      <description>&lt;h1 id=&#34;networking&#34;&gt;Networking&lt;/h1&gt;
+&lt;p&gt;Status: Active&lt;/p&gt;
+&lt;h1 id=&#34;networking-1&#34;&gt;Networking&lt;/h1&gt;
+&lt;p&gt;Design, implementation, and troubleshooting of real-world networks across home, lab, and hybrid environments.&lt;br&gt;
+This work emphasizes reliability, segmentation, and security-by-design.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;scope&#34;&gt;Scope&lt;/h2&gt;
+&lt;p&gt;This section documents:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Home and small-network architecture&lt;/li&gt;
+&lt;li&gt;Mesh network design and optimization&lt;/li&gt;
+&lt;li&gt;VLAN segmentation and traffic isolation&lt;/li&gt;
+&lt;li&gt;Routing, switching, and physical infrastructure&lt;/li&gt;
+&lt;li&gt;Network security controls and monitoring&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;home-network-architecture&#34;&gt;Home Network Architecture&lt;/h2&gt;
+&lt;p&gt;Designed and implemented a multi-layer home network with performance, isolation, and resilience as priorities.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Xfinity fiber-optic service&lt;/li&gt;
+&lt;li&gt;Xfinity gateway configured in bridge mode&lt;/li&gt;
+&lt;li&gt;TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz bands)&lt;/li&gt;
+&lt;li&gt;Network layout informed by physical heat-mapping of the property&lt;/li&gt;
+&lt;li&gt;Separate IoT VLAN&lt;/li&gt;
+&lt;li&gt;Separate guest network&lt;/li&gt;
+&lt;li&gt;Private, hidden personal network using a Cudy AX3000 Wi-Fi 6 router&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Design goals:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/platforms-training/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/platforms-training/</guid>
+      <description>&lt;h1 id=&#34;platforms--training&#34;&gt;Platforms &amp;amp; Training&lt;/h1&gt;
+&lt;p&gt;Status: Active&lt;/p&gt;
+&lt;h1 id=&#34;platforms--training-1&#34;&gt;Platforms &amp;amp; Training&lt;/h1&gt;
+&lt;p&gt;Hands-on platforms, certifications, courses, and professional development supporting applied systems, cloud, and cybersecurity work.&lt;/p&gt;
+&lt;p&gt;This section reflects &lt;em&gt;active use&lt;/em&gt;, not passive coursework.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;platforms--labs&#34;&gt;Platforms &amp;amp; Labs&lt;/h2&gt;
+&lt;h3 id=&#34;security--soc-platforms&#34;&gt;Security &amp;amp; SOC Platforms&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;TryHackMe (THM)&lt;/li&gt;
+&lt;li&gt;Hack The Box (HTB)&lt;/li&gt;
+&lt;li&gt;LetsDefend&lt;/li&gt;
+&lt;li&gt;CIAT internal lab environments&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Activities include:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;SOC-style alert triage&lt;/li&gt;
+&lt;li&gt;Malware analysis (static &amp;amp; dynamic)&lt;/li&gt;
+&lt;li&gt;IOC identification and documentation&lt;/li&gt;
+&lt;li&gt;Incident timeline construction&lt;/li&gt;
+&lt;li&gt;MITRE ATT&amp;amp;CK mapping&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h3 id=&#34;cloud--ai-platforms&#34;&gt;Cloud &amp;amp; AI Platforms&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Microsoft Learn&lt;/li&gt;
+&lt;li&gt;Azure AI Engineer Learning Path&lt;/li&gt;
+&lt;li&gt;Microsoft Foundry (AI-enabled cloud tooling)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Focus areas:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/security-defense/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/security-defense/</guid>
+      <description>&lt;h1 id=&#34;security--defense&#34;&gt;Security &amp;amp; Defense&lt;/h1&gt;
+&lt;p&gt;Status: Expanding&lt;/p&gt;
+&lt;h1 id=&#34;security--defense-1&#34;&gt;Security &amp;amp; Defense&lt;/h1&gt;
+&lt;p&gt;Applied defensive security across endpoints, networks, and cloud environments.&lt;br&gt;
+This work prioritizes &lt;em&gt;real systems, real telemetry, and real failure modes&lt;/em&gt; over theory.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;scope&#34;&gt;Scope&lt;/h2&gt;
+&lt;p&gt;This section documents defensive security work including:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Endpoint hardening and system resilience&lt;/li&gt;
+&lt;li&gt;SOC-style analysis and alert triage&lt;/li&gt;
+&lt;li&gt;Detection logic and security automation&lt;/li&gt;
+&lt;li&gt;Incident documentation and response workflows&lt;/li&gt;
+&lt;li&gt;Identity, access control, and privilege management&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;endpoint-security--hardening&#34;&gt;Endpoint Security &amp;amp; Hardening&lt;/h2&gt;
+&lt;p&gt;Hands-on system defense performed on physical machines and VMs.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/systems-archive/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/systems-archive/</guid>
+      <description>&lt;h1 id=&#34;systems-archive&#34;&gt;Systems Archive&lt;/h1&gt;
+&lt;p&gt;Status: Expanding&lt;/p&gt;
+&lt;h1 id=&#34;systems-archive-historical--experimental&#34;&gt;Systems Archive (Historical &amp;amp; Experimental)&lt;/h1&gt;
+&lt;p&gt;This page captures long-arc systems work, experimental builds, and legacy technology projects that inform current infrastructure, security, and troubleshooting skillsets.&lt;/p&gt;
+&lt;hr&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Note on archival evidence:&lt;/strong&gt;&lt;br&gt;
+I maintain organized hard-copy photographic archives of my earliest systems builds. My first full computer build was completed at age 13, funded in part by Bat Mitzvah monetary gifts. Additional early hardware, networking, and repair work is documented in printed photographs and physical records.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://jennshaggy.github.io/quietsite/systems/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/systems/</guid>
+      <description>&lt;p&gt;→ [[systems-foundation]]&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Systems Foundation</title>
+      <link>https://jennshaggy.github.io/quietsite/systems-foundation/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://jennshaggy.github.io/quietsite/systems-foundation/</guid>
+      <description>A long-term, hands-on approach to computing systems, hardware longevity, networking topology, and operating system recovery.</description>
+    </item>
+  </channel>
+</rss>

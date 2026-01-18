@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Early Systems, Builds, and Repair Work
+This page documents hands-on systems work spanning early computing exposure through modern rebuilds, repairs, and custom configurations. It represents long-form, real-world experience across hardware, operating systems, networking, and recovery.
+
+Early Computing Foundations
+
+Proficient IBM DOS usage before age 4 (documented via family photographs).
+Early exposure to command-line interfaces, system interaction, and computing fundamentals well before formal education.
+
+
+Custom Builds &amp; Franken-Systems
+CyberPowerPC Custom Gaming Build (2010)
+
+Full ground-up scratch build.
+Dual-boot configuration (Windows / macOS).
+Custom lighting (green internal illumination).
+Built, tuned, and later decommissioned after resale.
+
+Hackintosh &amp; Experimental Builds
+
+Acer EeePC configured as a Hackintosh.
+Required custom bootloader configuration, driver adaptation, and hardware compatibility tuning.
+Ongoing experimentation and rebuilds across years.
+
+Thin Clients &amp; Mini PCs
+
+ASUS EeeBox converted to Debian Linux.
+Additional thin clients repurposed for Linux-based workloads and experimentation.
+
+
+Repairs, Recovery, and Persistence Projects
+Samsung All-in-One Touchscreen PC
+
+Original system functional → touchscreen driver failure after Windows upgrade.
+Manufacturer declared touchscreen irrecoverable.
+Successfully restored full touchscreen functionality years later through driver recovery, OS tuning, and persistence.
+System remains fully operational.
+
+Laptop &amp; Desktop Repairs
+
+Multiple MacBook Pro, MacBook Air, and iMac repairs (2007–2015 era).
+Battery replacements, keyboard replacements, RAM upgrades, SSD conversions.
+Display cable repair (MacBook Pro).
+Liquid-damage data recovery with full drive extraction.
+
+
+Mobile Devices &amp; Embedded Systems
+
+Rooted, flashed, and repaired multiple Android devices using custom ROMs.
+Legacy phone resuscitation (Palm Pre, Pocket PC, flip phones, Nokia devices).
+Reprogrammed embedded tablet hardware (DoorDash tablet repurposed after business closure).
+
+
+Data Recovery &amp; Storage Repurposing
+
+Numerous HDD and SSD data rescue operations.
+Repurposed recovered drives into external storage systems.
+NVMe enclosures built from raw components.
+Legacy external drive repair and shell reuse (e.g., GoFlex conversions).
+
+
+Networking &amp; Infrastructure Work
+
+Physical network hardware configuration (switches, cabling, patch panels).
+CAT6 cable creation, punch-down termination, and validation with testers.
+Home mesh network design informed by heat-mapping and signal analysis.
+VLAN segmentation, guest networks, IoT isolation, and hidden personal networks.
+
+
+Ongoing Work
+
+Dell OptiPlex tower teardown and rebuild (DDR upgrades, NVMe expansion).
+Continuous iteration on systems, networks, and recovery techniques.
+">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/core/early-systems-and-builds/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b94d83909f07e0cbee01ac74d8672bb80deea6a9b5ec7bd8b4cac91492586df5.css" integrity="sha256-uU2DkJ8H4MvuAax02GcruA3upqm17HvYtMrJFJJYbfU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/core/early-systems-and-builds/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/core/early-systems-and-builds/">
+  <meta property="og:site_name" content="Jenn Shagrin">
+  <meta property="og:title" content="Jenn Shagrin">
+  <meta property="og:description" content="Early Systems, Builds, and Repair Work This page documents hands-on systems work spanning early computing exposure through modern rebuilds, repairs, and custom configurations. It represents long-form, real-world experience across hardware, operating systems, networking, and recovery.
+Early Computing Foundations Proficient IBM DOS usage before age 4 (documented via family photographs). Early exposure to command-line interfaces, system interaction, and computing fundamentals well before formal education. Custom Builds &amp; Franken-Systems CyberPowerPC Custom Gaming Build (2010) Full ground-up scratch build. Dual-boot configuration (Windows / macOS). Custom lighting (green internal illumination). Built, tuned, and later decommissioned after resale. Hackintosh &amp; Experimental Builds Acer EeePC configured as a Hackintosh. Required custom bootloader configuration, driver adaptation, and hardware compatibility tuning. Ongoing experimentation and rebuilds across years. Thin Clients &amp; Mini PCs ASUS EeeBox converted to Debian Linux. Additional thin clients repurposed for Linux-based workloads and experimentation. Repairs, Recovery, and Persistence Projects Samsung All-in-One Touchscreen PC Original system functional → touchscreen driver failure after Windows upgrade. Manufacturer declared touchscreen irrecoverable. Successfully restored full touchscreen functionality years later through driver recovery, OS tuning, and persistence. System remains fully operational. Laptop &amp; Desktop Repairs Multiple MacBook Pro, MacBook Air, and iMac repairs (2007–2015 era). Battery replacements, keyboard replacements, RAM upgrades, SSD conversions. Display cable repair (MacBook Pro). Liquid-damage data recovery with full drive extraction. Mobile Devices &amp; Embedded Systems Rooted, flashed, and repaired multiple Android devices using custom ROMs. Legacy phone resuscitation (Palm Pre, Pocket PC, flip phones, Nokia devices). Reprogrammed embedded tablet hardware (DoorDash tablet repurposed after business closure). Data Recovery &amp; Storage Repurposing Numerous HDD and SSD data rescue operations. Repurposed recovered drives into external storage systems. NVMe enclosures built from raw components. Legacy external drive repair and shell reuse (e.g., GoFlex conversions). Networking &amp; Infrastructure Work Physical network hardware configuration (switches, cabling, patch panels). CAT6 cable creation, punch-down termination, and validation with testers. Home mesh network design informed by heat-mapping and signal analysis. VLAN segmentation, guest networks, IoT isolation, and hidden personal networks. Ongoing Work Dell OptiPlex tower teardown and rebuild (DDR upgrades, NVMe expansion). Continuous iteration on systems, networks, and recovery techniques. ">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="">
+<meta name="twitter:description" content="Early Systems, Builds, and Repair Work
+This page documents hands-on systems work spanning early computing exposure through modern rebuilds, repairs, and custom configurations. It represents long-form, real-world experience across hardware, operating systems, networking, and recovery.
+
+Early Computing Foundations
+
+Proficient IBM DOS usage before age 4 (documented via family photographs).
+Early exposure to command-line interfaces, system interaction, and computing fundamentals well before formal education.
+
+
+Custom Builds &amp; Franken-Systems
+CyberPowerPC Custom Gaming Build (2010)
+
+Full ground-up scratch build.
+Dual-boot configuration (Windows / macOS).
+Custom lighting (green internal illumination).
+Built, tuned, and later decommissioned after resale.
+
+Hackintosh &amp; Experimental Builds
+
+Acer EeePC configured as a Hackintosh.
+Required custom bootloader configuration, driver adaptation, and hardware compatibility tuning.
+Ongoing experimentation and rebuilds across years.
+
+Thin Clients &amp; Mini PCs
+
+ASUS EeeBox converted to Debian Linux.
+Additional thin clients repurposed for Linux-based workloads and experimentation.
+
+
+Repairs, Recovery, and Persistence Projects
+Samsung All-in-One Touchscreen PC
+
+Original system functional → touchscreen driver failure after Windows upgrade.
+Manufacturer declared touchscreen irrecoverable.
+Successfully restored full touchscreen functionality years later through driver recovery, OS tuning, and persistence.
+System remains fully operational.
+
+Laptop &amp; Desktop Repairs
+
+Multiple MacBook Pro, MacBook Air, and iMac repairs (2007–2015 era).
+Battery replacements, keyboard replacements, RAM upgrades, SSD conversions.
+Display cable repair (MacBook Pro).
+Liquid-damage data recovery with full drive extraction.
+
+
+Mobile Devices &amp; Embedded Systems
+
+Rooted, flashed, and repaired multiple Android devices using custom ROMs.
+Legacy phone resuscitation (Palm Pre, Pocket PC, flip phones, Nokia devices).
+Reprogrammed embedded tablet hardware (DoorDash tablet repurposed after business closure).
+
+
+Data Recovery &amp; Storage Repurposing
+
+Numerous HDD and SSD data rescue operations.
+Repurposed recovered drives into external storage systems.
+NVMe enclosures built from raw components.
+Legacy external drive repair and shell reuse (e.g., GoFlex conversions).
+
+
+Networking &amp; Infrastructure Work
+
+Physical network hardware configuration (switches, cabling, patch panels).
+CAT6 cable creation, punch-down termination, and validation with testers.
+Home mesh network design informed by heat-mapping and signal analysis.
+VLAN segmentation, guest networks, IoT isolation, and hidden personal networks.
+
+
+Ongoing Work
+
+Dell OptiPlex tower teardown and rebuild (DDR upgrades, NVMe expansion).
+Continuous iteration on systems, networks, and recovery techniques.
+">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/core/early-systems-and-builds/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "name": "",
+  "description": "Early Systems, Builds, and Repair Work This page documents hands-on systems work spanning early computing exposure through modern rebuilds, repairs, and custom configurations. It represents long-form, real-world experience across hardware, operating systems, networking, and recovery.\nEarly Computing Foundations Proficient IBM DOS usage before age 4 (documented via family photographs). Early exposure to command-line interfaces, system interaction, and computing fundamentals well before formal education. Custom Builds \u0026amp; Franken-Systems CyberPowerPC Custom Gaming Build (2010) Full ground-up scratch build. Dual-boot configuration (Windows / macOS). Custom lighting (green internal illumination). Built, tuned, and later decommissioned after resale. Hackintosh \u0026amp; Experimental Builds Acer EeePC configured as a Hackintosh. Required custom bootloader configuration, driver adaptation, and hardware compatibility tuning. Ongoing experimentation and rebuilds across years. Thin Clients \u0026amp; Mini PCs ASUS EeeBox converted to Debian Linux. Additional thin clients repurposed for Linux-based workloads and experimentation. Repairs, Recovery, and Persistence Projects Samsung All-in-One Touchscreen PC Original system functional → touchscreen driver failure after Windows upgrade. Manufacturer declared touchscreen irrecoverable. Successfully restored full touchscreen functionality years later through driver recovery, OS tuning, and persistence. System remains fully operational. Laptop \u0026amp; Desktop Repairs Multiple MacBook Pro, MacBook Air, and iMac repairs (2007–2015 era). Battery replacements, keyboard replacements, RAM upgrades, SSD conversions. Display cable repair (MacBook Pro). Liquid-damage data recovery with full drive extraction. Mobile Devices \u0026amp; Embedded Systems Rooted, flashed, and repaired multiple Android devices using custom ROMs. Legacy phone resuscitation (Palm Pre, Pocket PC, flip phones, Nokia devices). Reprogrammed embedded tablet hardware (DoorDash tablet repurposed after business closure). Data Recovery \u0026amp; Storage Repurposing Numerous HDD and SSD data rescue operations. Repurposed recovered drives into external storage systems. NVMe enclosures built from raw components. Legacy external drive repair and shell reuse (e.g., GoFlex conversions). Networking \u0026amp; Infrastructure Work Physical network hardware configuration (switches, cabling, patch panels). CAT6 cable creation, punch-down termination, and validation with testers. Home mesh network design informed by heat-mapping and signal analysis. VLAN segmentation, guest networks, IoT isolation, and hidden personal networks. Ongoing Work Dell OptiPlex tower teardown and rebuild (DDR upgrades, NVMe expansion). Continuous iteration on systems, networks, and recovery techniques. ",
+  "keywords": [
+    
+  ],
+  "articleBody": "Early Systems, Builds, and Repair Work This page documents hands-on systems work spanning early computing exposure through modern rebuilds, repairs, and custom configurations. It represents long-form, real-world experience across hardware, operating systems, networking, and recovery.\nEarly Computing Foundations Proficient IBM DOS usage before age 4 (documented via family photographs). Early exposure to command-line interfaces, system interaction, and computing fundamentals well before formal education. Custom Builds \u0026 Franken-Systems CyberPowerPC Custom Gaming Build (2010) Full ground-up scratch build. Dual-boot configuration (Windows / macOS). Custom lighting (green internal illumination). Built, tuned, and later decommissioned after resale. Hackintosh \u0026 Experimental Builds Acer EeePC configured as a Hackintosh. Required custom bootloader configuration, driver adaptation, and hardware compatibility tuning. Ongoing experimentation and rebuilds across years. Thin Clients \u0026 Mini PCs ASUS EeeBox converted to Debian Linux. Additional thin clients repurposed for Linux-based workloads and experimentation. Repairs, Recovery, and Persistence Projects Samsung All-in-One Touchscreen PC Original system functional → touchscreen driver failure after Windows upgrade. Manufacturer declared touchscreen irrecoverable. Successfully restored full touchscreen functionality years later through driver recovery, OS tuning, and persistence. System remains fully operational. Laptop \u0026 Desktop Repairs Multiple MacBook Pro, MacBook Air, and iMac repairs (2007–2015 era). Battery replacements, keyboard replacements, RAM upgrades, SSD conversions. Display cable repair (MacBook Pro). Liquid-damage data recovery with full drive extraction. Mobile Devices \u0026 Embedded Systems Rooted, flashed, and repaired multiple Android devices using custom ROMs. Legacy phone resuscitation (Palm Pre, Pocket PC, flip phones, Nokia devices). Reprogrammed embedded tablet hardware (DoorDash tablet repurposed after business closure). Data Recovery \u0026 Storage Repurposing Numerous HDD and SSD data rescue operations. Repurposed recovered drives into external storage systems. NVMe enclosures built from raw components. Legacy external drive repair and shell reuse (e.g., GoFlex conversions). Networking \u0026 Infrastructure Work Physical network hardware configuration (switches, cabling, patch panels). CAT6 cable creation, punch-down termination, and validation with testers. Home mesh network design informed by heat-mapping and signal analysis. VLAN segmentation, guest networks, IoT isolation, and hidden personal networks. Ongoing Work Dell OptiPlex tower teardown and rebuild (DDR upgrades, NVMe expansion). Continuous iteration on systems, networks, and recovery techniques. ",
+  "wordCount" : "346",
+  "inLanguage": "en",
+  "datePublished": "0001-01-01T00:00:00Z",
+  "dateModified": "0001-01-01T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://jennshaggy.github.io/quietsite/core/early-systems-and-builds/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Jenn Shagrin",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://jennshaggy.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation">
+                    <span>Systems Foundation</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects">
+                    <span>Applied Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training">
+                    <span>Platforms &amp; Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      
+    </h1>
+    <div class="post-meta">
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="early-systems-builds-and-repair-work">Early Systems, Builds, and Repair Work<a hidden class="anchor" aria-hidden="true" href="#early-systems-builds-and-repair-work">#</a></h1>
+<p>This page documents hands-on systems work spanning early computing exposure through modern rebuilds, repairs, and custom configurations. It represents long-form, real-world experience across hardware, operating systems, networking, and recovery.</p>
+<hr>
+<h2 id="early-computing-foundations">Early Computing Foundations<a hidden class="anchor" aria-hidden="true" href="#early-computing-foundations">#</a></h2>
+<ul>
+<li>Proficient IBM DOS usage before age 4 (documented via family photographs).</li>
+<li>Early exposure to command-line interfaces, system interaction, and computing fundamentals well before formal education.</li>
+</ul>
+<hr>
+<h2 id="custom-builds--franken-systems">Custom Builds &amp; Franken-Systems<a hidden class="anchor" aria-hidden="true" href="#custom-builds--franken-systems">#</a></h2>
+<h3 id="cyberpowerpc-custom-gaming-build-2010">CyberPowerPC Custom Gaming Build (2010)<a hidden class="anchor" aria-hidden="true" href="#cyberpowerpc-custom-gaming-build-2010">#</a></h3>
+<ul>
+<li>Full ground-up scratch build.</li>
+<li>Dual-boot configuration (Windows / macOS).</li>
+<li>Custom lighting (green internal illumination).</li>
+<li>Built, tuned, and later decommissioned after resale.</li>
+</ul>
+<h3 id="hackintosh--experimental-builds">Hackintosh &amp; Experimental Builds<a hidden class="anchor" aria-hidden="true" href="#hackintosh--experimental-builds">#</a></h3>
+<ul>
+<li>Acer EeePC configured as a Hackintosh.</li>
+<li>Required custom bootloader configuration, driver adaptation, and hardware compatibility tuning.</li>
+<li>Ongoing experimentation and rebuilds across years.</li>
+</ul>
+<h3 id="thin-clients--mini-pcs">Thin Clients &amp; Mini PCs<a hidden class="anchor" aria-hidden="true" href="#thin-clients--mini-pcs">#</a></h3>
+<ul>
+<li>ASUS EeeBox converted to Debian Linux.</li>
+<li>Additional thin clients repurposed for Linux-based workloads and experimentation.</li>
+</ul>
+<hr>
+<h2 id="repairs-recovery-and-persistence-projects">Repairs, Recovery, and Persistence Projects<a hidden class="anchor" aria-hidden="true" href="#repairs-recovery-and-persistence-projects">#</a></h2>
+<h3 id="samsung-all-in-one-touchscreen-pc">Samsung All-in-One Touchscreen PC<a hidden class="anchor" aria-hidden="true" href="#samsung-all-in-one-touchscreen-pc">#</a></h3>
+<ul>
+<li>Original system functional → touchscreen driver failure after Windows upgrade.</li>
+<li>Manufacturer declared touchscreen irrecoverable.</li>
+<li>Successfully restored full touchscreen functionality years later through driver recovery, OS tuning, and persistence.</li>
+<li>System remains fully operational.</li>
+</ul>
+<h3 id="laptop--desktop-repairs">Laptop &amp; Desktop Repairs<a hidden class="anchor" aria-hidden="true" href="#laptop--desktop-repairs">#</a></h3>
+<ul>
+<li>Multiple MacBook Pro, MacBook Air, and iMac repairs (2007–2015 era).</li>
+<li>Battery replacements, keyboard replacements, RAM upgrades, SSD conversions.</li>
+<li>Display cable repair (MacBook Pro).</li>
+<li>Liquid-damage data recovery with full drive extraction.</li>
+</ul>
+<hr>
+<h2 id="mobile-devices--embedded-systems">Mobile Devices &amp; Embedded Systems<a hidden class="anchor" aria-hidden="true" href="#mobile-devices--embedded-systems">#</a></h2>
+<ul>
+<li>Rooted, flashed, and repaired multiple Android devices using custom ROMs.</li>
+<li>Legacy phone resuscitation (Palm Pre, Pocket PC, flip phones, Nokia devices).</li>
+<li>Reprogrammed embedded tablet hardware (DoorDash tablet repurposed after business closure).</li>
+</ul>
+<hr>
+<h2 id="data-recovery--storage-repurposing">Data Recovery &amp; Storage Repurposing<a hidden class="anchor" aria-hidden="true" href="#data-recovery--storage-repurposing">#</a></h2>
+<ul>
+<li>Numerous HDD and SSD data rescue operations.</li>
+<li>Repurposed recovered drives into external storage systems.</li>
+<li>NVMe enclosures built from raw components.</li>
+<li>Legacy external drive repair and shell reuse (e.g., GoFlex conversions).</li>
+</ul>
+<hr>
+<h2 id="networking--infrastructure-work">Networking &amp; Infrastructure Work<a hidden class="anchor" aria-hidden="true" href="#networking--infrastructure-work">#</a></h2>
+<ul>
+<li>Physical network hardware configuration (switches, cabling, patch panels).</li>
+<li>CAT6 cable creation, punch-down termination, and validation with testers.</li>
+<li>Home mesh network design informed by heat-mapping and signal analysis.</li>
+<li>VLAN segmentation, guest networks, IoT isolation, and hidden personal networks.</li>
+</ul>
+<hr>
+<h2 id="ongoing-work">Ongoing Work<a hidden class="anchor" aria-hidden="true" href="#ongoing-work">#</a></h2>
+<ul>
+<li>Dell OptiPlex tower teardown and rebuild (DDR upgrades, NVMe expansion).</li>
+<li>Continuous iteration on systems, networks, and recovery techniques.</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

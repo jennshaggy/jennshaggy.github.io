@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Hardware &amp; Infrastructure
+This page focuses on physical systems, infrastructure design, and hands-on hardware work that underpins higher-level security, cloud, and automation projects.
+
+Desktop Systems
+
+
+Dell OptiPlex 7020 Tower Plus
+
+Full teardown and rebuild
+RAM upgrades and NVMe SSD expansion
+Ongoing iterative build (documented with internal photos)
+
+
+
+Apple iMac Systems
+
+2007, 2010, 2012, and 2015 models
+RAM upgrades, internal HDD/SSD replacements
+Dual-boot and Linux-only configurations
+External-boot configurations for extended system life
+
+
+
+Custom Gaming PC (2010)">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/core/hardware-and-infrastructure/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b94d83909f07e0cbee01ac74d8672bb80deea6a9b5ec7bd8b4cac91492586df5.css" integrity="sha256-uU2DkJ8H4MvuAax02GcruA3upqm17HvYtMrJFJJYbfU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/core/hardware-and-infrastructure/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/core/hardware-and-infrastructure/">
+  <meta property="og:site_name" content="Jenn Shagrin">
+  <meta property="og:title" content="Jenn Shagrin">
+  <meta property="og:description" content="Hardware &amp; Infrastructure This page focuses on physical systems, infrastructure design, and hands-on hardware work that underpins higher-level security, cloud, and automation projects.
+Desktop Systems Dell OptiPlex 7020 Tower Plus
+Full teardown and rebuild RAM upgrades and NVMe SSD expansion Ongoing iterative build (documented with internal photos) Apple iMac Systems
+2007, 2010, 2012, and 2015 models RAM upgrades, internal HDD/SSD replacements Dual-boot and Linux-only configurations External-boot configurations for extended system life Custom Gaming PC (2010)">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="">
+<meta name="twitter:description" content="Hardware &amp; Infrastructure
+This page focuses on physical systems, infrastructure design, and hands-on hardware work that underpins higher-level security, cloud, and automation projects.
+
+Desktop Systems
+
+
+Dell OptiPlex 7020 Tower Plus
+
+Full teardown and rebuild
+RAM upgrades and NVMe SSD expansion
+Ongoing iterative build (documented with internal photos)
+
+
+
+Apple iMac Systems
+
+2007, 2010, 2012, and 2015 models
+RAM upgrades, internal HDD/SSD replacements
+Dual-boot and Linux-only configurations
+External-boot configurations for extended system life
+
+
+
+Custom Gaming PC (2010)">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/core/hardware-and-infrastructure/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "name": "",
+  "description": "Hardware \u0026amp; Infrastructure This page focuses on physical systems, infrastructure design, and hands-on hardware work that underpins higher-level security, cloud, and automation projects.\nDesktop Systems Dell OptiPlex 7020 Tower Plus\nFull teardown and rebuild RAM upgrades and NVMe SSD expansion Ongoing iterative build (documented with internal photos) Apple iMac Systems\n2007, 2010, 2012, and 2015 models RAM upgrades, internal HDD/SSD replacements Dual-boot and Linux-only configurations External-boot configurations for extended system life Custom Gaming PC (2010)\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "Hardware \u0026 Infrastructure This page focuses on physical systems, infrastructure design, and hands-on hardware work that underpins higher-level security, cloud, and automation projects.\nDesktop Systems Dell OptiPlex 7020 Tower Plus\nFull teardown and rebuild RAM upgrades and NVMe SSD expansion Ongoing iterative build (documented with internal photos) Apple iMac Systems\n2007, 2010, 2012, and 2015 models RAM upgrades, internal HDD/SSD replacements Dual-boot and Linux-only configurations External-boot configurations for extended system life Custom Gaming PC (2010)\nGround-up scratch build Dual-boot Windows / macOS Custom lighting and thermal tuning Laptops \u0026 Mobile Computing MacBook Pro (2008–2015)\nBattery, keyboard, display cable, and SSD repairs Liquid-damage data recovery and drive extraction Legacy system preservation for specialized workflows MacBook Air fleet\nMultiple models repaired, upgraded, and resold Windows laptops\nFan, power supply, RAM, and storage upgrades Servers, NAS, and Storage Cross-platform home NAS\nmacOS-based server with SMB access for Windows and Linux clients Permission and access control tuning External storage systems\nNVMe-based external drives Repurposed HDD enclosures Repaired legacy external drives reused as docks Networking Hardware Managed switches and rack-mounted equipment Patch panels and structured cabling Hand-built CAT6 cables with punch-down termination Cable validation using testers and remotes Home Network Architecture (Current) Xfinity fiber-optic service ISP router in bridge mode TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz) Heat-map–driven access point placement Separate VLANs for: IoT devices Guest access Private personal network Hidden high-security network using Cudy AX3000 Wi-Fi 6 router Embedded \u0026 Peripheral Systems Reprogrammed commercial tablets Legacy hardware integration (FireWire, MiniDV, PowerPC systems) Peripheral repair and interface bridging across generations ",
+  "wordCount" : "261",
+  "inLanguage": "en",
+  "datePublished": "0001-01-01T00:00:00Z",
+  "dateModified": "0001-01-01T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://jennshaggy.github.io/quietsite/core/hardware-and-infrastructure/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Jenn Shagrin",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://jennshaggy.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation">
+                    <span>Systems Foundation</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects">
+                    <span>Applied Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training">
+                    <span>Platforms &amp; Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      
+    </h1>
+    <div class="post-meta">
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="hardware--infrastructure">Hardware &amp; Infrastructure<a hidden class="anchor" aria-hidden="true" href="#hardware--infrastructure">#</a></h1>
+<p>This page focuses on physical systems, infrastructure design, and hands-on hardware work that underpins higher-level security, cloud, and automation projects.</p>
+<hr>
+<h2 id="desktop-systems">Desktop Systems<a hidden class="anchor" aria-hidden="true" href="#desktop-systems">#</a></h2>
+<ul>
+<li>
+<p>Dell OptiPlex 7020 Tower Plus</p>
+<ul>
+<li>Full teardown and rebuild</li>
+<li>RAM upgrades and NVMe SSD expansion</li>
+<li>Ongoing iterative build (documented with internal photos)</li>
+</ul>
+</li>
+<li>
+<p>Apple iMac Systems</p>
+<ul>
+<li>2007, 2010, 2012, and 2015 models</li>
+<li>RAM upgrades, internal HDD/SSD replacements</li>
+<li>Dual-boot and Linux-only configurations</li>
+<li>External-boot configurations for extended system life</li>
+</ul>
+</li>
+<li>
+<p>Custom Gaming PC (2010)</p>
+<ul>
+<li>Ground-up scratch build</li>
+<li>Dual-boot Windows / macOS</li>
+<li>Custom lighting and thermal tuning</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="laptops--mobile-computing">Laptops &amp; Mobile Computing<a hidden class="anchor" aria-hidden="true" href="#laptops--mobile-computing">#</a></h2>
+<ul>
+<li>
+<p>MacBook Pro (2008–2015)</p>
+<ul>
+<li>Battery, keyboard, display cable, and SSD repairs</li>
+<li>Liquid-damage data recovery and drive extraction</li>
+<li>Legacy system preservation for specialized workflows</li>
+</ul>
+</li>
+<li>
+<p>MacBook Air fleet</p>
+<ul>
+<li>Multiple models repaired, upgraded, and resold</li>
+</ul>
+</li>
+<li>
+<p>Windows laptops</p>
+<ul>
+<li>Fan, power supply, RAM, and storage upgrades</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="servers-nas-and-storage">Servers, NAS, and Storage<a hidden class="anchor" aria-hidden="true" href="#servers-nas-and-storage">#</a></h2>
+<ul>
+<li>
+<p>Cross-platform home NAS</p>
+<ul>
+<li>macOS-based server with SMB access for Windows and Linux clients</li>
+<li>Permission and access control tuning</li>
+</ul>
+</li>
+<li>
+<p>External storage systems</p>
+<ul>
+<li>NVMe-based external drives</li>
+<li>Repurposed HDD enclosures</li>
+<li>Repaired legacy external drives reused as docks</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="networking-hardware">Networking Hardware<a hidden class="anchor" aria-hidden="true" href="#networking-hardware">#</a></h2>
+<ul>
+<li>Managed switches and rack-mounted equipment</li>
+<li>Patch panels and structured cabling</li>
+<li>Hand-built CAT6 cables with punch-down termination</li>
+<li>Cable validation using testers and remotes</li>
+</ul>
+<hr>
+<h2 id="home-network-architecture-current">Home Network Architecture (Current)<a hidden class="anchor" aria-hidden="true" href="#home-network-architecture-current">#</a></h2>
+<ul>
+<li>Xfinity fiber-optic service</li>
+<li>ISP router in bridge mode</li>
+<li>TP-Link Deco mesh system (2.4 GHz / 5 GHz / 6 GHz)</li>
+<li>Heat-map–driven access point placement</li>
+<li>Separate VLANs for:
+<ul>
+<li>IoT devices</li>
+<li>Guest access</li>
+<li>Private personal network</li>
+</ul>
+</li>
+<li>Hidden high-security network using Cudy AX3000 Wi-Fi 6 router</li>
+</ul>
+<hr>
+<h2 id="embedded--peripheral-systems">Embedded &amp; Peripheral Systems<a hidden class="anchor" aria-hidden="true" href="#embedded--peripheral-systems">#</a></h2>
+<ul>
+<li>Reprogrammed commercial tablets</li>
+<li>Legacy hardware integration (FireWire, MiniDV, PowerPC systems)</li>
+<li>Peripheral repair and interface bridging across generations</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
