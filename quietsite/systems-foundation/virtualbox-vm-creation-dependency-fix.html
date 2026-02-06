@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>VirtualBox VM Creation Tool — Dependency Fix | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="A VM creation utility failed due to a .NET assembly binding conflict. Root cause diagnosed, fixed with a configuration file, and documented for repeatability.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/systems-foundation/virtualbox-vm-creation-dependency-fix.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/systems-foundation/virtualbox-vm-creation-dependency-fix.html">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/systems-foundation/virtualbox-vm-creation-dependency-fix.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="VirtualBox VM Creation Tool — Dependency Fix">
+<meta property="og:description" content="A VM creation utility failed due to a .NET assembly binding conflict. Root cause diagnosed, fixed with a configuration file, and documented for repeatability.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="VirtualBox VM Creation Tool — Dependency Fix">
+<meta name="twitter:description" content="A VM creation utility failed due to a .NET assembly binding conflict. Root cause diagnosed, fixed with a configuration file, and documented for repeatability.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Systems Foundation",
+      "item": "https://jennshaggy.github.io/quietsite/systems-foundation/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "VirtualBox VM Creation Tool — Dependency Fix",
+      "item": "https://jennshaggy.github.io/quietsite/systems-foundation/virtualbox-vm-creation-dependency-fix.html"
+    }
+  ]
+}
+</script>
+</head>
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li><a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation"><span class="active">Systems Foundation</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking"><span>Networking</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects"><span>Applied Projects</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training"><span>Platforms &amp; Training</span></a></li>
+            <li><a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio"><span>CIAT Portfolio</span></a></li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">
+      VirtualBox VM Creation Tool — Dependency Fix
+    </h1>
+    <div class="post-description">
+      A vendor tool failed on launch due to a .NET dependency mismatch. The fix required no code — just understanding how assembly binding works.
+    </div>
+    <div class="post-meta">
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </span>
+        <span class="post-meta-item-content">Status: Complete</span>
+      </span>
+    </div>
+  </header>
+  <div class="post-content">
+
+<h2 id="overview">Overview<a hidden class="anchor" aria-hidden="true" href="#overview">#</a></h2>
+<p>A VM creation utility designed to automate VirtualBox deployments crashed immediately on launch. The error pointed to a missing assembly — but the assembly wasn't actually missing. The .NET runtime just couldn't find the version it expected.</p>
+<p>No vendor support. No documentation. Just an error message and a broken tool blocking an entire environment setup.</p>
+
+<hr>
+
+<h2 id="the-problem">The Problem<a hidden class="anchor" aria-hidden="true" href="#the-problem">#</a></h2>
+<ul>
+<li>Executable crashes on launch with no UI, no logs, just a runtime exception</li>
+<li>Error: <code>Could not load file or assembly 'Newtonsoft.Json, Version=12.0.0.0'</code></li>
+<li>Tool required for automated VM configuration and deployment</li>
+<li>No vendor support available, no alternative tooling provided</li>
+</ul>
+
+<hr>
+
+<h2 id="objectives">Objectives<a hidden class="anchor" aria-hidden="true" href="#objectives">#</a></h2>
+<ul>
+<li>Diagnose the assembly binding failure at the .NET runtime level</li>
+<li>Identify the actual dependency versions present on the system</li>
+<li>Implement a fix without modifying the binary or introducing breaking changes</li>
+<li>Validate functionality and document the solution for repeatability</li>
+</ul>
+
+<hr>
+
+<h2 id="work-performed">Work Performed<a hidden class="anchor" aria-hidden="true" href="#work-performed">#</a></h2>
+
+<h3 id="root-cause-analysis">Root Cause Analysis<a hidden class="anchor" aria-hidden="true" href="#root-cause-analysis">#</a></h3>
+<p>The tool was compiled against <strong>Newtonsoft.Json v12</strong>. The system had <strong>v13</strong> installed. .NET's assembly loader couldn't automatically resolve the version difference, even though v13 is backward-compatible.</p>
+<p>This is a common issue when dependency versions shift between build time and runtime, but the .NET runtime doesn't auto-redirect unless explicitly instructed.</p>
+
+<h3 id="solution">Solution<a hidden class="anchor" aria-hidden="true" href="#solution">#</a></h3>
+<p>Created a binding redirect configuration file (<code>VMCreate.exe.config</code>) to force the runtime to use the available version:</p>
+
+<pre><code class="language-xml">&lt;configuration&gt;
+  &lt;runtime&gt;
+    &lt;assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1"&gt;
+      &lt;dependentAssembly&gt;
+        &lt;assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" /&gt;
+        &lt;bindingRedirect oldVersion="0.0.0.0-12.0.0.0" newVersion="13.0.0.0" /&gt;
+      &lt;/dependentAssembly&gt;
+    &lt;/assemblyBinding&gt;
+  &lt;/runtime&gt;
+&lt;/configuration&gt;
+</code></pre>
+
+<p>The config file was placed in the same directory as the executable. The binding redirect tells .NET: "If anything requests v12 or earlier, provide v13 instead."</p>
+
+<h3 id="validation">Validation<a hidden class="anchor" aria-hidden="true" href="#validation">#</a></h3>
+<ul>
+<li>Tool launched successfully without errors</li>
+<li>VM creation workflow executed end-to-end</li>
+<li>Configuration documented and shared for reuse</li>
+</ul>
+
+<hr>
+
+<h2 id="outcome">Outcome<a hidden class="anchor" aria-hidden="true" href="#outcome">#</a></h2>
+<p>The VM creation tool was restored to working state. The fix required no binary modification, no dependency downgrades, and no workarounds — just a text file and an understanding of how .NET assembly binding works.</p>
+<p>The solution was reproducible, documented, and required no ongoing maintenance.</p>
+
+<hr>
+
+<h2 id="why-it-matters">Why It Matters<a hidden class="anchor" aria-hidden="true" href="#why-it-matters">#</a></h2>
+<p>Vendor tools break. Dependencies shift. Official support doesn't always exist, and when it does, it doesn't always move fast enough.</p>
+<p>When you understand the framework beneath the tool — in this case, how .NET resolves assemblies at runtime — you can fix what others can't. This wasn't a hack or a workaround. It was the correct technical solution applied at the right layer.</p>
+<p>That's the difference between being blocked by a broken tool and being able to make it work anyway.</p>
+
+<hr>
+
+<h2 id="evidence">Evidence<a hidden class="anchor" aria-hidden="true" href="#evidence">#</a></h2>
+<ul>
+<li>Configuration file preserved and validated</li>
+<li>Troubleshooting documentation written and shared</li>
+<li>VM deployment workflow confirmed operational</li>
+</ul>
+
+  </div>
+  <footer class="post-footer">
+    <div class="post-nav">
+      <a href="./index.html" class="prev">← Back to Systems Foundation</a>
+    </div>
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>

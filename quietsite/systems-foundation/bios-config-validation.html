@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>BIOS Configuration &amp; System Validation | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Firmware-level configuration for TPM, virtualization, and secure boot. Storage health validated using multiple diagnostic layers.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/systems-foundation/bios-config-validation.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/systems-foundation/bios-config-validation.html">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/systems-foundation/bios-config-validation.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="BIOS Configuration &amp; System Validation">
+<meta property="og:description" content="Firmware-level configuration for TPM, virtualization, and secure boot. Storage health validated using multiple diagnostic layers.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BIOS Configuration &amp; System Validation">
+<meta name="twitter:description" content="Firmware-level configuration for TPM, virtualization, and secure boot. Storage health validated using multiple diagnostic layers.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Systems Foundation",
+      "item": "https://jennshaggy.github.io/quietsite/systems-foundation/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "BIOS Configuration &amp; System Validation",
+      "item": "https://jennshaggy.github.io/quietsite/systems-foundation/bios-config-validation.html"
+    }
+  ]
+}
+</script>
+</head>
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li><a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation"><span class="active">Systems Foundation</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking"><span>Networking</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects"><span>Applied Projects</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training"><span>Platforms &amp; Training</span></a></li>
+            <li><a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio"><span>CIAT Portfolio</span></a></li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">
+      BIOS Configuration &amp; System Validation
+    </h1>
+    <div class="post-description">
+      Firmware-level configuration for security and virtualization, followed by multi-layer storage health validation.
+    </div>
+    <div class="post-meta">
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </span>
+        <span class="post-meta-item-content">Status: Complete</span>
+      </span>
+    </div>
+  </header>
+  <div class="post-content">
+
+<h2 id="overview">Overview<a hidden class="anchor" aria-hidden="true" href="#overview">#</a></h2>
+<p>After hardware assembly, the system required firmware-level configuration before OS deployment. This included enabling TPM 2.0 for BitLocker support, configuring Intel Virtualization Technology for hypervisor workloads, and validating storage integrity at multiple diagnostic layers.</p>
+<p>Security starts in firmware. Get it wrong here, and the OS inherits constraints it can't fix.</p>
+
+<hr>
+
+<h2 id="objectives">Objectives<a hidden class="anchor" aria-hidden="true" href="#objectives">#</a></h2>
+<ul>
+<li>Enable TPM 2.0 for secure boot and encryption</li>
+<li>Configure Intel VT-x and VT-d for virtualization</li>
+<li>Verify storage detection at firmware level</li>
+<li>Validate storage health using OS-level diagnostics</li>
+<li>Document baseline system state</li>
+</ul>
+
+<hr>
+
+<h2 id="work-performed">Work Performed<a hidden class="anchor" aria-hidden="true" href="#work-performed">#</a></h2>
+
+<h3 id="bios-access">BIOS Access<a hidden class="anchor" aria-hidden="true" href="#bios-access">#</a></h3>
+<p>System powered on, F2 pressed during POST to enter BIOS setup. Dell UEFI interface loaded. Firmware version confirmed: 1.10.0.</p>
+
+<h3 id="tpm-configuration">TPM 2.0 Configuration<a hidden class="anchor" aria-hidden="true" href="#tpm-configuration">#</a></h3>
+<p>Navigated to <code>Security → TPM 2.0 Security</code> and enabled:</p>
+<ul>
+<li><strong>TPM 2.0 Security:</strong> ON — Makes Trusted Platform Module visible to OS</li>
+<li><strong>Attestation Enable:</strong> ON — Allows TPM signing operations for secure boot</li>
+<li><strong>Key Storage Enable:</strong> ON — Permits TPM to store encryption keys</li>
+<li><strong>SHA-256:</strong> Enabled — Uses SHA-256 hashing for PCR measurements (stronger than SHA-1)</li>
+</ul>
+<p>Changes saved. TPM now available to Windows for BitLocker and secure boot validation.</p>
+
+<h3 id="virtualization-configuration">Virtualization Configuration<a hidden class="anchor" aria-hidden="true" href="#virtualization-configuration">#</a></h3>
+<p>Navigated to <code>Virtualization Support</code> and enabled:</p>
+<ul>
+<li><strong>Intel Virtualization Technology (VT-x):</strong> ON — Hardware-assisted virtualization for hypervisors</li>
+<li><strong>VT for Direct I/O (VT-d):</strong> ON — Allows VMs to directly access I/O devices</li>
+<li><strong>Intel Trusted Execution Technology (TXT):</strong> ON — Provides measured boot for secure VM launch</li>
+</ul>
+<p>This configuration enables full hypervisor functionality including nested virtualization and PCI passthrough.</p>
+
+<h3 id="storage-detection">Storage Detection<a hidden class="anchor" aria-hidden="true" href="#storage-detection">#</a></h3>
+<p>Verified all drives detected under <code>Storage → SATA/NVMe Devices</code>:</p>
+<ul>
+<li>Primary M.2 NVMe SSD recognized with correct capacity</li>
+<li>M.2 slot configuration confirmed (PCIe Gen4 x4 operational)</li>
+</ul>
+<p>Boot order set: NVMe SSD first, USB and network boot disabled. Settings saved and system rebooted.</p>
+
+<hr>
+
+<h2 id="storage-health-validation">Storage Health Validation<a hidden class="anchor" aria-hidden="true" href="#storage-health-validation">#</a></h2>
+<p>After Windows installation, storage health validated using multiple diagnostic tools.</p>
+
+<h3 id="disk-management">Disk Management<a hidden class="anchor" aria-hidden="true" href="#disk-management">#</a></h3>
+<p>Opened <code>diskmgmt.msc</code> and verified:</p>
+<ul>
+<li>All drives visible and correctly partitioned</li>
+<li>Drive letters assigned correctly</li>
+<li>No unallocated space or partition errors</li>
+<li>GPT partition scheme confirmed for UEFI boot</li>
+</ul>
+
+<h3 id="chkdsk">CHKDSK — Filesystem Integrity<a hidden class="anchor" aria-hidden="true" href="#chkdsk">#</a></h3>
+<p>Ran <code>chkdsk /F</code> from Administrator command prompt. Tool scheduled for next reboot.</p>
+<p>On reboot, CHKDSK completed all five verification stages. <strong>Result:</strong> No errors found. Filesystem integrity confirmed.</p>
+
+<h3 id="diskcheckup">DiskCheckup — SMART Analysis<a hidden class="anchor" aria-hidden="true" href="#diskcheckup">#</a></h3>
+<p>Used PassMark DiskCheckup to read SMART data from NVMe drive:</p>
+<ul>
+<li><strong>Power-On Hours:</strong> Low (new drive)</li>
+<li><strong>Temperature:</strong> Within normal operating range</li>
+<li><strong>Reallocated Sectors:</strong> 0 (no bad blocks)</li>
+<li><strong>Pending Sectors:</strong> 0</li>
+<li><strong>Overall Health Status:</strong> PASSED</li>
+</ul>
+<p>No signs of wear or imminent failure.</p>
+
+<h3 id="windows-error-checking">Windows Error Checking<a hidden class="anchor" aria-hidden="true" href="#windows-error-checking">#</a></h3>
+<p>Ran Windows Error Checking via <code>C: Properties → Tools → Check</code>.</p>
+<p><strong>Result:</strong> No errors detected. Filesystem clean.</p>
+
+<hr>
+
+<h2 id="outcome">Outcome<a hidden class="anchor" aria-hidden="true" href="#outcome">#</a></h2>
+<p>Firmware configured for security and virtualization. TPM enabled, Intel VT-x/VT-d operational. Storage validated at firmware and OS levels — no errors, no bad sectors, SMART data clean. System ready for production workloads.</p>
+
+<hr>
+
+<h2 id="why-it-matters">Why It Matters<a hidden class="anchor" aria-hidden="true" href="#why-it-matters">#</a></h2>
+<p>BIOS configuration isn't optional. If TPM isn't enabled, BitLocker won't work. If virtualization extensions aren't enabled, hypervisors fail or run slowly. If storage issues exist but aren't caught early, they become data loss.</p>
+<p>Checking at multiple layers — BIOS detection, OS scans, SMART attributes — is what catches problems before they matter.</p>
+
+<hr>
+
+<h2 id="evidence">Evidence<a hidden class="anchor" aria-hidden="true" href="#evidence">#</a></h2>
+<p><em>Screenshots and configuration documentation to be added.</em></p>
+
+  </div>
+  <footer class="post-footer">
+    <div class="post-nav">
+      <a href="./index.html" class="prev">← Back to Systems Foundation</a>
+    </div>
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>

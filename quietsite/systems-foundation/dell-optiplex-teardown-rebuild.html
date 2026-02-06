@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Dell OptiPlex — Complete Teardown &amp; Rebuild | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Full disassembly, component-level inspection, and methodical reassembly of a Dell OptiPlex Tower Plus 7020. Every part documented, every decision intentional.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/systems-foundation/dell-optiplex-teardown-rebuild.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/systems-foundation/dell-optiplex-teardown-rebuild.html">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/systems-foundation/dell-optiplex-teardown-rebuild.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Dell OptiPlex — Complete Teardown &amp; Rebuild">
+<meta property="og:description" content="Full disassembly, component-level inspection, and methodical reassembly of a Dell OptiPlex Tower Plus 7020. Every part documented, every decision intentional.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dell OptiPlex — Complete Teardown &amp; Rebuild">
+<meta name="twitter:description" content="Full disassembly, component-level inspection, and methodical reassembly of a Dell OptiPlex Tower Plus 7020. Every part documented, every decision intentional.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Systems Foundation",
+      "item": "https://jennshaggy.github.io/quietsite/systems-foundation/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Dell OptiPlex — Complete Teardown &amp; Rebuild",
+      "item": "https://jennshaggy.github.io/quietsite/systems-foundation/dell-optiplex-teardown-rebuild.html"
+    }
+  ]
+}
+</script>
+</head>
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li><a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation"><span class="active">Systems Foundation</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking"><span>Networking</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects"><span>Applied Projects</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training"><span>Platforms &amp; Training</span></a></li>
+            <li><a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio"><span>CIAT Portfolio</span></a></li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">
+      Dell OptiPlex — Complete Teardown &amp; Rebuild
+    </h1>
+    <div class="post-description">
+      Full system disassembly, component-level documentation, and methodical reassembly. Every screw tracked, every part identified.
+    </div>
+    <div class="post-meta">
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </span>
+        <span class="post-meta-item-content">Status: Complete</span>
+      </span>
+    </div>
+  </header>
+  <div class="post-content">
+
+<h2 id="overview">Overview<a hidden class="anchor" aria-hidden="true" href="#overview">#</a></h2>
+<p>A Dell OptiPlex Tower Plus 7020 was disassembled down to the motherboard, with every component removed, inspected, and documented. The goal wasn't just to take it apart — it was to understand the architecture, validate compatibility, and reassemble it with full confidence in every connection.</p>
+<p>This is the kind of work that builds systems intuition. You can't troubleshoot what you don't understand, and you can't understand it without taking it apart first.</p>
+
+<hr>
+
+<h2 id="objectives">Objectives<a hidden class="anchor" aria-hidden="true" href="#objectives">#</a></h2>
+<ul>
+<li>Complete teardown to motherboard level</li>
+<li>Component identification and specification documentation</li>
+<li>ESD-safe handling and workspace discipline</li>
+<li>Methodical reassembly with validation at each step</li>
+<li>Post-build functional verification</li>
+</ul>
+
+<hr>
+
+<h2 id="system-specifications">System Specifications<a hidden class="anchor" aria-hidden="true" href="#system-specifications">#</a></h2>
+<p><strong>Platform:</strong> Dell OptiPlex Tower Plus 7020 (D31M motherboard)</p>
+
+<h3 id="processor">Processor<a hidden class="anchor" aria-hidden="true" href="#processor">#</a></h3>
+<ul>
+<li><strong>CPU:</strong> Intel Core i5-14500 (14th Gen)</li>
+<li><strong>Cores:</strong> 14 (6 P-cores + 8 E-cores)</li>
+<li><strong>Base Clock:</strong> 2.6 GHz</li>
+<li><strong>Max Turbo:</strong> 5.0 GHz</li>
+<li><strong>Cache:</strong> 24 MB Intel Smart Cache</li>
+<li><strong>TDP:</strong> 65W</li>
+<li><strong>Socket:</strong> LGA1700 (Land Grid Array — pins in socket, not CPU)</li>
+<li><strong>Integrated Graphics:</strong> Intel UHD Graphics 770</li>
+</ul>
+
+<h3 id="memory">Memory<a hidden class="anchor" aria-hidden="true" href="#memory">#</a></h3>
+<ul>
+<li><strong>Installed:</strong> 16 GB DDR5 UDIMM (single-channel)</li>
+<li><strong>Speed:</strong> 4400 MHz</li>
+<li><strong>Slots:</strong> 4 DIMM slots (supports DDR5 only)</li>
+<li><strong>Upgrade Path:</strong> Second module in DIMM Slot 2 for dual-channel operation</li>
+</ul>
+
+<h3 id="storage">Storage<a hidden class="anchor" aria-hidden="true" href="#storage">#</a></h3>
+<ul>
+<li><strong>Primary:</strong> M.2 NVMe SSD (PCIe Gen4)</li>
+<li><strong>M.2 Slots:</strong> 4 total (supporting both PCIe and SATA M.2 drives)</li>
+<li><strong>SATA Ports:</strong> 6 onboard</li>
+</ul>
+
+<h3 id="power-supply">Power Supply<a hidden class="anchor" aria-hidden="true" href="#power-supply">#</a></h3>
+<ul>
+<li><strong>Wattage:</strong> 260W</li>
+<li><strong>Efficiency:</strong> 80 Plus certified</li>
+<li><strong>Type:</strong> Modular</li>
+<li><strong>Connectors:</strong> 8-pin ATX, 4-pin CPU, SATA, PCIe</li>
+</ul>
+
+<h3 id="expansion">Expansion<a hidden class="anchor" aria-hidden="true" href="#expansion">#</a></h3>
+<ul>
+<li><strong>PCIe Slots:</strong> 1x PCIe x16, 1x PCIe x4, 1x PCIe x1</li>
+<li><strong>M.2 Expansion:</strong> 1x M.2 2230 slot for WiFi/Bluetooth combo card</li>
+</ul>
+
+<h3 id="connectivity">Connectivity<a hidden class="anchor" aria-hidden="true" href="#connectivity">#</a></h3>
+<ul>
+<li><strong>USB:</strong> 3x USB 2.0, 6x USB 3.2 Gen 1, 1x USB 3.2 Type-C</li>
+<li><strong>Display:</strong> 1x DisplayPort</li>
+<li><strong>Audio:</strong> 1x Universal Audio Port</li>
+<li><strong>Network:</strong> Onboard Gigabit Ethernet + WiFi 6/Bluetooth module</li>
+</ul>
+
+<hr>
+
+<h2 id="work-performed">Work Performed<a hidden class="anchor" aria-hidden="true" href="#work-performed">#</a></h2>
+
+<h3 id="pre-teardown">Pre-Teardown<a hidden class="anchor" aria-hidden="true" href="#pre-teardown">#</a></h3>
+<p>Before disassembly, the system was powered on to verify POST and boot behavior. Once confirmed functional, the system was powered down and the workspace prepared:</p>
+<ul>
+<li>ESD-safe surface established</li>
+<li>Component containers organized for screws and small parts</li>
+<li>Documentation tools ready (camera, notes)</li>
+<li>Service manual and motherboard diagram referenced</li>
+</ul>
+
+<h3 id="disassembly-sequence">Disassembly Sequence<a hidden class="anchor" aria-hidden="true" href="#disassembly-sequence">#</a></h3>
+<p>Components were removed in reverse dependency order to avoid unnecessary handling:</p>
+
+<ol>
+<li><strong>Case cover</strong> — Screws documented, cover removed and set aside</li>
+<li><strong>CPU cooler/fan assembly</strong> — Thermal interface inspected, fan connector noted</li>
+<li><strong>RAM modules</strong> — DIMM clips released, modules removed by edges only (no contact with gold fingers)</li>
+<li><strong>M.2 NVMe SSD</strong> — Retention screw removed (critical — system will not boot without it), drive lifted from socket, thermal pad left intact</li>
+<li><strong>CPU</strong> — LGA1700 socket lever released, retention mechanism lifted, CPU removed by aluminum heat spreader only (no contact with underside pins)</li>
+<li><strong>Power supply cables</strong> — 8-pin ATX, 4-pin CPU, SATA, and PCIe connectors documented and removed from motherboard and cable routing clips</li>
+<li><strong>Power supply unit</strong> — Three rear screws removed, PSU slid forward and lifted out</li>
+</ol>
+
+<p>At this point, the motherboard was fully exposed with no components remaining. Photos taken for documentation.</p>
+
+<h3 id="inspection-validation">Inspection & Validation<a hidden class="anchor" aria-hidden="true" href="#inspection-validation">#</a></h3>
+<p>With all components removed, the following checks were performed:</p>
+<ul>
+<li>Motherboard inspected for physical damage, corrosion, or manufacturing defects — none found</li>
+<li>CPU socket pins examined under lighting — all pins intact and straight</li>
+<li>RAM slots checked for debris or bent contacts — clear</li>
+<li>M.2 slots and SATA connectors verified — all functional</li>
+<li>Thermal paste condition noted on CPU and cooler — reapplication planned</li>
+</ul>
+
+<h3 id="reassembly">Reassembly<a hidden class="anchor" aria-hidden="true" href="#reassembly">#</a></h3>
+<p>Components reinstalled in forward dependency order:</p>
+
+<ol>
+<li><strong>Power supply</strong> — Aligned to rear case mount, slid into position, secured with three screws</li>
+<li><strong>Power cables routed</strong> — 8-pin ATX and 4-pin CPU cables run through cable management clips before connection to motherboard</li>
+<li><strong>CPU installed</strong> — Aligned using notches on LGA1700 socket, seated flat, retention lever closed and locked</li>
+<li><strong>Thermal paste applied</strong> — Small dot applied to CPU heat spreader center (not spread — cooler pressure distributes it)</li>
+<li><strong>CPU cooler installed</strong> — Secured to mounting points, fan power connector attached to CPU_FAN header</li>
+<li><strong>RAM installed</strong> — Module seated in DIMM Slot 1 (single-channel configuration), clips locked</li>
+<li><strong>M.2 NVMe SSD installed</strong> — Drive inserted at angle into M.2 socket, pressed down, retention screw reinstalled (critical step)</li>
+<li><strong>Case cover reinstalled</strong> — Aligned and secured</li>
+</ol>
+
+<h3 id="post-build-validation">Post-Build Validation<a hidden class="anchor" aria-hidden="true" href="#post-build-validation">#</a></h3>
+<p>System powered on. BIOS POST successful. All components detected:</p>
+<ul>
+<li>CPU: Intel Core i5-14500 recognized</li>
+<li>RAM: 16 GB DDR5 detected at 4400 MHz</li>
+<li>Storage: M.2 NVMe SSD visible in BIOS storage menu</li>
+<li>Cooling: CPU fan operational, RPM reported in BIOS</li>
+</ul>
+
+<p>System proceeded to OS installation without issue.</p>
+
+<hr>
+
+<h2 id="outcome">Outcome<a hidden class="anchor" aria-hidden="true" href="#outcome">#</a></h2>
+<p>Complete teardown and rebuild executed successfully. Every component removed, inspected, and reinstalled. System functional, stable, and validated at the BIOS level before OS deployment.</p>
+<p>This is foundational work. Understanding how a system is built — not just that it works — is what makes troubleshooting, upgrading, and recovery possible later.</p>
+
+<hr>
+
+<h2 id="post-build-upgrades">Post-Build Upgrades<a hidden class="anchor" aria-hidden="true" href="#post-build-upgrades">#</a></h2>
+<p>After initial build validation, the system was upgraded beyond baseline configuration:</p>
+
+<h3 id="memory-upgrade">Memory Upgrade<a hidden class="anchor" aria-hidden="true" href="#memory-upgrade">#</a></h3>
+<ul>
+<li><strong>Added:</strong> 2x Corsair Vengeance DDR5 DRAM 16GB modules (6400 MHz)</li>
+<li><strong>Retained:</strong> Original 16GB DDR5 module from Dell</li>
+<li><strong>Total Memory:</strong> 48GB DDR5 (mixed configuration: 2x 16GB Corsair @ 6400MHz + 1x 16GB Dell @ 4400MHz)</li>
+<li><strong>Configuration:</strong> Multi-channel operation, system clocks all modules at lowest common speed (4400MHz) for stability</li>
+</ul>
+
+<h3 id="storage-expansion">Storage Expansion<a hidden class="anchor" aria-hidden="true" href="#storage-expansion">#</a></h3>
+<ul>
+<li><strong>Added:</strong> WD Blue SN5000 2TB NVMe SSD</li>
+<li><strong>Slot:</strong> Secondary M.2 PCIe slot</li>
+<li><strong>Configuration:</strong> Assigned as D: drive, fully encrypted with BitLocker for secure secondary storage</li>
+<li><strong>Use Case:</strong> Isolated environment for sensitive data and project work requiring encryption at rest</li>
+</ul>
+
+<p>Both upgrades installed without issue. System recognized all components immediately, no BIOS reconfiguration required.</p>
+
+<hr>
+
+<h2 id="why-it-matters">Why It Matters<a hidden class="anchor" aria-hidden="true" href="#why-it-matters">#</a></h2>
+<p>You can't fix what you don't understand. A teardown isn't just disassembly — it's a forcing function for systems thinking. Every connector, every screw, every dependency becomes part of your mental model of how the machine actually works.</p>
+<p>When something breaks later — and it will — you'll know exactly where to start.</p>
+
+<hr>
+
+<h2 id="evidence">Evidence<a hidden class="anchor" aria-hidden="true" href="#evidence">#</a></h2>
+<p><em>Photos and teardown documentation to be added.</em></p>
+
+  </div>
+  <footer class="post-footer">
+    <div class="post-nav">
+      <a href="./index.html" class="prev">← Back to Systems Foundation</a>
+    </div>
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>

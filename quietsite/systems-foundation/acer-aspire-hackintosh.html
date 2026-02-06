@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Acer Aspire V5 — Hackintosh Build | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Mountain Lion on AMD hardware. The internet said it was nearly impossible. That made it worth doing.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/quietsite/systems-foundation/acer-aspire-hackintosh.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/quietsite/systems-foundation/acer-aspire-hackintosh.html">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/quietsite/systems-foundation/acer-aspire-hackintosh.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Acer Aspire V5 — Hackintosh Build">
+<meta property="og:description" content="Mountain Lion on AMD hardware. The internet said it was nearly impossible. That made it worth doing.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta property="article:section" content="quietsite">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Acer Aspire V5 — Hackintosh Build">
+<meta name="twitter:description" content="Mountain Lion on AMD hardware. The internet said it was nearly impossible. That made it worth doing.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "",
+      "item": "https://jennshaggy.github.io/quietsite/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Systems Foundation",
+      "item": "https://jennshaggy.github.io/quietsite/systems-foundation/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Acer Aspire V5 — Hackintosh Build",
+      "item": "https://jennshaggy.github.io/quietsite/systems-foundation/acer-aspire-hackintosh.html"
+    }
+  ]
+}
+</script>
+</head>
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li><a href="https://jennshaggy.github.io/quietsite/systems-foundation/" title="Systems Foundation"><span class="active">Systems Foundation</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/networking/" title="Networking"><span>Networking</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/applied-projects/" title="Applied Projects"><span>Applied Projects</span></a></li>
+            <li><a href="https://jennshaggy.github.io/quietsite/platforms-training/" title="Platforms &amp; Training"><span>Platforms &amp; Training</span></a></li>
+            <li><a href="https://jennshaggy.github.io/ciat-portfolio/" title="CIAT Portfolio"><span>CIAT Portfolio</span></a></li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">
+      Acer Aspire V5 — Hackintosh Build
+    </h1>
+    <div class="post-description">
+      Mountain Lion on AMD hardware. The internet said it was nearly impossible. That made it worth doing.
+    </div>
+    <div class="post-meta">
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </span>
+        <span class="post-meta-item-content">Status: Complete</span>
+      </span>
+    </div>
+  </header>
+  <div class="post-content">
+
+<h2 id="overview">Overview<a hidden class="anchor" aria-hidden="true" href="#overview">#</a></h2>
+<p>In late 2011, Hackintosh builds were gaining traction on Reddit and across tech forums. The concept: run macOS on non-Apple hardware. Intel-based systems had a path forward — community-built bootloaders, kernel extensions (kexts), and detailed guides existed. AMD-based systems? Much harder. Guides were sparse, compatibility was unpredictable, and most community consensus was: don't bother.</p>
+<p>That made it interesting.</p>
+
+<hr>
+
+<h2 id="system-specifications">System Specifications<a hidden class="anchor" aria-hidden="true" href="#system-specifications">#</a></h2>
+<p><strong>Model:</strong> Acer Aspire V5-122P-0408</p>
+<p><strong>Year:</strong> 2011-2012</p>
+
+<ul>
+<li><strong>CPU:</strong> AMD Dual-Core Processor (likely AMD E1 or A4 series, APU-based)</li>
+<li><strong>Memory:</strong> 4GB DDR3 SODIMM</li>
+<li><strong>Display:</strong> Touchscreen (non-functional under macOS)</li>
+<li><strong>Storage:</strong> Standard SATA HDD or SSD</li>
+<li><strong>Target OS:</strong> macOS Mountain Lion (10.8)</li>
+</ul>
+
+<hr>
+
+<h2 id="the-challenge">The Challenge<a hidden class="anchor" aria-hidden="true" href="#the-challenge">#</a></h2>
+<p>Hackintosh builds on Intel hardware were achievable with the right bootloader and driver patches. AMD systems were a different problem entirely. macOS was designed around Intel's x86 architecture — AMD processors required kernel modifications and custom patches just to boot. Even then, hardware compatibility was a gamble.</p>
+<p>The Acer Aspire V5 wasn't on any compatibility list. No existing guides. No confirmation it could be done. That was the appeal.</p>
+
+<hr>
+
+<h2 id="objectives">Objectives<a hidden class="anchor" aria-hidden="true" href="#objectives">#</a></h2>
+<ul>
+<li>Install macOS Mountain Lion on AMD-based hardware</li>
+<li>Achieve stable boot and functional desktop environment</li>
+<li>Troubleshoot hardware incompatibilities (WiFi, audio, graphics, touchscreen)</li>
+<li>Validate system usability for daily tasks</li>
+</ul>
+
+<hr>
+
+<h2 id="work-performed">Work Performed<a hidden class="anchor" aria-hidden="true" href="#work-performed">#</a></h2>
+
+<h3 id="bootloader-kernel-patching">Bootloader & Kernel Patching<a hidden class="anchor" aria-hidden="true" href="#bootloader-kernel-patching">#</a></h3>
+<p>The Chameleon bootloader was used to inject the necessary kernel extensions and patches required for AMD compatibility. A second utility (name lost to time, but similar in function to modern tools like UniBeast or Clover) was required to prepare the installation media and apply AMD-specific kernel modifications.</p>
+
+<p>This wasn't a one-click process. Each boot attempt required manual configuration adjustments, testing different kext combinations, and troubleshooting kernel panics when something didn't load correctly.</p>
+
+<h3 id="installation-attempts">Installation Attempts<a hidden class="anchor" aria-hidden="true" href="#installation-attempts">#</a></h3>
+<p>Multiple installation attempts failed:</p>
+<ul>
+<li>Kernel panics during boot</li>
+<li>Installer freezing at various stages</li>
+<li>Post-installation boot failures (system would install but not launch)</li>
+<li>Graphics driver conflicts resulting in black screens or garbled output</li>
+</ul>
+
+<p>Existing guides didn't work. The hardware configuration was different enough that following instructions verbatim led to failure. At that point, troubleshooting became experimental — modifying boot flags, swapping kexts, adjusting DSDT (Differentiated System Description Table) settings, and testing configurations one variable at a time.</p>
+
+<h3 id="hardware-compatibility">Hardware Compatibility Issues<a hidden class="anchor" aria-hidden="true" href="#hardware-compatibility">#</a></h3>
+<p>Even after achieving a stable boot, hardware functionality was incomplete:</p>
+
+<p><strong>WiFi:</strong> The biggest roadblock. The wireless card wasn't natively supported by macOS. Weeks of spare-time troubleshooting followed — testing driver injections, trying different kext versions, and eventually finding a combination that allowed network connectivity. Not perfect, but functional.</p>
+
+<p><strong>Touchscreen:</strong> Non-functional under macOS. No driver support existed for this specific touchscreen hardware. In 2012, that was an acceptable loss. Today, it would be solvable — but at the time, the touchscreen remained inert.</p>
+
+<p><strong>Audio:</strong> Required custom kext injection to route sound through the correct hardware pathways. Took additional troubleshooting but eventually worked.</p>
+
+<p><strong>Graphics:</strong> Integrated AMD graphics required patched drivers. Performance wasn't native-Mac-level, but the desktop rendered, windows moved smoothly, and the system was usable.</p>
+
+<h3 id="final-validation">Final Validation<a hidden class="anchor" aria-hidden="true" href="#final-validation">#</a></h3>
+<p>Once stable, the system was tested under real-world conditions:</p>
+<ul>
+<li>Booted reliably without manual intervention</li>
+<li>WiFi connected and maintained stable connections</li>
+<li>macOS applications ran without crashing</li>
+<li>Sleep/wake functionality inconsistent but not critical</li>
+<li>System updates disabled to prevent kernel patch conflicts</li>
+</ul>
+
+<p>It wasn't perfect. But it worked.</p>
+
+<hr>
+
+<h2 id="outcome">Outcome<a hidden class="anchor" aria-hidden="true" href="#outcome">#</a></h2>
+<p>The Hackintosh was used for a few months as proof that it could be done. macOS Mountain Lion ran on AMD hardware — something the internet consensus said was nearly impossible. The system was eventually sold on Craigslist to a buyer who verified it was functional and genuine before purchase.</p>
+
+<p>This wasn't about needing a Mac. It was about proving the hardware could run the OS when everyone said it couldn't.</p>
+
+<hr>
+
+<h2 id="why-it-matters">Why It Matters<a hidden class="anchor" aria-hidden="true" href="#why-it-matters">#</a></h2>
+<p>Hackintosh builds teach you how operating systems actually work — bootloaders, kernel extensions, hardware abstraction layers, driver injection. You learn what UEFI does, why ACPI tables matter, and how device drivers communicate with hardware.</p>
+
+<p>The challenge wasn't building a Mac. It was making incompatible hardware cooperate with software designed to reject it. That requires understanding both systems deeply enough to bridge the gap when official support doesn't exist.</p>
+
+<p>When the internet says something is nearly impossible, that's not a deterrent — it's an invitation.</p>
+
+<hr>
+
+<h2 id="evidence">Evidence<a hidden class="anchor" aria-hidden="true" href="#evidence">#</a></h2>
+<p><em>Photos and build documentation to be added.</em></p>
+
+  </div>
+  <footer class="post-footer">
+    <div class="post-nav">
+      <a href="./index.html" class="prev">← Back to Systems Foundation</a>
+    </div>
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
