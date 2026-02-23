@@ -76,9 +76,49 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* Smaller nav font for single-line display */
+/* Dropdown menu styling */
 #menu {
-    font-size: 14px;
+    position: relative;
+}
+
+#menu li {
+    position: relative;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--entry);
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+
+.dropdown-content a {
+    color: var(--primary);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: var(--tertiary);
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-toggle::after {
+    content: " ▾";
+    font-size: 0.8em;
 }
 </style>
 <meta property="og:url" content="https://jennshaggy.github.io/">
@@ -142,14 +182,16 @@ It functions as a low-noise navigation layer for applied cybersecurity work, inc
             </div>
         </div>
 <ul id="menu">
-            <li><a href="/quietsite/systems-foundation/">Systems Foundation</a></li>
-            <li><a href="/quietsite/security-defense/">Security & Defense</a></li>
-            <li><a href="/quietsite/networking/">Networking</a></li>
-            <li><a href="/quietsite/applied-projects/">Projects</a></li>
-            <li><a href="/quietsite/platforms-training/">Training</a></li>
+            <li class="dropdown">
+                <a href="javascript:void(0)" class="dropdown-toggle">Portfolio</a>
+                <div class="dropdown-content">
+                    <a href="/quietsite/systems-foundation/">Systems Foundation</a>
+                    <a href="/quietsite/security-defense/">Security & Defense</a>
+                    <a href="/quietsite/applied-projects/">Projects</a>
+                    <a href="/quietsite/platforms-training/">Training</a>
+                </div>
+            </li>
             <li><a href="/ciat-portfolio/">CIAT Portfolio</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="resume.html">Resume</a></li>
         </ul>
     </nav>
 </header>
@@ -167,14 +209,14 @@ It functions as a low-noise navigation layer for applied cybersecurity work, inc
     </div>
 
     <div class="buttons">
-      <a class="button" href="/quietsite/systems-foundation/" rel="noopener">
-        <span class="button-inner">Portfolio</span>
+      <a class="button" href="about.html" rel="noopener">
+        <span class="button-inner">About</span>
       </a>
       <a class="button" href="resume.html" rel="noopener">
         <span class="button-inner">Resume</span>
       </a>
-      <a class="button" href="about.html" rel="noopener">
-        <span class="button-inner">About</span>
+      <a class="button" href="https://linkedin.com/in/jenn-shagrin" target="_blank" rel="noopener">
+        <span class="button-inner">LinkedIn</span>
       </a>
       <a class="button" href="mailto:jennshagrin@proton.me" rel="noopener">
         <span class="button-inner">Email</span>
