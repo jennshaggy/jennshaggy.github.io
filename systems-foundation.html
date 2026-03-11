@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Systems Foundation | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="A long-term, hands-on approach to computing systems, hardware longevity, networking topology, and operating system recovery.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/systems-foundation.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/systems-foundation.html">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/systems-foundation.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Systems Foundation">
+<meta property="og:description" content="A long-term, hands-on approach to computing systems, hardware longevity, networking topology, and operating system recovery.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Systems Foundation">
+<meta name="twitter:description" content="A long-term, hands-on approach to computing systems, hardware longevity, networking topology, and operating system recovery.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense.html" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span class="active">Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Projects">
+                    <span>Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">
+      Systems Foundation
+    </h1>
+    <div class="post-description">
+      A long-term, hands-on approach to computing systems, hardware longevity, networking topology, and operating system recovery.
+    </div>
+    <div class="post-meta"></div>
+  </header>
+  <div class="post-content">
+
+<h2 id="featured-builds--systems">Featured Builds &amp; Systems</h2>
+<p>The following systems represent complete rebuilds, restorations, or original configurations that demonstrate long-term hands-on systems engineering.</p>
+<p>(Each item links to a full project breakdown.)</p>
+<ul>
+<li><p><strong><a href="quietsite/systems-foundation/dell-optiplex-7020-rebuild.html">Dell OptiPlex 7020 — Complete Rebuild</a></strong></p></li>
+<li><p><strong><a href="quietsite/systems-foundation/dell-optiplex-teardown-rebuild.html">Dell OptiPlex — Complete Teardown &amp; Rebuild</a></strong></p></li>
+<li><p><strong><a href="quietsite/systems-foundation/bios-config-validation.html">BIOS Configuration &amp; System Validation</a></strong></p></li>
+<li><p><strong><a href="quietsite/systems-foundation/virtualbox-vm-creation-dependency-fix.html">VirtualBox VM Creation — Dependency Fix</a></strong></p></li>
+<li><p><strong><a href="quietsite/systems-foundation/samsung-aio-updated.html">Samsung Series 7 AIO — Touchscreen Resurrection</a></strong></p></li>
+<li><p><strong><a href="quietsite/systems-foundation/cyberpower-custom-build.html">CyberPowerPC — Custom Build</a></strong></p></li>
+<li><p><strong><a href="quietsite/systems-foundation/asus-eebox-debian-conversion.html">Asus EeeBox — Debian Linux Conversion</a></strong></p></li>
+<li><p><strong><a href="quietsite/systems-foundation/acer-aspire-hackintosh.html">Acer Aspire V5 — Hackintosh Build</a></strong></p></li>
+</ul>
+<hr>
+<h1 id="systems-foundation">Systems Foundation</h1>
+<p>I work at the systems level.</p>
+<p>That means I don't start with tools, platforms, or trends — I start with <strong>constraints</strong>, <strong>lifecycles</strong>, and <strong>interactions between components</strong>. Hardware, operating systems, networks, and users are not separate domains to me; they are interdependent parts of a single system that either degrades gracefully or fails catastrophically depending on how it is designed, maintained, and repaired.</p>
+<p>Much of my work involves technology that is <em>no longer supported</em>, <em>partially broken</em>, or <em>explicitly written off</em> — not as nostalgia projects, but as practical exercises in recovery, adaptation, and longevity.</p>
+<hr>
+<h2 id="core-principles">Core Principles</h2>
+<h3 id="1-longevity-over-replacement">1. Longevity Over Replacement</h3>
+<p>I prioritize extending the useful life of systems whenever possible. This includes:</p>
+<ul>
+<li>Repairing or restoring hardware others consider obsolete</li>
+<li>Working around driver, firmware, or vendor abandonment</li>
+<li>Rebuilding systems to meet new purposes rather than discarding them</li>
+</ul>
+<p>Longevity forces deeper understanding. When updates stop and documentation disappears, systems thinking becomes the only option.</p>
+<hr>
+<h3 id="2-constraint-driven-design">2. Constraint-Driven Design</h3>
+<p>Many of the environments I've worked in involved real constraints:</p>
+<ul>
+<li>Physical layouts that affect network performance</li>
+<li>Legacy interfaces (FireWire, early SATA, proprietary connectors)</li>
+<li>Locked or single-purpose devices repurposed for general use</li>
+<li>Mixed operating systems across eras and architectures</li>
+</ul>
+<p>Constraints are not blockers — they are design inputs.</p>
+<hr>
+<h3 id="3-hardware-software-network-as-one-system">3. Hardware, Software, Network as One System</h3>
+<p>I do not treat hardware, operating systems, and networking as silos.</p>
+<p>A decision at one layer always impacts the others:</p>
+<ul>
+<li>A hardware rebuild changes thermal and power behavior</li>
+<li>OS choices affect driver availability and security posture</li>
+<li>Network topology determines usability long before bandwidth does</li>
+</ul>
+<p>Most failures are not caused by a single broken component, but by mismatches between layers.</p>
+<hr>
+<h2 id="areas-of-applied-work">Areas of Applied Work</h2>
+<p>This foundation is supported by hands-on work across several domains:</p>
+<ul>
+<li><strong>Hardware teardown, rebuild, and recovery</strong></li>
+<li><strong>Operating system installation on unsupported or repurposed devices</strong></li>
+<li><strong>Home and small-scale mesh network design</strong></li>
+<li><strong>Device reclamation and locked-system repurposing</strong></li>
+<li><strong>Legacy data recovery and interface bridging</strong></li>
+</ul>
+<p>Each of these areas is documented separately, but they all originate from the same systems-first approach.</p>
+<hr>
+<h2 id="why-this-matters">Why This Matters</h2>
+<p>Systems that last are systems that are understood.</p>
+<p>Understanding does not come from ideal conditions — it comes from:</p>
+<ul>
+<li>Diagnosing failures without vendor support</li>
+<li>Designing around physical and architectural limits</li>
+<li>Making deliberate tradeoffs instead of default upgrades</li>
+</ul>
+<p>This site documents that work not as a timeline of devices, but as a <strong>record of systems thinking applied in the real world</strong>.</p>
+
+  </div>
+  <footer class="post-footer">
+    <ul class="post-tags"></ul>
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
