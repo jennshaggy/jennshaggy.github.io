@@ -159,7 +159,13 @@
 
 <p>Nmap showed two ports: SSH on 22, web app on 1337. The web app won.</p>
 
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.08.37 AM.png" alt="Initial Nmap scan showing ports 22 and 1337" style="max-width:100%;margin:1rem 0;">
+
 <p>The login portal had two forms — username/invite code and email/invite code. Two attack surfaces before I'd done anything. Page source referenced <code>/api.php</code>, which had its own login. Gobuster flagged some timeouts on a few paths. Noted, filed away, moved on.</p>
+
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.12.40 AM.png" alt="Login portal page source revealing /api.php reference" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.14.23 AM.png" alt="Gobuster results with timeouts noted" style="max-width:100%;margin:1rem 0;">
 
 <hr>
 
@@ -167,7 +173,11 @@
 
 <p><code>/api.php</code> had obfuscated JavaScript arrays in the source. Deobfuscated them.</p>
 
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.17.57 AM.png" alt="Obfuscated JavaScript arrays in /api.php source" style="max-width:100%;margin:1rem 0;">
+
 <p>API password: <code>H7gY2tJ9wQzD4rS1</code></p>
+
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.21.29 AM.png" alt="Deobfuscated JavaScript revealing API password" style="max-width:100%;margin:1rem 0;">
 
 <p>Worked immediately. The API docs were now open, and they handed over the invite code generation algorithm:</p>
 
@@ -182,7 +192,11 @@ mt_srand($seed_value);
 $random = mt_rand();
 $invite_code = base64_encode($random);</code></pre>
 
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.26.46 AM.png" alt="API documentation revealing invite code generation algorithm" style="max-width:100%;margin:1rem 0;">
+
 <p>Same obfuscated array in <code>/js/api.js</code> deobfuscated to the same password. Confirmed.</p>
+
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.30.05 AM.png" alt="/js/api.js confirming same API password" style="max-width:100%;margin:1rem 0;">
 
 <p>Algorithm: clear. Missing piece: <code>constant_value</code>.</p>
 
@@ -191,6 +205,8 @@ $invite_code = base64_encode($random);</code></pre>
 <h2>User Enumeration</h2>
 
 <p>While hunting for the constant I tested the login forms for behavioral differences. Submitting a fake email returned an explicit error. Submitting <code>admin@decryptify.local</code> with a bad code returned nothing — just silence. That difference is meaningful.</p>
+
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.55.42 AM.png" alt="User enumeration leak — different error responses per email" style="max-width:100%;margin:1rem 0;">
 
 <p>The email form leaked whether an account existed. The username form didn't. I needed the actual domain. Looped through likely candidates:</p>
 
@@ -201,6 +217,8 @@ $invite_code = base64_encode($random);</code></pre>
     -d "invite_username=$e&amp;invite_code=test" | grep -oP '(?&lt;=&lt;p class="text-danger"&gt;).*(?=&lt;/p&gt;)'
   echo
 done</code></pre>
+
+<img src="/images/decryptify/Screenshot 2026-03-31 at 9.23.28 AM.png" alt="Email enumeration loop — admin@fake.thm returns no error" style="max-width:100%;margin:1rem 0;">
 
 <p><code>admin@fake.thm</code> — no error. That's the one.</p>
 
@@ -228,20 +246,13 @@ echo "seed: $seed_value\n";
 echo "invite_code: $invite_code\n";
 ?&gt;</code></pre>
 
-<p>Automated the brute force — generate a code per constant value, submit it, stop when the response changes:</p>
+<img src="/images/decryptify/Screenshot 2026-03-31 at 8.48.42 AM.png" alt="Custom PHP invite code generator script" style="max-width:100%;margin:1rem 0;">
 
-<pre><code>for i in $(seq 1 200); do
-  code=$(php invitegen.php admin@fake.thm $i | awk -F': ' '/invite_code/ {print $2}')
-  resp=$(curl -s -X POST http://TARGET:1337 \
-    -d "invite_username=admin@fake.thm&amp;invite_code=$code")
-  err=$(echo "$resp" | grep -oP '(?&lt;=&lt;p class="text-danger"&gt;).*(?=&lt;/p&gt;)')
-  if [[ "$err" != "Invalid invite code for the username admin@fake.thm." ]]; then
-    echo "[+] Possible hit: constant=$i code=$code"
-    break
-  fi
-done</code></pre>
+<p>Automated the brute force — generate a code per constant value, submit it, stop when the response changes. No hits with the first interpretation. Wrote a second generator using string concatenation instead of integer addition.</p>
 
-<p>No hits. The first interpretation of the seed calculation was wrong. Wrote a second generator using string concatenation instead of integer addition. Different codes, different range. Ran it again. Still nothing. The constant wasn't in the 1–300 range either way. Time to stop guessing and actually enumerate.</p>
+<img src="/images/decryptify/Screenshot 2026-03-31 at 9.34.21 AM.png" alt="Second generator script with alternate seed construction" style="max-width:100%;margin:1rem 0;">
+
+<p>Still nothing. The constant wasn't in the 1&ndash;300 range either way. Time to stop guessing and actually enumerate.</p>
 
 <hr>
 
@@ -251,19 +262,27 @@ done</code></pre>
 
 <pre><code>nmap -sC -sV --script=http-enum -p22,1337 TARGET</code></pre>
 
+<img src="/images/decryptify/Screenshot 2026-03-31 at 9.52.29 AM.png" alt="Nmap http-enum surfacing /logs/ directory" style="max-width:100%;margin:1rem 0;">
+
 <p><code>/logs/</code> surfaced. Visited it.</p>
+
+<img src="/images/decryptify/Screenshot 2026-03-31 at 9.54.25 AM.png" alt="/logs/ directory revealing constant_value = 99999" style="max-width:100%;margin:1rem 0;">
 
 <p><code>constant_value = 99999</code>. Right there in the logs the whole time.</p>
 
 <p>That directory was discoverable from the start. Deeper HTTP enumeration upfront would have found it in the first ten minutes instead of after a solid hour of creative dead ends. I'll be annoyed about that for at least a week.</p>
 
+<img src="/images/decryptify/Screenshot 2026-03-31 at 10.20.37 AM.png" alt="Generated invite code using constant_value 99999" style="max-width:100%;margin:1rem 0;">
+
 <p>Generated the correct invite code. Access code: <code>NDYxNTg5ODkx</code></p>
+
+<img src="/images/decryptify/Screenshot 2026-03-31 at 10.27.05 AM.png" alt="Admin panel access confirmed" style="max-width:100%;margin:1rem 0;">
 
 <p>Admin panel. First flag retrieved.</p>
 
 <hr>
 
-<h2>Padding Oracle — Command Execution</h2>
+<h2>Padding Oracle &mdash; Command Execution</h2>
 
 <p>The dashboard at <code>/dashboard.php</code> accepted a <code>date</code> parameter — a base64-encoded ciphertext the server decrypted server-side to figure out what shell command to run for the footer date display.</p>
 
@@ -290,9 +309,11 @@ EVP_DecryptFinal_ex:wrong final block length</code></pre>
   -cookie 'PHPSESSID=bmsj2b5btlphctiundj21o4ggl' \
   -enc 'cat /home/ubuntu/flag.txt'</code></pre>
 
-<p>Output: <code>8ToOYHlh0PuGepheR0TEN66XK6YqUx4yZQWGJFft495lbmJyaWVhcw==</code></p>
+<p>Dropped that into the <code>date</code> parameter. Server decrypted it, executed <code>cat /home/ubuntu/flag.txt</code>, printed the result in the footer.</p>
 
-<p>Dropped that into the <code>date</code> parameter. Server decrypted it, executed <code>cat /home/ubuntu/flag.txt</code>, printed the result in the footer. Second flag. Done.</p>
+<img src="/images/decryptify/Screenshot 2026-03-31 at 10.32.24 AM.png" alt="Flag retrieved via padding oracle command execution" style="max-width:100%;margin:1rem 0;">
+
+<p>Second flag. Done.</p>
 
 <hr>
 
