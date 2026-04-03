@@ -5,9 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Applied Projects | Jenn Shagrin</title>
+<title>Penetration Testing | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Hands-on security investigations, lab work, and technical writeups from real-world platforms and coursework.">
+<meta name="description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/applied-projects.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -18,7 +18,6 @@
 <link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/applied-projects.html">
 <noscript>
     <style>
         #theme-toggle,
@@ -71,13 +70,13 @@
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
 <meta property="og:url" content="https://jennshaggy.github.io/applied-projects.html">
 <meta property="og:site_name" content="Jenn Shagrin">
-<meta property="og:title" content="Applied Projects">
-<meta property="og:description" content="Hands-on security investigations, lab work, and technical writeups from real-world platforms and coursework.">
+<meta property="og:title" content="Penetration Testing">
+<meta property="og:description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Applied Projects">
-<meta name="twitter:description" content="Hands-on security investigations, lab work, and technical writeups from real-world platforms and coursework.">
+<meta name="twitter:title" content="Penetration Testing">
+<meta name="twitter:description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
 </head>
 
 <body id="top">
@@ -126,7 +125,7 @@
             </li>
             <li>
                 <a href="/applied-projects.html" title="Penetration Testing">
-                    <span class="active">Projects</span>
+                    <span class="active">Penetration Testing</span>
                 </a>
             </li>
             <li>
@@ -146,19 +145,83 @@
 <main class="main">
 <article class="post-single">
   <header class="post-header">
-    <h1 class="post-title entry-hint-parent">
-      Applied Projects
-    </h1>
-    <div class="post-description">
-      Hands-on security investigations, lab work, and technical writeups from real-world platforms and coursework.
-    </div>
+    <h1 class="post-title entry-hint-parent">Penetration Testing</h1>
+    <div class="post-description">Lab writeups, CTF documentation, and offensive security work. Evidence of work, not concept summaries.</div>
   </header>
 
   <div class="post-content">
 
-<p>This section documents hands-on work from TryHackMe, Hack The Box, LetsDefend, Red Siege, and CIAT labs — including SOC investigations, alert triage, malware analysis, phishing analysis, MITRE ATT&CK mapping, and structured incident documentation.</p>
+<p>This section documents hands-on lab work across TryHackMe paths and CTF challenges. Each page covers a specific technique, vector, or machine with real commands, real output, and real methodology.</p>
 
-<p>Writeups are being formatted for publication and will appear here as they are completed.</p>
+<hr>
+
+<h2>TryHackMe</h2>
+
+<h3>CTF Challenges</h3>
+<ul>
+<li><a href="/decryptify.html">Decryptify</a> — JavaScript deobfuscation, invite code brute force, user enumeration, padding oracle attack</li>
+<li><a href="/valley-ctf.html">Valley</a> — credential exposure, PCAP analysis, UPX binary analysis, Python library hijack via cron</li>
+<li><a href="/pickle-rick.html">Pickle Rick</a> — command injection, filter bypass, sudo misconfiguration</li>
+<li><a href="/basic-pentest.html">Basic Penetration Testing</a> — SMB enumeration, SSH brute force, SSH key abuse, lateral movement</li>
+</ul>
+
+<hr>
+
+<h3>Privilege Escalation</h3>
+
+<h4><a href="/linux-privesc.html">Linux Privilege Escalation</a></h4>
+<p>Seven vectors, real exploitation, first successful local root.</p>
+<ul>
+<li><a href="/linux-privesc-kernel.html">Kernel Exploit — CVE-2015-1328</a></li>
+<li><a href="/linux-privesc-sudo.html">Sudo Misconfiguration</a></li>
+<li><a href="/linux-privesc-suid.html">SUID Abuse — base64</a></li>
+<li><a href="/linux-privesc-capabilities.html">Capabilities — vim cap_setuid</a></li>
+<li><a href="/linux-privesc-cron.html">Cron Job Hijack</a></li>
+<li><a href="/linux-privesc-path.html">PATH Hijacking</a></li>
+<li><a href="/linux-privesc-nfs.html">NFS no_root_squash</a></li>
+</ul>
+
+<h4><a href="/windows-privesc.html">Windows Privilege Escalation</a></h4>
+<p>Five vectors from low-privilege user to SYSTEM.</p>
+<ul>
+<li><a href="/windows-privesc-credentials.html">Stored Credentials</a></li>
+<li><a href="/windows-privesc-scheduled-tasks.html">Scheduled Task Abuse</a></li>
+<li><a href="/windows-privesc-service-exe.html">Service Executable Permissions</a></li>
+<li><a href="/windows-privesc-unquoted-path.html">Unquoted Service Path</a></li>
+<li><a href="/windows-privesc-service-dacl.html">Insecure Service DACL</a></li>
+</ul>
+
+<hr>
+
+<h3>Web Exploitation</h3>
+<ul>
+<li><a href="/upload-vulnerabilities.html">Upload Vulnerabilities</a> — file upload bypass, client-side filter bypass, magic number spoofing, Node/Express backend exploitation</li>
+<li><a href="/burp-suite.html">Burp Suite</a> — header injection, union-based SQLi, Burp Macros + CSRF brute force</li>
+</ul>
+
+<hr>
+
+<h3>Post-Exploitation</h3>
+<ul>
+<li><a href="/meterpreter.html">Metasploit: Meterpreter</a> — session management, architecture mismatch debugging, hashdump, NTLM cracking, targeted file discovery</li>
+</ul>
+
+<hr>
+
+<h2>SANS Institute</h2>
+
+<h3>Baker221b — Mysteries in the Cloud</h3>
+<p>Cloud incident response workshop across four cases covering Azure, Microsoft 365, AWS, and GCP.</p>
+<ul>
+<li><a href="/baker221b-warmup.html">Azure Activity and Terminal Warmup</a></li>
+<li><a href="/baker221b-phishing.html">Cloud Account Compromise via Phishing</a> — Evilginx AiTM, user-agent pivot, M365 destructive activity</li>
+<li><a href="/baker221b-aws-key.html">Stolen Access Key from Source Code Repository</a> — TruffleHog, git history forensics, CloudTrail S3 pivot</li>
+<li><a href="/baker221b-gcp-shadow-it.html">Shadow IT in GCP Account</a> — inventory diff, asset type validation, VPC flow log analysis</li>
+</ul>
+
+<hr>
+
+<p><em>Updated as labs are completed. Active directory coverage coming soon.</em></p>
 
   </div>
 
@@ -171,7 +234,7 @@
     <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
