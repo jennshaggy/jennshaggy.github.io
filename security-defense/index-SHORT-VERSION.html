@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Security & Defense | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Applied defensive security across endpoints, networks, and cloud environments. SOC analysis, incident response, endpoint hardening, and detection engineering.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/security-defense/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<style>
+.incident-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+}
+.image-caption {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--secondary);
+    margin-top: -1rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+code {
+    background: var(--code-bg);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+.summary-box {
+    background: var(--entry);
+    padding: 1.25rem;
+    border-radius: 4px;
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--primary);
+}
+</style>
+<meta property="og:url" content="https://jennshaggy.github.io/security-defense/">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Security & Defense">
+<meta property="og:description" content="Applied defensive security across endpoints, networks, and cloud environments.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Security & Defense">
+<meta name="twitter:description" content="Applied defensive security across endpoints, networks, and cloud environments.">
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/">
+                    <span class="active">Security & Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking/">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation/">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects/">
+                    <span>Projects</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training/">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ciat-portfolio/">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">
+      Security & Defense
+    </h1>
+    <div class="post-description">
+      Applied defensive security across endpoints, networks, and cloud environments
+    </div>
+  </header> 
+  <div class="post-content">
+
+<h2 id="malware-investigation">Malware Investigation — Multi-Stage Intrusion Analysis</h2>
+
+<div class="summary-box">
+<strong>Investigation Summary</strong><br>
+Analyzed a multi-stage intrusion progressing from phishing-based initial access through lateral movement to domain compromise. Examined phishing artifacts, endpoint memory, PowerShell logs, and SIEM telemetry to reconstruct attacker behavior across persistence establishment, privilege escalation, credential theft, and ransomware staging. Demonstrated how a single phishing email can escalate into full network compromise when defenses fail at each stage.
+</div>
+
+<p><strong>Tools Used</strong><br>
+Wireshark, Tshark, jq, LNKParse3, Thunderbird, Volatility, Olevba, Elastic Stack (Kibana), Sysmon, Linux CLI</p>
+
+<h3>Overview</h3>
+
+<p>This investigation tracked a targeted attack against a logistics company across three connected intrusion stages. The attacker used phishing to gain initial access, established persistence through memory-resident malware and scheduled tasks, escalated privileges via UAC bypass, harvested credentials from multiple systems, moved laterally across the network, and ultimately achieved domain-level access before staging ransomware deployment.</p>
+
+<h3>Phase 1: Initial Access and Credential Theft</h3>
+
+<p>Analyzed phishing email artifact using Thunderbird and extracted malicious shortcut file from attachment. LNKParse3 revealed embedded PowerShell command in LNK metadata. Parsed <code>powershell.json</code> logs with jq showing reconnaissance activity and access to KeePass credential database. Examined <code>capture.pcapng</code> in Wireshark confirming command-and-control traffic and outbound transmission of encoded credential data to external infrastructure.</p>
+
+<h3>Phase 2: Memory Analysis and Persistence</h3>
+
+<p>Investigated second phishing attempt targeting HR employee using malicious resume document. Applied Olevba to extract VBA macros revealing second-stage payload download. Used Volatility on memory dump to reconstruct process execution tree and identify malicious binary responsible for C2 communication. Identified scheduled task persistence mechanism ensuring attacker maintained access across system restarts.</p>
+
+<h3>Phase 3: Privilege Escalation and Lateral Movement</h3>
+
+<p>Queried Elastic Stack logs through Kibana to track post-compromise activity. Identified UAC bypass technique used to elevate privileges on compromised system. Tracked download of credential dumping tool from public repository and subsequent credential harvesting. Followed lateral movement across network using stolen credentials and mapped access to network shares containing additional authentication data.</p>
+
+<h3>Phase 4: Domain Compromise and Ransomware Staging</h3>
+
+<p>Analyzed Sysmon telemetry showing attacker progression to domain-level system. Identified DCSync attack used to replicate domain controller data and extract password hashes from Active Directory. Tracked download of ransomware payload to staging location indicating preparation for encryption-based extortion.</p>
+
+<h3>Attack Chain Reconstruction</h3>
+
+<p><strong>Initial Access</strong><br>
+Phishing emails targeting finance and HR employees</p>
+
+<p><strong>Execution</strong><br>
+Malicious shortcuts and document macros triggered PowerShell and payload downloads</p>
+
+<p><strong>Persistence</strong><br>
+Scheduled tasks ensured continued access across reboots</p>
+
+<p><strong>Privilege Escalation</strong><br>
+UAC bypass obtained elevated privileges for credential access</p>
+
+<p><strong>Credential Access</strong><br>
+KeePass databases, credential dumping tools, and DCSync extracted authentication data</p>
+
+<p><strong>Lateral Movement</strong><br>
+Stolen credentials enabled access to additional systems and network shares</p>
+
+<p><strong>Command and Control</strong><br>
+Multiple C2 channels maintained attacker communication throughout intrusion</p>
+
+<p><strong>Impact</strong><br>
+Domain compromise achieved, ransomware staged for deployment</p>
+
+<h3>Key Findings</h3>
+
+<ul>
+<li>Phishing remained effective across multiple employees despite initial compromise awareness</li>
+<li>Attacker pivoted tactics after first detection, targeting different department with tailored lure</li>
+<li>Persistence mechanisms deployed immediately after each successful compromise</li>
+<li>Credential theft occurred at every stage enabling continued access expansion</li>
+<li>No single defensive layer prevented full progression from phishing to domain compromise</li>
+<li>Time from initial access to domain compromise demonstrated sophistication and planning</li>
+<li>Ransomware staging confirmed financial motivation behind intrusion</li>
+</ul>
+
+<h3>Detection Opportunities</h3>
+
+<ul>
+<li>Alert on PowerShell execution originating from archive attachments or shortcut files</li>
+<li>Monitor access to credential storage including KeePass databases and LSASS memory</li>
+<li>Detect scheduled task creation by non-administrative processes or from unusual parent processes</li>
+<li>Flag UAC bypass attempts especially when paired with subsequent privilege-requiring operations</li>
+<li>Identify lateral movement through unusual authentication patterns or access to administrative shares</li>
+<li>Alert on DCSync activity from non-domain-controller systems</li>
+<li>Monitor downloads from public code repositories especially credential dumping or offensive tooling</li>
+</ul>
+
+<h3>Lessons Learned</h3>
+
+<p>This investigation demonstrated how attackers chain multiple techniques across an intrusion lifecycle. Each stage built on the previous, with credential theft serving as the primary enabler for continued access expansion. Detection at any single phase could have limited impact, but the attack succeeded because defensive gaps existed at every layer. The progression from phishing to domain compromise reinforced that defense requires depth across email security, endpoint protection, access controls, and behavioral monitoring. Single-point failures in any of these areas enabled the attacker to advance.</p>
+
+<h3>Evidence</h3>
+
+<img src="/images/Incident_1_IMG_1.png" alt="Initial access investigation results" class="incident-image">
+<p class="image-caption">Email analysis and PowerShell execution confirming initial compromise</p>
+
+<img src="/images/Incident_1_IMG_2.png" alt="PowerShell and credential access analysis" class="incident-image">
+<p class="image-caption">Endpoint logs showing reconnaissance and credential harvesting activity</p>
+
+<img src="/images/Incident_1_IMG_3.png" alt="Network analysis confirming C2" class="incident-image">
+<p class="image-caption">Packet capture validating command-and-control and data exfiltration</p>
+
+<img src="/images/Incident_2_IMG_1.png" alt="Memory forensics results" class="incident-image">
+<p class="image-caption">Process tree reconstruction and persistence identification via memory analysis</p>
+
+<img src="/images/Incident_2_IMG_2.png" alt="Macro and payload analysis" class="incident-image">
+<p class="image-caption">Malicious document examination revealing second-stage download behavior</p>
+
+<img src="/images/Incident_2_IMG_3.png" alt="Persistence mechanism validation" class="incident-image">
+<p class="image-caption">Scheduled task creation and C2 channel establishment</p>
+
+<img src="/images/Incident_3_IMG_1.png" alt="SIEM analysis showing privilege escalation" class="incident-image">
+<p class="image-caption">Elastic Stack logs confirming UAC bypass and credential dumping</p>
+
+<img src="/images/Incident_3_IMG_2.png" alt="Lateral movement tracking" class="incident-image">
+<p class="image-caption">Cross-system authentication and network share access patterns</p>
+
+<img src="/images/Incident_3_IMG_3.png" alt="Domain compromise evidence" class="incident-image">
+<p class="image-caption">DCSync attack and ransomware staging confirmation</p>
+
+<hr>
+
+<h2 id="additional-work">Additional Security Work</h2>
+
+<p>Beyond malware investigations, this section documents hands-on security work including endpoint hardening, SOC operations, detection engineering, and identity defense.</p>
+
+<h3>Endpoint Security & Hardening</h3>
+
+<p>Hardened Windows 10/11 endpoints against ransomware and persistence. Configured Defender, firewall rules, exploit protection, and application controls. Disabled unnecessary services and reduced attack surface. Implemented secure browser configurations and credential protections. Validated hardening through simulated attack scenarios.</p>
+
+<h3>SOC Operations & Incident Analysis</h3>
+
+<p>Blue-team analysis performed across multiple platforms including LetsDefend, Hack The Box, and CIAT lab environments. Investigated alerts including malware execution, suspicious PowerShell, and lateral movement. Distinguished true positives from noise using host and network telemetry. Correlated indicators across logs, timelines, and artifacts. Mapped findings to MITRE ATT&CK techniques.</p>
+
+<h3>Detection & Security Automation</h3>
+
+<p>Built detection logic for phishing, malware payloads, and abnormal execution. Tuned rules to reduce false positives. Applied automation principles to accelerate triage. Explored AI-assisted SOC workflows and alert enrichment in simulated SOC environments.</p>
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
