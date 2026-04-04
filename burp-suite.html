@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Burp Suite | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe — Burp Suite hands-on work covering header injection, union-based SQLi via Repeater, and Burp Macros with CSRF brute force.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/burp-suite.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/burp-suite.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Burp Suite">
+<meta property="og:description" content="Header injection, union-based SQLi, and Burp Macros with CSRF brute force.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Burp Suite">
+<meta name="twitter:description" content="Header injection, union-based SQLi, and Burp Macros with CSRF brute force.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Burp Suite</h1>
+    <div class="post-description">Burp sits between your browser and the target and intercepts everything passing through. Even with interception off, it's still logging. That's the core idea.</div>
+  </header>
+
+  <div class="post-content">
+
+<pre><code>Browser &lt;&gt; Burp Proxy &lt;&gt; Web Server</code></pre>
+
+<p>Browser needs to route through it — <code>127.0.0.1:8080</code>. FoxyProxy handles the toggle. For HTTPS, grab Burp's CA cert from <code>http://burp/cert</code> and install it, otherwise encrypted traffic stays encrypted and you're watching nothing. There's also a built-in Chromium browser under Proxy &rarr; Open Browser that comes pre-configured.</p>
+
+<p>The tools that actually matter for hands-on work: Proxy, Repeater, Intruder.</p>
+
+<hr>
+
+<h2>Header Injection</h2>
+
+<p>Captured a GET request to <code>/</code>, sent it to Repeater (<code>Ctrl + R</code>), and added one header:</p>
+
+<pre><code>FlagAuthorised: True</code></pre>
+
+<p>That was it. Flag returned. The app was making an authorization decision based on a header the client controls — no verification, no server-side check. Just blind trust.</p>
+
+<img src="/images/burp-suite/Screenshot 2026-03-18 at 4.40.52 PM.png" alt="Burp Repeater request with FlagAuthorised: True header added" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/burp-suite/Screenshot 2026-03-18 at 4.41.02 PM.png" alt="Flag returned after header injection" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Union-Based SQLi via Repeater</h2>
+
+<p>Target: <code>/about/{id}</code> — takes numeric IDs. Let's see what happens when it doesn't get one:</p>
+
+<pre><code>GET /about/2'</code></pre>
+
+<p>HTTP 500 Internal Server Error — and the server handed over the query:</p>
+
+<pre><code>SELECT firstName, lastName, pfpLink, role, bio FROM people WHERE id = 2'</code></pre>
+
+<p>Five columns, table name, all of it. Verbose errors are a gift.</p>
+
+<img src="/images/burp-suite/Screenshot 2026-03-18 at 4.49.53 PM.png" alt="500 error triggered by malformed input leaking SQL query" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/burp-suite/Screenshot 2026-03-18 at 4.50.08 PM.png" alt="SQL query exposed in error response" style="max-width:100%;margin:1rem 0;">
+
+<p>Five columns means the UNION needs five slots. Using <code>/0</code> instead of <code>/2</code> suppresses the original row so only injected output comes back:</p>
+
+<pre><code>/about/0 UNION ALL SELECT group_concat(column_name),null,null,null,null
+FROM information_schema.columns
+WHERE table_name="people"</code></pre>
+
+<p>Columns: <code>id, firstName, lastName, pfpLink, role, shortRole, bio, notes</code></p>
+
+<p><code>notes</code> is the interesting one:</p>
+
+<pre><code>/about/0 UNION ALL SELECT notes,null,null,null,null
+FROM people
+WHERE id = 1</code></pre>
+
+<p>Flag retrieved. The chain: verbose error &rarr; schema exposure &rarr; column enumeration &rarr; targeted extraction. Each step used what the previous one leaked.</p>
+
+<hr>
+
+<h2>Intruder: Burp Macros + CSRF Brute Force</h2>
+
+<p>Used Burp Macros to automate credential stuffing against a login protected by CSRF token rotation. The macro fetches a fresh token and session cookie before each Intruder request so the attack stays valid across the rotation.</p>
+
+<img src="/images/burp-suite/Screenshot 2026-03-19 at 8.47.28 AM.png" alt="Burp Macros configured for CSRF token rotation in credential stuffing attack" style="max-width:100%;margin:1rem 0;">
+
+<p><em>Full Intruder writeup pending — room content to be added.</em></p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
