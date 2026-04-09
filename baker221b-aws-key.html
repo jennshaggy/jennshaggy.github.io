@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Baker221b: Stolen Access Key from Source Code Repository | Jenn Shagrin</title>
+<meta name="description" content="SANS Baker221b cloud IR workshop — AWS access key exposed in Git history, TruffleHog discovery, historical commit forensics, CloudTrail S3 pivot, exfiltrated file identification.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/baker221b-aws-key.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/baker221b-aws-key.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Baker221b: Stolen Access Key from Source Code Repository">
+<meta property="og:description" content="AWS access key in Git history, TruffleHog, historical commit forensics, CloudTrail S3 pivot, exfiltrated file identification.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Baker221b: Stolen Access Key from Source Code Repository">
+<meta name="twitter:description" content="AWS access key in Git history, TruffleHog, historical commit forensics, CloudTrail S3 pivot, exfiltrated file identification.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Baker221b &mdash; Stolen Access Key from Source Code Repository</h1>
+    <div class="post-description">SANS cloud IR workshop &mdash; Case 2026.01.002. AWS credential exposed in Git history. TruffleHog discovery, historical commit forensics, CloudTrail S3 pivot, exfiltrated file identification.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>This case focused on an AWS account compromise tied to a stolen access key exposed in a source code repository. The scenario was intentionally familiar: a credential had made its way into Git history, an attacker found it, and the resulting cloud activity left a trail across both the repository and AWS telemetry.</p>
+
+<p>Filed by John Watson. Evidence sources: GitHub repository at <code>/home/johnwatson/project-x</code> and AWS CloudTrail logs.</p>
+
+<hr>
+
+<h2>Repository Secret Discovery</h2>
+
+<p>The first task was to determine whether the repository contained an exposed AWS access key. TruffleHog searches not only the current state of the repository but its history. The initial invocation failed because the tool expected an explicit Git URI rather than a plain relative path. Once pointed correctly with a <code>file://</code> URI, the scan succeeded.</p>
+
+<pre><code>cd ~/project-x
+trufflehog git file://$(pwd)</code></pre>
+
+<p>TruffleHog output:</p>
+<pre><code>Detector Type: AWS
+Raw Result:    AKIAXKBAMZT7PIDJ7ILQ
+File:          .aws/credentials
+Commit:        7b761b2b16be402e811dc0e58abdcc3694f90716</code></pre>
+
+<p>The credential was not "in code" — it was in history. An organization may believe a secret has been removed because it no longer appears in the latest files, while an attacker can still recover it from historical commits.</p>
+
+<hr>
+
+<h2>Historical Commit Forensics</h2>
+
+<p>Once the relevant commit was identified, the next step was to move into that historical state and inspect the file directly. Detached HEAD state is useful in forensics: the goal is not to modify the repository, but to examine a prior version safely.</p>
+
+<pre><code>git checkout 7b761b2b16be402e811dc0e58abdcc3694f90716
+cat .aws/credentials</code></pre>
+
+<p>That file revealed both the access key ID and the paired secret access key:</p>
+
+<pre><code>Access Key ID:     AKIAXKBAMZT7PIDJ7ILQ
+Secret Access Key: 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</code></pre>
+
+<hr>
+
+<h2>CloudTrail Table and Schema Inspection</h2>
+
+<p>The second half of the investigation moved from the terminal into the SQL interface. Before writing filters, the case required identifying the correct CloudTrail table and reviewing its field structure.</p>
+
+<pre><code>SHOW TABLES;
+DESCRIBE aws_cloudtrail;</code></pre>
+
+<p>Relevant nested fields:</p>
+<pre><code>userIdentity.accessKeyId
+eventSource
+eventName
+requestParameters.key</code></pre>
+
+<hr>
+
+<h2>S3 Data Event Pivot</h2>
+
+<p>The goal was not just to find generic activity from the stolen key, but to identify the specific object retrieved from S3. That meant narrowing to S3 data events and looking specifically at <code>GetObject</code> activity tied to the compromised access key:</p>
+
+<pre><code>SELECT
+  requestParameters.key
+FROM aws_cloudtrail
+WHERE eventSource = 's3.amazonaws.com'
+  AND eventName = 'GetObject'
+  AND userIdentity.accessKeyId = 'AKIAXKBAMZT7PIDJ7ILQ'
+ORDER BY eventTime ASC
+LIMIT 20;</code></pre>
+
+<p>File stolen from S3: <code>gadgets.txt</code></p>
+
+<p>Looking broadly for "AWS activity" would have produced noise. Looking specifically for S3 <code>GetObject</code> events tied to the stolen access key isolated the exfiltration path quickly and cleanly.</p>
+
+<hr>
+
+<h2>Confirmed Findings</h2>
+
+<pre><code>Access Key ID:     AKIAXKBAMZT7PIDJ7ILQ
+Secret Access Key: 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
+Commit:            7b761b2b16be402e811dc0e58abdcc3694f90716
+Stolen file:       gadgets.txt</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Baker221b: Azure Activity and Terminal Warmup | Jenn Shagrin</title>
+<meta name="description" content="SANS Baker221b cloud IR workshop — warmup case covering SQL table enumeration, schema inspection, terminal filesystem navigation, and GCP credential extraction from SQLite.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/baker221b-warmup.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/baker221b-warmup.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Baker221b: Azure Activity and Terminal Warmup">
+<meta property="og:description" content="SQL table enumeration, schema inspection, terminal navigation, GCP credential extraction from SQLite.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Baker221b: Azure Activity and Terminal Warmup">
+<meta name="twitter:description" content="SQL table enumeration, schema inspection, terminal navigation, GCP credential extraction from SQLite.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Baker221b &mdash; Azure Activity and Terminal Warmup</h1>
+    <div class="post-description">SANS cloud IR workshop &mdash; Case 2026.01.000. Dual-surface investigation across a browser SQL interface and Linux terminal. Schema-first querying, GCP credential extraction from SQLite.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>This warmup case established the operating rhythm for the full Baker221b workshop: read the prompt carefully, determine whether the task belonged in the SQL interface or the terminal, inspect structure before assuming field names, and extract only what the evidence actually supported.</p>
+
+<p>Filed by Enola Holmes. Evidence sources: Azure Activity Logs and a GCP credentials file. All SQL-backed data lived in the <code>warmup</code> table. The terminal exposed supporting filesystem artifacts.</p>
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.02.20 AM.png" alt="Baker221b platform — SQL interface and case context" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.02.44 AM.png" alt="Case overview and evidence sources" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Help Menu and Table Orientation</h2>
+
+<p>The opening prompt required interaction with the Help menu before deeper analysis — less about trivia, more about orienting to available datasets and tooling. The third example query listed in the Help section:</p>
+
+<pre><code>SELECT * FROM gcp_flow_logs;</code></pre>
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.04.25 AM.png" alt="Help menu showing available datasets and example queries" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Table Enumeration and Schema Review</h2>
+
+<p>Even simple questions should begin with structure awareness. The <code>warmup</code> table was the source of truth for the SQL portion.</p>
+
+<pre><code>SELECT COUNT(*) FROM warmup;</code></pre>
+
+<p>Total records: <code>50</code></p>
+
+<pre><code>DESCRIBE warmup;</code></pre>
+
+<p><code>caller</code> field type: <code>Nullable(String)</code></p>
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.06.23 AM.png" alt="DESCRIBE warmup output showing field types" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.07.25 AM.png" alt="COUNT(*) returning 50 records" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Earliest-Event Identification</h2>
+
+<p>The Azure activity portion required sorting by time and extracting the first operation recorded in the dataset:</p>
+
+<pre><code>SELECT operationName.value
+FROM warmup
+ORDER BY eventTimestamp ASC
+LIMIT 1;</code></pre>
+
+<p>Earliest operation: <code>Microsoft.Authorization/policies/audit/action</code></p>
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.08.06 AM.png" alt="Timeline query returning earliest operationName.value" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.09.09 AM.png" alt="Microsoft.Authorization/policies/audit/action confirmed as earliest event" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Terminal Enumeration</h2>
+
+<p>The terminal portion shifted from SQL-backed telemetry to local filesystem awareness:</p>
+
+<pre><code>ls ~
+ls -d ~/*/</code></pre>
+
+<p>Non-hidden directories in <code>/home/competitor</code>: <code>2</code></p>
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.10.06 AM.png" alt="ls ~ output showing home directory contents" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.10.12 AM.png" alt="ls -d showing two non-hidden directories" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.10.25 AM.png" alt="Directory count confirmed" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Credential Artifact Extraction</h2>
+
+<p>The final step was the most important pivot: the answer did not come from the SQL interface at all, but from an endpoint-side artifact in the shell environment. A SQLite database stored in a typical GCP configuration path held the expired credential.</p>
+
+<pre><code>sqlite3 ~/.config/gcloud/credentials.db 'SELECT value FROM credentials;' | jq -r '.client_secret'</code></pre>
+
+<p>Expired GCP <code>client_secret</code>: <code>ZmstLNjJy2198hD4CTg23as3</code></p>
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.17.40 AM.png" alt="sqlite3 query against GCP credentials database" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 11.18.12 AM.png" alt="client_secret extracted via jq" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 1.29.36 PM.png" alt="Completed warmup case view" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/baker221b/Screenshot 2026-01-08 at 1.30.03 PM.png" alt="All warmup answers confirmed" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>What This Warmup Actually Established</h2>
+
+<p>Execution context mattered. The SQL pane and terminal were not interchangeable, and the wrong tool in the wrong place created friction. That distinction became critical once later cases split evidence between cloud telemetry, repository history, and local JSON artifacts.</p>
+
+<p>Schema awareness beat guesswork. Using <code>DESCRIBE</code> before building field assumptions created cleaner, faster pivots — especially useful in the nested structures appearing later in Entra sign-in logs, Unified Audit Logs, CloudTrail, and GCP flow data.</p>
+
+<p>Cloud investigations often mix control-plane evidence with endpoint-like residue. The Azure activity data answered one class of questions while the GCP credential artifact answered another. The warmup demonstrated that real investigations rarely stay inside a single interface.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>

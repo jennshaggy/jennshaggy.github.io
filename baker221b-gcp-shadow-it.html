@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Baker221b: Shadow IT in GCP Account | Jenn Shagrin</title>
+<meta name="description" content="SANS Baker221b cloud IR workshop — rogue VM identification via baseline inventory diff, internal IP resolution, VPC flow log analysis, unusual TCP port, target resource discovery.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/baker221b-gcp-shadow-it.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/baker221b-gcp-shadow-it.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Baker221b: Shadow IT in GCP Account">
+<meta property="og:description" content="Rogue VM identification via inventory diff, internal IP resolution, VPC flow log analysis, unusual TCP port, target resource discovery.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Baker221b: Shadow IT in GCP Account">
+<meta name="twitter:description" content="Rogue VM identification via inventory diff, internal IP resolution, VPC flow log analysis, unusual TCP port, target resource discovery.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Baker221b &mdash; Shadow IT in GCP Account</h1>
+    <div class="post-description">SANS cloud IR workshop &mdash; Case 2026.01.003. Rogue VM identified via baseline inventory diff, internal IP resolved via asset type filtering, VPC flow logs surfaced unusual outbound TCP activity, target resource confirmed via inventory correlation.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>This case focused on identifying a shadow IT resource inside a GCP environment by comparing baseline inventory data against the current account state, then validating the anomaly through VPC Flow Logs.</p>
+
+<p>Filed by Mycroft Holmes. Evidence sources: <code>files/gcp_baseline_inventory.json</code>, <code>files/gcp_current_inventory.json</code>, and <code>gcp_flow_logs</code>. Neither source alone told the full story — the inventory revealed the rogue instance, the flow logs revealed its behavior.</p>
+
+<hr>
+
+<h2>Baseline vs Current Inventory Comparison</h2>
+
+<p>A classic diff problem. <code>jq</code> extracted <code>displayName</code> values from each inventory file, both sets were sorted, and <code>comm</code> isolated entries that existed only in the current state:</p>
+
+<pre><code>jq -r '.[].displayName' files/gcp_baseline_inventory.json | sort > /tmp/base.txt
+jq -r '.[].displayName' files/gcp_current_inventory.json | sort > /tmp/curr.txt
+comm -13 /tmp/base.txt /tmp/curr.txt</code></pre>
+
+<p>Result: <code>ctf-ssh-server-2</code></p>
+
+<p>This established the initial anomaly — but not yet its network identity.</p>
+
+<hr>
+
+<h2>Asset Type Validation and Internal IP Resolution</h2>
+
+<p>A subtle complication: the same <code>displayName</code> appeared on more than one object type — one represented a disk, another the actual compute instance. The resource had to be filtered to the instance asset type before extracting networking data:</p>
+
+<pre><code>jq -r '.[]
+| select(.assetType=="compute.googleapis.com/Instance" and .displayName=="ctf-ssh-server-2")
+| .additionalAttributes.internalIPs[]' files/gcp_current_inventory.json</code></pre>
+
+<p>Internal IP: <code>10.0.1.5</code></p>
+
+<p>Inventory analysis is not just about finding names — it's about finding the correct object type with the correct attributes. Moving too quickly from "match found" to "answer found" misses this.</p>
+
+<hr>
+
+<h2>Outbound TCP Flow Analysis</h2>
+
+<p>With the rogue VM's internal IP confirmed, the investigation moved into flow logs. The <code>connection</code> fields were nested, requiring structured field references:</p>
+
+<pre><code>SELECT
+  connection.dest_port,
+  COUNT(*) AS hits
+FROM gcp_flow_logs
+WHERE connection.src_ip = '10.0.1.5'
+  AND connection.protocol = 6
+GROUP BY connection.dest_port
+ORDER BY hits DESC;</code></pre>
+
+<p>Results showed common traffic on ports 443 and 80, plus one clearly unusual destination port: <code>1984</code>. Not a routine service port, not in <code>/etc/services</code>.</p>
+
+<hr>
+
+<h2>Target Resource Identification</h2>
+
+<p>Isolated the destination the rogue instance was contacting on that port:</p>
+
+<pre><code>SELECT
+  connection.dest_ip,
+  COUNT(*) AS hits
+FROM gcp_flow_logs
+WHERE connection.src_ip = '10.0.1.5'
+  AND connection.protocol = 6
+  AND connection.dest_port = 1984
+GROUP BY connection.dest_ip
+ORDER BY hits DESC;</code></pre>
+
+<p>Destination IP: <code>3.15.208.127</code></p>
+
+<p>Pivoted back into the inventory to resolve that address to a resource name:</p>
+
+<pre><code>jq -r '.[]
+| select(.assetType=="compute.googleapis.com/Instance")
+| .displayName + " " + (.additionalAttributes.externalIPs[]? // "")' files/gcp_current_inventory.json</code></pre>
+
+<pre><code>ctf-web-server   104.197.194.68
+ctf-ssh-server-2 34.46.93.202</code></pre>
+
+<p>Resource successfully discovered by the rogue VM: <code>ctf-web-server</code></p>
+
+<hr>
+
+<h2>The Investigative Flow</h2>
+
+<p>Neither evidence source was used in isolation. The inventory files answered what resources existed, which object was new, and which attributes belonged to the true compute instance. The flow logs answered what the rogue resource was doing, which port was unusual, and which destination it contacted.</p>
+
+<p>The sequence: prove something should not be there, then prove what it is doing. First structural anomaly, then behavioral confirmation. That sequence is clean, fast, and reusable across cloud environments.</p>
+
+<hr>
+
+<h2>Confirmed Findings</h2>
+
+<pre><code>Rogue VM:                  ctf-ssh-server-2
+Internal IP:               10.0.1.5
+Unusual destination port:  1984
+Destination IP:            3.15.208.127
+Discovered resource:       ctf-web-server</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Baker221b: Cloud Account Compromise via Phishing | Jenn Shagrin</title>
+<meta name="description" content="SANS Baker221b cloud IR workshop — Evilginx AiTM phishing, Entra ID sign-in log analysis, attacker workstation identification via user agent pivot, M365 Unified Audit Log review, folder deletion evidence.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/baker221b-phishing.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/baker221b-phishing.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Baker221b: Cloud Account Compromise via Phishing">
+<meta property="og:description" content="Evilginx AiTM, Entra ID sign-in log analysis, user agent pivot, M365 Unified Audit Log, folder deletion evidence.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Baker221b: Cloud Account Compromise via Phishing">
+<meta name="twitter:description" content="Evilginx AiTM, Entra ID sign-in log analysis, user agent pivot, M365 Unified Audit Log, folder deletion evidence.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Baker221b &mdash; Cloud Account Compromise via Phishing</h1>
+    <div class="post-description">SANS cloud IR workshop &mdash; Case 2026.01.001. Unauthorized M365 access via Evilginx AiTM phishing. Entra ID sign-in baseline, relay identification, attacker workstation pivot via user agent, Unified Audit Log destructive activity.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>This case focused on unauthorized access to a Microsoft 365 account in the <code>baker221b.co.uk</code> tenant. The scenario involved Evilginx, an adversary-in-the-middle framework that captures credentials and session material while presenting the victim with a convincing login experience.</p>
+
+<p>Filed by Sherlock Holmes. Evidence sources: Entra ID sign-in logs and Microsoft 365 Unified Audit Logs. The anomalies were subtle — the attacker's infrastructure did not present as a loud burst of malicious activity. The evidence emerged through sequence, deviation, and correlation.</p>
+
+<hr>
+
+<h2>Baseline Sign-In Review</h2>
+
+<p>The first step was establishing what normal sign-in behavior looked like before hunting for anomalous IPs. Without a behavioral frame, suspicious IPs lose meaning.</p>
+
+<pre><code>SELECT
+  createdDateTime,
+  userPrincipalName,
+  ipAddress,
+  userAgent
+FROM entra_signin
+ORDER BY createdDateTime ASC;</code></pre>
+
+<p>Known baseline IPs per user:</p>
+
+<pre><code>irene.adler@baker221b.co.uk       → 192.0.2.39
+john.watson@baker221b.co.uk       → 192.0.2.25
+mholmes@baker221b.co.uk           → 192.0.2.77
+mhudson@baker221b.co.uk           → 192.0.2.62
+sherlock.holmes@baker221b.co.uk   → 192.0.2.14</code></pre>
+
+<p>That baseline made it possible to spot the first unusual IP associated with the compromised account by sequence break rather than by raw frequency.</p>
+
+<hr>
+
+<h2>Evilginx Relay Identification</h2>
+
+<p>The Evilginx server was identified by locating the earliest suspicious IP that did not align with the expected login pattern. Timing and sequence mattered more than raw frequency — the suspicious infrastructure appeared early, before follow-on access from a different client platform.</p>
+
+<p>Evilginx relay IP: <code>203.0.113.42</code></p>
+
+<hr>
+
+<h2>Attacker Workstation Pivot via User Agent</h2>
+
+<p>The second phase required distinguishing the attacker's actual workstation from the phishing relay. The key pivot was not just IP address — it was a user-agent change. A filtered query for non-Windows user agents surfaced the follow-on access event:</p>
+
+<pre><code>SELECT
+  createdDateTime,
+  userPrincipalName,
+  ipAddress,
+  userAgent
+FROM entra_signin
+WHERE userAgent NOT LIKE '%Windows NT 10%'
+ORDER BY createdDateTime ASC;</code></pre>
+
+<p>That shift in client platform was the strongest clue that the second IP represented the attacker's workstation rather than the relay.</p>
+
+<p>Attacker workstation IP: <code>198.51.100.67</code><br>
+Platform: macOS + Firefox<br>
+User agent: <code>Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:144.0) Gecko/20100101 Firefox/144.0</code></p>
+
+<hr>
+
+<h2>Unified Audit Log — Destructive Activity</h2>
+
+<p>Once unauthorized access was established, the next question was what the attacker did inside the M365 environment. The destructive action surfaced through <code>FolderRecycled</code> operations. Because this dataset used nested fields inside the <code>AuditData</code> structure, the query had to reference tuple-style fields directly:</p>
+
+<pre><code>SELECT
+  AuditData.CreationTime,
+  AuditData.UserId,
+  AuditData.Operation,
+  AuditData.SourceRelativeUrl
+FROM unified_audit_logs
+WHERE Operations = 'FolderRecycled'
+ORDER BY AuditData.CreationTime ASC
+LIMIT 50;</code></pre>
+
+<p>Deleted directory path: <code>Documents/case_files</code></p>
+
+<hr>
+
+<h2>The Investigative Flow</h2>
+
+<p>This case was a strong example of how cloud investigations depend on reading order and relationship, not just isolated suspicious rows.</p>
+
+<p>The sequence: establish normal sign-in context &rarr; find the first anomalous infrastructure &rarr; identify secondary access through client fingerprinting &rarr; pivot into tenant activity logs &rarr; confirm impact through file-destruction behavior.</p>
+
+<p>The sign-in logs explained how access happened. The Unified Audit Logs explained what the attacker did once they had it. That division between authentication telemetry and application activity telemetry is a core pattern in Microsoft cloud investigations. The transition from suspicious sign-in to destructive folder operations happened in a tight window — which is exactly why fast triage and evidence correlation matter in identity-centric cloud incidents.</p>
+
+<hr>
+
+<h2>Confirmed Findings</h2>
+
+<pre><code>Evilginx relay IP:       203.0.113.42
+Attacker workstation IP: 198.51.100.67
+Deleted directory:       Documents/case_files</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
