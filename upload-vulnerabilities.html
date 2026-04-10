@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Upload Vulnerabilities | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe — Six file upload abuse patterns from basic overwrite to Node/Express black-box exploitation via client-side bypass, extension blacklist, magic number spoofing, and path traversal.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/upload-vulnerabilities.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/upload-vulnerabilities.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Upload Vulnerabilities">
+<meta property="og:description" content="Six file upload abuse patterns from basic overwrite to Node/Express black-box exploitation.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Upload Vulnerabilities">
+<meta name="twitter:description" content="Six file upload abuse patterns from basic overwrite to Node/Express black-box exploitation.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" content="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Upload Vulnerabilities</h1>
+    <div class="post-description">TryHackMe — Six file upload abuse patterns. The most important progression: successful upload does not automatically mean successful execution.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Every section required answering a slightly different question: can I overwrite an existing file? Can I upload executable code? Where does the file land? Is it served or executed? What filter is actually blocking me? What backend is processing the file?</p>
+
+<hr>
+
+<h2>1. Basic Webshell Upload</h2>
+
+<p>Gobuster identified the upload location. Uploaded a tiny PHP webshell:</p>
+
+<pre><code>&lt;?php echo system($_GET["cmd"]); ?&gt;</code></pre>
+
+<p>The uploaded shell was reachable and executable. <code>whoami</code> returned <code>www-data</code>. Flag retrieved from <code>/var/www/flag.txt</code>.</p>
+
+<p>The file wasn't just stored — it was being interpreted server-side as executable PHP. That distinction matters.</p>
+
+<hr>
+
+<h2>2. Client-Side Filter Bypass</h2>
+
+<p>Page source referenced <code>client-side-filter.js</code> — a JavaScript file enforcing image upload restrictions in the browser. Browser-side validation is not validation.</p>
+
+<p>The PHP webshell was renamed to <code>shell.png</code> to pass the file picker. Then in Burp:</p>
+
+<ul>
+<li>filename changed from <code>shell.png</code> to <code>shell.php</code></li>
+<li>content type changed from <code>image/png</code> to <code>text/x-php</code></li>
+</ul>
+
+<p>Upload succeeded. Shell executed from <code>/images/shell.php</code>.</p>
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 10.02.34 AM.png" alt="Burp intercepting multipart POST with filename and content-type modified" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 10.04.37 AM.png" alt="Upload success redirect after Burp modification" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 10.08.00 AM.png" alt="Webshell executing as www-data" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 10.08.43 AM.png" alt="Flag retrieved via webshell command execution" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>3. Extension Blacklist Bypass</h2>
+
+<p>Server-side extension blacklist blocked common PHP extensions. The PentestMonkey reverse shell was renamed to <code>php-reverse-shell.jpg.php5</code> — the blacklist didn't cover <code>.php5</code>, which still executed.</p>
+
+<p>The upload interface used CLI-style commands rather than a standard form. After upload, the file landed in <code>/privacy/</code> with a randomized timestamp prefix. Triggered it directly. Reverse shell connected back.</p>
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 10.35.04 AM.png" alt="CLI upload interface accepting .php5 payload" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 10.35.38 AM.png" alt="/privacy/ directory listing showing timestamp-prefixed uploaded file" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>4. Magic Number Bypass</h2>
+
+<p>Server-side validation checked the file's magic bytes rather than the extension. Modified the payload in <code>hexeditor</code> to begin with the GIF magic number:</p>
+
+<pre><code>47 49 46 38 39 61  →  GIF89a</code></pre>
+
+<p>The <code>file</code> command confirmed the spoofed type. Upload accepted. Retrieved the flag via the known path using a webshell instead of a reverse shell for simplicity.</p>
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 10.37.40 AM.png" alt="hexeditor showing GIF magic bytes prepended to PHP payload" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 1.06.24 PM.png" alt="file command confirming payload identified as GIF image data" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 1.15.31 PM.png" alt="Flag retrieved via spoofed upload path" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>5. Black-Box Node/Express Exploitation — Jewel</h2>
+
+<p>The hardest challenge. The upload and execution paths were completely separate, and the backend wasn't PHP.</p>
+
+<p>The upload endpoint response contained <code>X-Powered-By: Express</code>. That was the key clue. A PHP payload was the wrong fit entirely.</p>
+
+<p>Gobuster identified three directories: <code>/admin</code>, <code>/content/</code>, <code>/modules/</code>. Uploaded files landed in <code>/content/</code> with randomized short filenames. Retrieving them with <code>curl</code> showed the raw payload — they were being served, not executed.</p>
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 3.27.51 PM.png" alt="Gobuster identifying /admin, /content/, /modules/ and curl showing raw payload in /content/" style="max-width:100%;margin:1rem 0;">
+
+<p>The <code>/admin</code> page contained a form that activated modules from <code>/modules/</code>. Intercepting the admin POST in Burp revealed:</p>
+
+<pre><code>POST /admin?submit=failure HTTP/1.1
+body: cmd=...</code></pre>
+
+<p>Removing <code>?submit=failure</code> from the request line and supplying a traversal path to the uploaded file converted a failed module lookup into code execution.</p>
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 1.54.09 PM.png" alt="Burp correcting admin POST request line and supplying traversal path to /content/" style="max-width:100%;margin:1rem 0;">
+
+<p>A JS reverse shell payload wrapped to satisfy JPEG client-side checks was uploaded, the randomized filename identified, and the corrected admin request fired. Root shell connected back.</p>
+
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 2.41.53 PM.png" alt="Root shell via Node/Express upload chain — flag retrieved from /var/www/" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>What This Room Actually Teaches</h2>
+
+<p>The biggest conceptual shifts across all six challenges:</p>
+
+<ul>
+<li>Don't trust the upload path to also be the execution path</li>
+<li>Recognize when the backend invalidates your payload choice</li>
+<li>Use Burp to correct or reshape requests, not just bypass browser restrictions</li>
+<li>Treat small enumeration details as execution clues rather than noise</li>
+</ul>
+
+<p>The Jewel challenge especially reinforced that the right answer is often not "try more payloads" but "better understand how the application routes uploaded content."</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
