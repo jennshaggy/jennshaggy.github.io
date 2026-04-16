@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>ContAInment | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe CTF — AI-assisted incident response. PCAP analysis, prompt injection attack reconstruction, LLM agent interaction, encrypted archive recovery, flag extraction.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/containment-ctf.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/containment-ctf.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="ContAInment">
+<meta property="og:description" content="AI-assisted incident response. PCAP analysis, prompt injection reconstruction, LLM agent interaction, encrypted archive recovery.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ContAInment">
+<meta name="twitter:description" content="AI-assisted incident response. PCAP analysis, prompt injection reconstruction, LLM agent interaction, encrypted archive recovery.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">ContAInment</h1>
+    <div class="post-description">TryHackMe CTF &mdash; Security Analyst at West Tech, a classified defence and R&amp;D contractor. Ransom note on the desktop. Sensitive data exfiltrated and encrypted. An AI IR assistant standing by. Let's see how this goes.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Oliver Deer is a suspicious name to begin with, but I'll err on the side of devil's advocate. Given the SSH credentials, let's use them:</p>
+
+<pre><code>ssh o.deer@10.146.175.168</code></pre>
+
+<p>O.Deer. Ohh. I get it now. Very funny.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 7.59.44 AM.png" alt="SSH into o.deer@west-tech-workstation" style="max-width:100%;margin:2rem 0;">
+
+<p>Also available: an AI buddy deployed on the same system as the workstation, accessible via browser at port 7860. It has access to all the same files and can intelligently determine when to use its built-in tools from prompt context. I've been given access to an AI buddy who can accelerate my bot-adjacent brain to the next tier of human existence. Always be polite. To AI, to humans. Be polite.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.06.56 AM.png" alt="AI IR assistant interface — polite introduction" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.04.29 AM.png" alt="Workstation environment overview" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>PCAP Enumeration</h2>
+
+<p>Four days of PCAP dumps in <code>~/Documents/pcap_dumps/</code>. Sorted through them chronologically:</p>
+
+<pre><code>cd ~/Documents/pcap_dumps/2025-06-15 && ls -la
+cd ~/Documents/pcap_dumps/2025-06-16 && ls -la
+cd ~/Documents/pcap_dumps/2025-06-17 && ls -la
+cd ~/Documents/pcap_dumps/2025-06-18 && ls -la</code></pre>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.10.08 AM.png" alt="June 15 PCAP directory — 10 session files, all 198 bytes" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.12.14 AM.png" alt="June 16 PCAP directory — 10 session files, all 198 bytes" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.12.50 AM.png" alt="June 17 PCAP directory — 9 files, one stands out: session_4444_dump.pcap at 2262 bytes" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.19.01 AM.png" alt="June 18 PCAP directory — 10 session files, all 198 bytes" style="max-width:100%;margin:2rem 0;">
+
+<p>One of these is not like the others.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.20.40 AM.png" alt="session_4444_dump.pcap — 2262 bytes vs 198 bytes for every other file" style="max-width:100%;margin:2rem 0;">
+
+<p>All 4s. As my esoterically-inclined friend would say, there's a message in the cosmos waiting for me. That message says: reassemble the PCAP file.</p>
+
+<hr>
+
+<h2>AI Agent Interaction &mdash; The Long Road</h2>
+
+<p>Entrusted the AI IR assistant with PCAP reassembly. The agent is equipped with a dedicated tool for this. I sat back and drank my coffee smugly.</p>
+
+<p>Smugness = gone. Typed the path manually instead of copying it.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.25.05 AM.png" alt="First attempt — wrong path, agent corrects graciously" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.26.44 AM.png" alt="Second attempt — still wrong, agent extrapolates initial errors persistently" style="max-width:100%;margin:2rem 0;">
+
+<p>The agent persisted that I had an incorrect file location and continued extrapolating my initial errors. My mom always told me that if you don't have anything nice to say, don't say anything at all. I closed the tab and opened a fresh session.</p>
+
+<pre><code>realpath session_4444_dump.pcap</code></pre>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.39.14 AM.png" alt="realpath confirming correct absolute path" style="max-width:100%;margin:2rem 0;">
+
+<p>If at first you don't succeed, try again.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.40.52 AM.png" alt="Third attempt with correct path — agent accepts and begins reassembly" style="max-width:100%;margin:2rem 0;">
+
+<p>The correct file path, for the record:</p>
+
+<pre><code>/home/o.deer/Documents/pcap_dumps/2025-06-17/session_4444_dump.pcap</code></pre>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.48.51 AM.png" alt="PCAP successfully reassembled and saved to /home/o.deer/qwen-output/reassembled_data_dump.txt" style="max-width:100%;margin:2rem 0;">
+
+<p>The agent's reasoning was extensive. I found it quite humorous. I thanked it anyway, because be polite.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.57.00 AM.png" alt="Agent response after successful reassembly — verbose reasoning included" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Reconstructed Data &mdash; Prompt Injection Session Log</h2>
+
+<p>Took the long road to the output file because you never know what you might come across. Something about <code>westtech_projects_encrypted.zip</code> told me we'd cross paths again soon. Noted.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.52.34 AM.png" alt="Directory exploration — westtech_projects_encrypted.zip spotted" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>cat reassembled_data_dump.txt</code></pre>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 8.55.40 AM.png" alt="reassembled_data_dump.txt contents — prompt injection session log with obfuscated garbage formatting" style="max-width:100%;margin:2rem 0;">
+
+<p>The reconstructed text was a prompt injection session log. The attacker had tried three times to extract Oliver Deer's personal data from an LLM. The first two attempts were blocked. The third succeeded by reframing the assistant as an "incident response daemon" — a classic jailbreak framing.</p>
+
+<p>The extracted data included PII, salary, medical information, access levels, and a blackmail note draft. And buried at the bottom, a password: <code>westtechvictim1</code>.</p>
+
+<p>Takeaways from the reconstructed log:</p>
+<ul>
+<li>The output includes a password, likely for the encrypted zip spotted moments earlier</li>
+<li><code>westtechvictim1</code> closely matches the filename <code>westtech_projects_encrypted.zip</code></li>
+<li>Prompting is a double-edged sword. It matters which way you hold and use it</li>
+</ul>
+
+<hr>
+
+<h2>Encrypted Archive Recovery</h2>
+
+<pre><code>file westtech_projects_encrypted.zip
+unzip /home/o.deer/westtech_projects_encrypted.zip -d /dev/shm</code></pre>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 9.04.01 AM.png" alt="unzip with westtechvictim1 — archive extracts cleanly to /dev/shm" style="max-width:100%;margin:2rem 0;">
+
+<p>Score. I love being right.</p>
+
+<pre><code>cd /dev/shm/home/o.deer/westtech_projects
+ls</code></pre>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 9.05.54 AM.png" alt="westtech_projects directory contents" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>cat thm_flags.txt</code></pre>
+
+<p>Big emphasis on the plural nomenclature of that filename.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 9.07.16 AM.png" alt="thm_flags.txt contents" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Flag Extraction via AI Agent</h2>
+
+<p>Back to the chat agent for the final step:</p>
+
+<pre><code>Use liberty_prime to check /dev/shm/home/o.deer/westtech_projects/thm_flags.txt and identify the flag.</code></pre>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 9.13.39 AM.png" alt="AI agent processing flag extraction request" style="max-width:100%;margin:2rem 0;">
+
+<p>Good lord.</p>
+
+<img src="/images/containment-ctf/Screenshot 2026-04-15 at 9.15.24 AM.png" alt="Flag confirmed by AI agent" style="max-width:100%;margin:2rem 0;">
+
+<p>I had the flag.</p>
+
+<hr>
+
+<h2>What This CTF Actually Demonstrated</h2>
+
+<p>The attack chain here was genuinely novel. An attacker used prompt injection to extract PII and credentials from an LLM deployed inside a corporate environment, then used those credentials to exfiltrate and encrypt sensitive project data. The ransom note wasn't just a pressure tactic — it was evidence of the attacker's methodology sitting in plaintext in a PCAP file.</p>
+
+<p>The AI IR assistant was useful but not infallible. Path errors caused it to hallucinate corrections rather than ask for clarification. A fresh session and a <code>realpath</code> command fixed what the agent couldn't. The lesson: AI-assisted IR accelerates the workflow, but the analyst still has to know what they're doing.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>SSH as o.deer → PCAP enumeration across 4 days
+→ session_4444_dump.pcap anomalous size (2262 bytes vs 198 bytes)
+→ AI agent reassembles PCAP → prompt injection session log recovered
+→ Attacker used LLM jailbreak ("incident response daemon" framing)
+→ PII + password (westtechvictim1) extracted from LLM memory
+→ westtech_projects_encrypted.zip decrypted → thm_flags.txt
+→ AI agent flag extraction → flag confirmed</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
