@@ -5,11 +5,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Platforms & Training | Jenn Shagrin</title>
-<meta name="keywords" content="">
-<meta name="description" content="Hands-on platforms, certifications, courses, and professional development supporting applied systems, cloud, and cybersecurity work.">
+<title>Azure AI Foundry | Jenn Shagrin</title>
+<meta name="description" content="Microsoft Azure AI Foundry setup — jenn-foundry-dev resource, core-dev-eus2 project, GPT-4o GlobalStandard deployment, guardrails configuration, API key authentication.">
 <meta name="author" content="">
-<link rel="canonical" href="https://jennshaggy.github.io/platforms-training.html">
+<link rel="canonical" href="https://jennshaggy.github.io/azure-foundry.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,15 +67,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
-<meta property="og:url" content="https://jennshaggy.github.io/platforms-training.html">
+<meta property="og:url" content="https://jennshaggy.github.io/azure-foundry.html">
 <meta property="og:site_name" content="Jenn Shagrin">
-<meta property="og:title" content="Platforms & Training">
-<meta property="og:description" content="Hands-on platforms, certifications, courses, and professional development supporting applied systems, cloud, and cybersecurity work.">
+<meta property="og:title" content="Azure AI Foundry">
+<meta property="og:description" content="Microsoft Azure AI Foundry setup — GPT-4o deployment, guardrails configuration, API authentication.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Platforms & Training">
-<meta name="twitter:description" content="Hands-on platforms, certifications, courses, and professional development supporting applied systems, cloud, and cybersecurity work.">
+<meta name="twitter:title" content="Azure AI Foundry">
+<meta name="twitter:description" content="Microsoft Azure AI Foundry setup — GPT-4o deployment, guardrails configuration, API authentication.">
 </head>
 
 <body id="top">
@@ -145,116 +144,102 @@
 <main class="main">
 <article class="post-single">
   <header class="post-header">
-    <h1 class="post-title entry-hint-parent">
-      Platforms &amp; Training
-    </h1>
-    <div class="post-description">
-      Hands-on platforms, certifications, courses, and professional development supporting applied systems, cloud, and cybersecurity work.
-    </div>
+    <h1 class="post-title entry-hint-parent">Azure AI Foundry</h1>
+    <div class="post-description">Microsoft Azure AI Foundry &mdash; enterprise-grade platform for building and deploying AI applications. Built and configured a live environment with GPT-4o deployment, content guardrails, and API key authentication on Azure for Students credits.</div>
   </header>
 
   <div class="post-content">
 
-<p>This section reflects <em>active use</em>, not passive coursework.</p>
+<p>Microsoft AI Foundry is a unified platform for building, deploying, and managing AI applications and agents. It consolidates model access, agent orchestration, monitoring, and governance in one place — production-grade infrastructure without managing the underlying compute.</p>
+
+<p>The architecture has two layers: a <strong>Foundry resource</strong> (the Azure-side container that holds billing, IAM, and regional configuration) and a <strong>Foundry project</strong> (the workspace where you actually deploy models, build agents, and configure tools). One resource can contain multiple projects.</p>
 
 <hr>
 
-<h2>Platforms &amp; Labs</h2>
+<h2>Resource Setup &mdash; jenn-foundry-dev</h2>
 
-<h3>Security &amp; SOC Platforms</h3>
-<ul>
-<li>TryHackMe (THM)</li>
-<li>Hack The Box (HTB)</li>
-<li>LetsDefend</li>
-<li>CIAT internal lab environments</li>
-</ul>
-<p>Activities include:</p>
-<ul>
-<li>SOC-style alert triage</li>
-<li>Malware analysis (static &amp; dynamic)</li>
-<li>IOC identification and documentation</li>
-<li>Incident timeline construction</li>
-<li>MITRE ATT&amp;CK mapping</li>
-</ul>
+<p>Created the Foundry resource <code>jenn-foundry-dev</code> in December 2025 under the <code>Azure for Students</code> subscription. Resource group: <code>rg-foundry-dev</code>. Region: East US. API key authentication enabled.</p>
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 12.55.37 PM.png" alt="Azure portal showing jenn-foundry-dev Foundry resource overview" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 12.56.31 PM.png" alt="jenn-foundry-dev resource details — subscription, resource group, location" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 12.56.57 PM.png" alt="jenn-foundry-dev Keys and Endpoint — API access configuration" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 12.57.16 PM.png" alt="jenn-foundry-dev Properties — status Active, subscription Azure for Students, resource group rg-foundry-dev, East US, API key auth enabled" style="max-width:100%;margin:2rem 0;">
+
+<p>The sidebar shows the full resource management surface: Projects, Keys and Endpoint, Encryption, Networking, Stored Completions (Preview), Identity, Cost Analysis. Stored Completions in preview is worth watching — it's the mechanism for logging and reviewing model outputs at the resource level, which has obvious security and compliance implications.</p>
 
 <hr>
 
-<h3>Cloud &amp; AI Platforms</h3>
-<ul>
-<li>Microsoft Learn</li>
-<li>Azure AI Engineer Learning Path</li>
-<li><a href="/azure-foundry.html">Microsoft Foundry</a> — AI-enabled cloud tooling. Foundry resource and project setup, GPT-4o GlobalStandard deployment, content guardrails, API authentication.</li>
-</ul>
-<p>Focus areas:</p>
-<ul>
-<li>Secure cloud architecture</li>
-<li>AI services and governance</li>
-<li>Identity and access considerations</li>
-<li>AI-assisted security workflows</li>
-</ul>
+<h2>Project Setup &mdash; core-dev-eus2</h2>
+
+<p>Created the Foundry project <code>core-dev-eus2</code> within the resource. Projects are where models get deployed and where the actual API endpoints live.</p>
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 12.58.28 PM.png" alt="Microsoft Foundry portal — core-dev-eus2 project home, Build/Operate/Discover navigation" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 12.59.49 PM.png" alt="Foundry model catalog — available models including GPT-4o, o-series, Llama, Mistral, Phi" style="max-width:100%;margin:2rem 0;">
+
+<p>The model catalog includes first-party Azure OpenAI models (GPT-4o, o1, o3, o4-mini, GPT-4.1 series), open-source options (Meta Llama, Mistral, Phi), and partner models (Anthropic, Cohere, AI21). Everything deployable from the same interface with unified billing and IAM.</p>
 
 <hr>
 
-<h3>Offensive Security Training</h3>
+<h2>GPT-4o Deployment</h2>
+
+<p>Deployed <code>gpt-4o</code> as a GlobalStandard deployment — meaning requests can route across Azure regions for capacity rather than being pinned to a single datacenter. Provisioning state: Succeeded.</p>
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 1.02.26 PM.png" alt="GPT-4o deployment details — GlobalStandard, Succeeded, 50k TPM, 500 RPM" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 1.05.21 PM.png" alt="GPT-4o full deployment info — model version 2024-08-06, lifecycle status Deprecating, retirement Sep 30 2026" style="max-width:100%;margin:2rem 0;">
+
+<p>Deployment configuration:</p>
+
 <ul>
-<li><strong>Red Siege – Kerberos Workshop (In Progress)</strong><br>
-Hands-on attack and defense training including:
-<ul>
-<li>Kerberoasting</li>
-<li>Silver Ticket attacks</li>
-<li>Golden Ticket attacks</li>
-<li>Pass-the-ticket techniques</li>
+<li><strong>Model:</strong> gpt-4o, version 2024-08-06</li>
+<li><strong>Deployment type:</strong> GlobalStandard</li>
+<li><strong>Rate limits:</strong> 50,000 tokens/minute, 500 requests/minute</li>
+<li><strong>Version upgrade policy:</strong> OncNewDefaultVersionAvailable</li>
+<li><strong>Lifecycle status:</strong> Deprecating — retirement date Sep 30, 2026</li>
 </ul>
-</li>
-</ul>
-<p>Training emphasizes <em>offense for defense</em> understanding.</p>
+
+<p>The retirement date is worth flagging. Version 2024-08-06 is on the deprecation path. The upgrade policy means it will auto-update to the next default version when available rather than requiring manual redeployment — useful for keeping a dev environment current without active maintenance.</p>
 
 <hr>
 
-<h2>Certifications</h2>
+<h2>Guardrails Configuration</h2>
+
+<p>Guardrails are applied at the model deployment level and control what content the model will generate or accept. Two guardrails configured on the GPT-4o deployment:</p>
+
+<img src="/images/azure-foundry/Screenshot 2026-04-14 at 1.06.46 PM.png" alt="Guardrails panel — Microsoft.Default and Microsoft.DefaultV2 applied to gpt-4o" style="max-width:100%;margin:2rem 0;">
+
 <ul>
-<li>CompTIA Security+ | Active through 2028</li>
-<li>CompTIA Network+ | Active through 2028</li>
-<li>CompTIA A+ | Active through 2029</li>
-<li>TryHackMe SOC Level 1 Certificate</li>
-<li>CompTIA AI / Prompting Essentials (In Progress)</li>
-<li>CompTIA CyberDefense Pro v2 (In Progress)</li>
+<li><strong>Microsoft.Default</strong> — baseline content filtering across hate, violence, sexual, and self-harm categories</li>
+<li><strong>Microsoft.DefaultV2</strong> (applied to gpt-4o) — updated version of the default policy with additional coverage</li>
 </ul>
-<p><strong>CompTIA Stackable Certifications:</strong> CIOS | CSIS | CAPP</p>
+
+<p>The Guardrails panel also shows Blocklists and Integrations tabs — the blocklist feature allows custom keyword or pattern filtering on top of the default policy, and Integrations connects guardrail behavior to external monitoring systems. Neither was configured here beyond the defaults.</p>
+
+<p>From a security perspective, guardrails are the content security layer for AI applications. They're the difference between a model that will and won't generate harmful output on request — and in an enterprise deployment, getting this configuration wrong has the same kind of blast radius as a misconfigured WAF.</p>
 
 <hr>
 
-<h2>Conferences &amp; Events</h2>
-<ul>
-<li>BSides Albuquerque</li>
-<li>New Mexico Tech Council (NMTC) Summit</li>
-<li>NMTC Women in Tech Peer Group</li>
-<li>WiCyS (Women in Cybersecurity) events</li>
-<li>Splunk webinars &amp; workshops</li>
-<li>Fortinet events</li>
-<li>SentinelOne events</li>
-<li>SANS Neurodiversity in Cybersecurity Summit (CPEs earned)</li>
-</ul>
+<h2>Resource Summary</h2>
 
-<hr>
+<pre><code>Foundry resource:  jenn-foundry-dev
+Resource group:    rg-foundry-dev
+Subscription:      Azure for Students
+Region:            East US
+Created:           December 22, 2025
 
-<h2>Learning Philosophy</h2>
-<ul>
-<li>Learn by building</li>
-<li>Learn by breaking</li>
-<li>Document everything</li>
-<li>Favor depth over surface exposure</li>
-</ul>
-
-<hr>
-
-<h2>Status</h2>
-<p>Active and expanding. Updated as platforms, certifications, and events continue.</p>
+Project:           core-dev-eus2
+Model deployed:    gpt-4o (version 2024-08-06)
+Deployment type:   GlobalStandard
+Rate limits:       50k TPM / 500 RPM
+Guardrails:        Microsoft.Default, Microsoft.DefaultV2
+Auth:              API key enabled</code></pre>
 
   </div>
-
-  <footer class="post-footer">
-  </footer>
+  <footer class="post-footer"></footer>
 </article>
 </main>
 
@@ -262,7 +247,7 @@ Hands-on attack and defense training including:
     <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
