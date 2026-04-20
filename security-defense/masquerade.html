@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Masquerade | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe DFIR challenge — RC4-encrypted hex-encoded payload delivery into a .NET C2 client beaconing over AES-256-CBC encrypted HTML comments. PowerShell event log forensics and PCAP analysis.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/security-defense/masquerade.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/security-defense/masquerade.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Masquerade">
+<meta property="og:description" content="TryHackMe DFIR — RC4 payload delivery, .NET C2 client, AES-256-CBC HTML comment C2 channel. PowerShell EVTX forensics and PCAP analysis.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Masquerade">
+<meta name="twitter:description" content="TryHackMe DFIR — RC4 payload delivery, .NET C2 client, AES-256-CBC HTML comment C2 channel. PowerShell EVTX forensics and PCAP analysis.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Masquerade</h1>
+    <div class="post-description">TryHackMe DFIR challenge &mdash; Jim from Finance ran a &ldquo;security update&rdquo; script that was absolutely not a security update. Two artifacts on the table: <code>Powershell-Operational.evtx</code> and <code>traffic.pcapng</code>. The attacker chained RC4-encrypted hex-encoded payload delivery into a .NET C2 client that beaconed over AES-256-CBC encrypted HTML comments. Let&rsquo;s dissect.</div>
+  </header>
+
+  <div class="post-content">
+
+<hr>
+
+<h2>Artifact Triage</h2>
+
+<p>Grabbed the malicious artifacts in an isolated sandbox. Safety first.</p>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 7.25.40 AM.png" alt="Malicious artifacts folder listing" style="max-width:100%;margin:1rem 0;">
+
+<p>I feel like a kid on Halloween with a bag full of unknown delights.</p>
+
+<p>Two files:</p>
+
+<ul>
+<li><code>Powershell-Operational.evtx</code>: Windows event log, likely containing Jim&rsquo;s malicious script</li>
+<li><code>traffic.pcapng</code>: the motherload. Network capture with C2 traffic, payload delivery, and encrypted commands</li>
+</ul>
+
+<hr>
+
+<h2>Wrestling python-evtx into Submission</h2>
+
+<p>Before I could read the log, I had to actually get python-evtx to work. Three tries, three different failures:</p>
+
+<ul>
+<li><code>python3 -m evtx</code> &rarr; module not found</li>
+<li><code>python-evtx</code> via pip &rarr; broken binary from package conflict</li>
+<li><code>evtx</code> package via pip &rarr; <code>PyEvtxParser</code> doesn&rsquo;t support the context manager protocol</li>
+</ul>
+
+<p>Determined. We will figure this out.</p>
+
+<p>Two conflicting packages had both installed an <code>evtx_dump</code> binary and they were stepping on each other&rsquo;s toes. Bypassed them with direct Python, but the first attempt used a <code>with</code> statement that <code>PyEvtxParser</code> can&rsquo;t handle:</p>
+
+<pre><code>python3 -c "
+import evtx
+with evtx.PyEvtxParser('/home/jenn/Masquerade/attachments/dist/Powershell-Operational.evtx') as p:
+    for r in p.records_json():
+        print(r)
+" &gt; ps_log.txt</code></pre>
+
+<p>Now, we flip the evtx dumpster over. Why? Because it looked at me the wrong way&hellip; or that&rsquo;s just proper handling protocol.</p>
+
+<p>Dropped the <code>with</code> statement, called the parser directly:</p>
+
+<pre><code>python3 -c "
+import evtx
+p = evtx.PyEvtxParser('/home/jenn/Masquerade/attachments/dist/Powershell-Operational.evtx')
+for r in p.records_json():
+    print(r)
+" &gt; ps_log.txt</code></pre>
+
+<p>Quick verification that this messochism tango was over:</p>
+
+<pre><code>wc -l ps_log.txt</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 8.04.33 AM.png" alt="wc -l showing populated ps_log.txt" style="max-width:100%;margin:1rem 0;">
+
+<p>Log dumped. Now we rage. Onwards.</p>
+
+<hr>
+
+<h2>Deobfuscating the PowerShell</h2>
+
+<p>A quick <code>grep</code> for <code>ScriptBlockText</code> unveiled malicious PowerShell in <code>event_record_id 6</code>. The attacker split strings to evade detection, but jokes on you, Jim. They rejoin cleanly.</p>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 12.49.31 PM.png" alt="event_record_id 6 with split-string obfuscation highlighted" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Q1. External domain.</strong> Join <code>'api-edg' + 'e' + 'cl' + 'oud.xy' + 'z'</code> &rarr; <code>api-edgecloud.xyz</code></p>
+
+<p><strong>Q2. Encryption algorithm.</strong> Looking at the loop structure, my memory got a ping from something I learned in my Sec+ 1 course. <code>$s = 0..255</code> KSA with <code>$j = ($j + $s[$i] + $k[$i % $k.Count]) % 256</code>, then PRGA and XOR. That&rsquo;s literally textbook <strong>RC4</strong>.</p>
+
+<p><strong>Q3. Decryption key.</strong> Join <code>'X9vT3pL' + '2QwE' + '8xR6' + 'ZkYhC4' + 's'</code> &rarr; <code>X9vT3pL2QwE8xR6ZkYhC4s</code></p>
+
+<hr>
+
+<h2>What the Event Log Told Us</h2>
+
+<p>Event ID 4104 is script block logging. It fires when PowerShell executes a block and logs the content. A SIEM rule detecting 4104 events containing <code>DownloadString</code>, <code>WebClient</code>, and <code>-join</code> in the same block would have caught this. Can&rsquo;t save the world.</p>
+
+<p>The re-joined string that answered Q3 was the giveaway. Too bad, Jim.</p>
+
+<p>The script downloads a payload, RC4-decrypts it in memory, writes it to <code>$env:TEMP</code>, then launches it via <code>Start-Process</code>. Writing to TEMP and immediately executing is a high-fidelity behavioral indicator. If there had been an EDR in place, it would have been making itself heard.</p>
+
+<p><code>.xyz</code> domains are typically another red-alert warning, and <code>api-edgecloud.xyz</code> has no legitimate business being in this context. Shame on the DNS reputation feed or proxy that didn&rsquo;t block and alert on it.</p>
+
+<p>A huge round of applause for whomever enabled script block logging. Without it, the <code>evtx</code> would be empty and we&rsquo;d have only the PCAP to work with.</p>
+
+<p>But I digress. On to the PCAP.</p>
+
+<hr>
+
+<h2>Pivoting to the PCAP</h2>
+
+<p>An HTTP-only filter came back inconclusive. A mixed HTTP/TLS protocol dump did the trick:</p>
+
+<pre><code>tshark -r traffic.pcapng -T fields -e ip.dst -e tcp.dstport -e _ws.col.Protocol 2&gt;/dev/null | sort -u</code></pre>
+
+<p>Two IPs on Port 80 had C2 auras: <code>34.174.57.99</code> and <code>34.174.85.91</code>. The 443s were likely regular Windows telemetry.</p>
+
+<pre><code>tshark -r traffic.pcapng -Y "ip.addr == 34.174.57.99 || ip.addr == 34.174.85.91" 2&gt;/dev/null</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 8.21.01 AM.png" alt="Two C2 roles visible in tshark output" style="max-width:100%;margin:1rem 0;">
+
+<p>Aha! Got ya. Two separate C2 roles:</p>
+
+<ul>
+<li><code>34.174.85.91</code>: delivered <code>amd.bin</code> (the payload) &rarr; Q4 and Q5</li>
+<li><code>34.174.57.99</code>: C2 server receiving beacons via <code>GET /images?guid=&lt;base64&gt;</code> &rarr; Q6, Q7, and Q8</li>
+</ul>
+
+<p>That giant base64 blob in the <code>guid</code> parameter is the encrypted C2 traffic.</p>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 8.30.19 AM.png" alt="Encrypted base64 C2 traffic in guid parameter" style="max-width:100%;margin:1rem 0;">
+
+<hr>
+
+<h2>Timestamp and Payload Extraction</h2>
+
+<p><strong>Q4. Server response timestamp.</strong> Pulled the HTTP Date header off the 200 OK response from <code>34.174.85.91</code>:</p>
+
+<pre><code>tshark -r traffic.pcapng -Y "ip.src == 34.174.85.91 &amp;&amp; http" -T fields -e http.date 2&gt;/dev/null</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 8.42.20 AM.png" alt="HTTP Date header for payload response" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Q4 Answer:</strong> <code>Fri, 10 Apr 2026 05:28:23 GMT</code></p>
+
+<p><strong>Q5. SHA-256 of the decrypted payload.</strong> Exported HTTP objects:</p>
+
+<pre><code>tshark -r traffic.pcapng -Y "ip.src == 34.174.85.91" --export-objects "http,/tmp/payload_extract" 2&gt;/dev/null</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 8.44.29 AM.png" alt="Exported HTTP objects showing amd.bin" style="max-width:100%;margin:1rem 0;">
+
+<p><code>amd.bin</code> confirmed as the payload. The <code>%2f</code> files are fragments from C2 beacon traffic. Ignore those.</p>
+
+<p>RC4 is a symmetric stream cipher. Same key encrypts and decrypts. OpenSSL should do this in one step:</p>
+
+<pre><code>openssl enc -rc4 -nosalt -nopad -K $(echo -n "X9vT3pL2QwE8xR6ZkYhC4s" | xxd -p) \
+  -in /tmp/payload_extract/amd.bin -out /tmp/payload_decrypted.bin</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 8.51.38 AM.png" alt="OpenSSL RC4 attempt, key truncation" style="max-width:100%;margin:1rem 0;">
+
+<p>Or not, but that&rsquo;s okay. We have other tools in the box. OpenSSL&rsquo;s RC4 implementation truncates keys shorter than my 22-character key.</p>
+
+<p>Python RC4 on the raw binary:</p>
+
+<pre><code>python3 -c "
+key = b'X9vT3pL2QwE8xR6ZkYhC4s'
+data = open('/tmp/payload_extract/amd.bin','rb').read()
+s = list(range(256)); j = 0
+for i in range(256):
+    j = (j + s[i] + key[i % len(key)]) % 256
+    s[i], s[j] = s[j], s[i]
+i = j = 0; out = []
+for byte in data:
+    i = (i + 1) % 256
+    j = (j + s[i]) % 256
+    s[i], s[j] = s[j], s[i]
+    out.append(byte ^ s[(s[i] + s[j]) % 256])
+open('/tmp/payload_decrypted.bin','wb').write(bytes(out))
+"</code></pre>
+
+<p>Foiled myself again. Something still off. Back to the script block.</p>
+
+<p>Third attempt. <code>xxd</code> revealed the file was hex-encoded ASCII, not raw encrypted bytes:</p>
+
+<pre><code>xxd /tmp/payload_extract/amd.bin | head -3</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 8.56.34 AM.png" alt="xxd showing amd.bin is ASCII hex, not raw bytes" style="max-width:100%;margin:1rem 0;">
+
+<p>Printable ASCII hex. Hex-decode first, <em>then</em> RC4 decrypt:</p>
+
+<pre><code>python3 -c "
+raw = open('/tmp/payload_extract/amd.bin','rb').read().decode().strip()
+data = bytes.fromhex(raw)
+key = b'X9vT3pL2QwE8xR6ZkYhC4s'
+s = list(range(256)); j = 0
+for i in range(256):
+    j = (j + s[i] + key[i % len(key)]) % 256
+    s[i], s[j] = s[j], s[i]
+i = j = 0; out = []
+for byte in data:
+    i = (i + 1) % 256
+    j = (j + s[i]) % 256
+    s[i], s[j] = s[j], s[i]
+    out.append(byte ^ s[(s[i] + s[j]) % 256])
+open('/tmp/payload_decrypted.bin','wb').write(bytes(out))
+"
+file /tmp/payload_decrypted.bin
+sha256sum /tmp/payload_decrypted.bin</code></pre>
+
+<p>Valid PE32 .NET executable. Good job, Jenn.</p>
+
+<p><strong>Q5 Answer:</strong> <code>e3d39d42df63c6874780737244370ba517820f598fd2443e47ff6580f10c17cb</code></p>
+
+<hr>
+
+<h2>Decompiling the .NET Client</h2>
+
+<p><strong>Q6. Remote URL.</strong> Strings with UTF-16LE encoding on the decrypted PE32:</p>
+
+<pre><code>strings -e l /tmp/payload_decrypted.bin | grep -i "http\|images\|34.174"</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 9.02.57 AM.png" alt="URL found in UTF-16LE strings" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Q6 Answer:</strong> <code>http://34.174.57.99/images?guid=</code></p>
+
+<p><strong>Q7. Encryption key and algorithm.</strong> Same approach, different grep:</p>
+
+<pre><code>strings -e l /tmp/payload_decrypted.bin | grep -iv "http\|system\|microsoft\|object\|string"</code></pre>
+
+<p>Key surfaced: <code>M4squ3r4d3Th3P4ck3tSt34lthM0d31337</code>. The key name itself is basically tech-pig-Latin for &ldquo;Masquerade The Packet Stealth Mode 1337,&rdquo; giving custom XOR or AES vibes.</p>
+
+<p>Algorithm confirmation needed a proper .NET decompile. Installed dnfile:</p>
+
+<pre><code>pip install dnfile --break-system-packages
+python3 -c "
+import dnfile
+pe = dnfile.dnPE('/tmp/payload_decrypted.bin')
+for s in pe.net.mdtables.MethodDef:
+    print(s.Name)
+"</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 9.09.57 AM.png" alt="dnfile method list showing CreateAesKey" style="max-width:100%;margin:1rem 0;">
+
+<p>AES confirmed. <code>CreateAesKey</code> right there in the method list. My spidey-senses said the key string was almost certainly either MD5-hashed into a 16-byte AES-128 key, or SHA-256-hashed into a 32-byte AES-256 key.</p>
+
+<p>Grabbed RVAs and peeked at the bytecode. The CIL was too dense AF to read manually. Pivot: extract the C2 response bodies from the PCAP and brute the AES mode.</p>
+
+<hr>
+
+<h2>Decrypting the C2 Traffic</h2>
+
+<p>The tell-tale <code>&lt;!-- {0} --&gt;</code> template means ciphertext lives inside HTML comments. Not so sneaky.</p>
+
+<p>Raw stream was also dense AF, so I exported HTTP objects instead:</p>
+
+<pre><code>tshark -r traffic.pcapng -Y "ip.src == 34.174.57.99" --export-objects "http,/tmp/c2_extract" 2&gt;/dev/null
+grep -o '&lt;!--.*--&gt;' /tmp/c2_extract/%2f</code></pre>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 9.17.27 AM.png" alt="C2 response bodies wrapped in oldcss= base64 HTML comments" style="max-width:100%;margin:1rem 0;">
+
+<p>Response bodies wrapped in <code>&lt;!-- oldcss=&lt;base64&gt; --&gt;</code>. &ldquo;Feeling lucky,&rdquo; indeed. First encrypted command: <code>LQPZY0C4ZPwZD8K0sFRzQKtP8l0NE35v/EzXkc0lU0Q=</code></p>
+
+<p>First attempt. MD5 hash of the key string, extract IV from first 16 bytes of ciphertext, AES-CBC decrypt:</p>
+
+<pre><code>python3 -c "
+import hashlib, base64
+from Crypto.Cipher import AES
+key = hashlib.md5(b'M4squ3r4d3Th3P4ck3tSt34lthM0d31337').digest()
+ct = base64.b64decode('LQPZY0C4ZPwZD8K0sFRzQKtP8l0NE35v/EzXkc0lU0Q=')
+iv = ct[:16]
+cipher = AES.new(key, AES.MODE_CBC, iv)
+print(cipher.decrypt(ct[16:]))
+"</code></pre>
+
+<p>Nada. MD5 produced garbage. The first beacon response was just <code>nothing</code> anyway. The attacker hadn&rsquo;t issued a command yet. The actual commands lived in the numbered files.</p>
+
+<p>Pivot to SHA-256 with a zero IV, looped across every <code>%2f*</code> file:</p>
+
+<pre><code>for f in /tmp/c2_extract/%2f*; do
+  echo "=== $f ===";
+  grep -o '&lt;!-- oldcss=.*--&gt;' "$f" | grep -o 'oldcss=.*--&gt;' | sed 's/oldcss=//;s/ --&gt;//' | python3 -c "
+import hashlib, base64, sys
+from Crypto.Cipher import AES
+key = hashlib.sha256(b'M4squ3r4d3Th3P4ck3tSt34lthM0d31337').digest()
+ct = base64.b64decode(sys.stdin.read().strip())
+iv = b'\x00'*16
+cipher = AES.new(key, AES.MODE_CBC, iv)
+print(cipher.decrypt(ct))
+" 2&gt;/dev/null
+done</code></pre>
+
+<p>WIN. Flag in <code>%2f(9)</code>.</p>
+
+<img src="/images/masquerade/Screenshot 2026-04-19 at 9.21.37 AM.png" alt="Decrypted C2 command sequence with flag" style="max-width:100%;margin:1rem 0;">
+
+<p>Let&rsquo;s rehash (pun intended) the threat actor&rsquo;s command sequence:</p>
+
+<ul>
+<li><code>whoami /all</code>: reconnaissance and privilege check</li>
+<li><code>ipconfig /all</code>: network enumeration</li>
+<li><code>echo THM{...}</code>: flag, aka buried treasure</li>
+</ul>
+
+<p>The <code>DESKTOP-I6C5C7M::::</code> prefix is the hostname beacon the client prepended to each response before encrypting and sending back. Tsk, tsk. The <code>nothing</code> entries are idle beacons from before any commands had been issued.</p>
+
+<p>Final derivation: SHA-256 of the key string &rarr; 32-byte AES-256 key. Base64-decode the ciphertext, AES-256-CBC decrypt with a zero IV. Plaintext command falls out.</p>
+
+<p><strong>Q8 Answer:</strong> <code>THM{m45k3d_tr4ff1c_0v3r_c0v3rt_ch4nn3lz}</code></p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>Spearphish &rarr; Jim runs malicious .ps1 &rarr; obfuscated PowerShell
+&rarr; split-string reconstruction reveals api-edgecloud.xyz + RC4 key
+&rarr; HTTP GET pulls hex-encoded RC4-encrypted payload from 34.174.85.91
+&rarr; Hex-decode &rarr; RC4 decrypt &rarr; PE32 .NET executable (amdfendrsr.exe in TEMP)
+&rarr; .NET C2 client beacons to 34.174.57.99 via GET /images?guid=&lt;base64&gt;
+&rarr; CreateAesKey: SHA-256 of hardcoded string = 32-byte AES-256 key
+&rarr; Commands returned in &lt;!-- oldcss=&lt;base64&gt; --&gt; HTML comment template
+&rarr; AES-256-CBC decrypt with zero IV &rarr; whoami /all, ipconfig /all, flag</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
