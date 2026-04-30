@@ -5,11 +5,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Penetration Testing | Jenn Shagrin</title>
-<meta name="keywords" content="">
-<meta name="description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<title>Surfer | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe CTF — default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
 <meta name="author" content="">
-<link rel="canonical" href="https://jennshaggy.github.io/applied-projects.html">
+<link rel="canonical" href="https://jennshaggy.github.io/surfer.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,15 +67,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
-<meta property="og:url" content="https://jennshaggy.github.io/applied-projects.html">
+<meta property="og:url" content="https://jennshaggy.github.io/surfer.html">
 <meta property="og:site_name" content="Jenn Shagrin">
-<meta property="og:title" content="Penetration Testing">
-<meta property="og:description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<meta property="og:title" content="Surfer">
+<meta property="og:description" content="TryHackMe CTF — default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Penetration Testing">
-<meta name="twitter:description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<meta name="twitter:title" content="Surfer">
+<meta name="twitter:description" content="TryHackMe CTF — default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
 </head>
 
 <body id="top">
@@ -145,95 +144,153 @@
 <main class="main">
 <article class="post-single">
   <header class="post-header">
-    <h1 class="post-title entry-hint-parent">Penetration Testing</h1>
-    <div class="post-description">Lab writeups, CTF documentation, and offensive security work. Evidence of work, not concept summaries.</div>
+    <h1 class="post-title entry-hint-parent">Surfer</h1>
+    <div class="post-description">TryHackMe CTF &mdash; Surfer-bro themed web app with internal-only functionality and an <code>export PDF</code> button that reads server-side URLs. The synopsis says only some functionality is internal-use, but if you catch the right wave, you can probably find the sweet stuff. Challenge accepted.</div>
   </header>
 
   <div class="post-content">
 
-<p>This section documents hands-on lab work across TryHackMe paths and CTF challenges. Each page covers a specific technique, vector, or machine with real commands, real output, and real methodology.</p>
+<hr>
+
+<h2>Recon</h2>
+
+<pre><code>nmap -A -T4 -p- TARGET_IP</code></pre>
+
+<img src="/images/surfer/Screenshot 2026-04-26 at 8.47.25 PM.png" alt="nmap initial scan" style="max-width:100%;margin:2rem 0;">
+
+<p>Open ports:</p>
+<ul>
+<li>22 (SSH)</li>
+<li>80 (HTTP). Shoutout to <code>robots.txt</code> and <code>/backup/chat.txt</code> here, as well as <code>login.php</code>. Let&rsquo;s tango.</li>
+</ul>
+
+<p>Deeper enumeration with feroxbuster:</p>
+
+<pre><code>feroxbuster -u http://TARGET_IP -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt -t 50 -o ferox_surfer_out.txt</code></pre>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 12.12.18 AM.png" alt="feroxbuster running" style="max-width:100%;margin:2rem 0;">
+
+<p>I love watching this run.</p>
+
+<p>The scan kept running while I started poking at what it had already found.</p>
 
 <hr>
 
-<h2>TryHackMe</h2>
+<h2>Robots.txt and the Backup Chat</h2>
 
-<h3>CTF Challenges</h3>
-<ul>
-<li><a href="/decryptify.html">Decryptify</a> — JavaScript deobfuscation, invite code brute force, user enumeration, padding oracle attack</li>
-<li><a href="/valley-ctf.html">Valley</a> — credential exposure, PCAP analysis, UPX binary analysis, Python library hijack via cron</li>
-<li><a href="/jack-ctf.html">Jack</a> — WordPress enumeration, XML-RPC credential attack, User Role Editor privilege escalation via Burp, Akismet plugin reverse shell, SSH key extraction, Python os.py hijack for root</li>
-<li><a href="/operation-endgame.html">Operation Endgame</a> — Active Directory attack chain, Kerberoasting, credential spray, Bloodhound, targeted Kerberoast, plaintext credentials in PowerShell script, smbexec to SYSTEM</li>
-<li><a href="/ledger-ctf.html">Ledger</a> — Active Directory with certificate services, guest LDAP enumeration, shared password, RDP, ESC1 cert abuse via certipy, Administrator TGT, smbexec shell</li>
-<li><a href="/injects-ctf.html">Injects</a> — SQLi client-side filter bypass, recursive keyword obfuscation, mail.log credential recovery, table drop, admin access, SSTI via Twig CVE-2024-45411, RCE</li>
-<li><a href="/operation-takeover.html">Operation Takeover</a> — FRRouting Telnet VTY enumeration, Telnet IAC byte recognition, SNMP community string discovery via onesixtyone, write access confirmed, NET-SNMP-EXTEND-MIB RCE, root flag</li>
-<li><a href="/containment-ctf.html">ContAInment</a> — AI-assisted incident response, PCAP anomaly detection, prompt injection attack reconstruction, LLM jailbreak analysis, encrypted archive recovery</li>
-<li><a href="/cybercrafted.html">CyberCrafted</a> — subdomain enumeration, steganography detour, differential error user enumeration, SQLi credential dump, SSH key theft, john passphrase crack, Minecraft plugin log plaintext password, screen sudo privesc to root</li>
-<li><a href="/whats-your-name.html">What's Your Name</a> — JavaScript inspection, SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset</li>
-<li><a href="/surfer.html">Surfer</a> — default credential login, robots.txt credential leak, SSRF via export PDF hidden form input manipulation to fetch restricted internal endpoint</li>
-</ul>
+<pre><code>http://TARGET_IP/robots.txt</code></pre>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.08.28 AM.png" alt="robots.txt contents" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>http://TARGET_IP/backup/chat.txt</code></pre>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.47.22 AM.png" alt="chat.txt contents revealing admin admin" style="max-width:100%;margin:2rem 0;">
+
+<p><code>backup/chat.txt</code> revealed the admin panel uses <code>admin:admin</code> defaults. Been there, done that. Checked off the list.</p>
 
 <hr>
 
-<h3>Privilege Escalation</h3>
+<h2>Auto-Pwned Admin Dashboard</h2>
 
-<h4><a href="/linux-privesc.html">Linux Privilege Escalation</a></h4>
-<p>Seven vectors, real exploitation, first successful local root.</p>
-<ul>
-<li><a href="/linux-privesc-kernel.html">Kernel Exploit — CVE-2015-1328</a></li>
-<li><a href="/linux-privesc-sudo.html">Sudo Misconfiguration</a></li>
-<li><a href="/linux-privesc-suid.html">SUID Abuse — base64</a></li>
-<li><a href="/linux-privesc-capabilities.html">Capabilities — vim cap_setuid</a></li>
-<li><a href="/linux-privesc-cron.html">Cron Job Hijack</a></li>
-<li><a href="/linux-privesc-path.html">PATH Hijacking</a></li>
-<li><a href="/linux-privesc-nfs.html">NFS no_root_squash</a></li>
-</ul>
+<p>Visiting the target routes to <code>login.php</code>:</p>
 
-<h4><a href="/windows-privesc.html">Windows Privilege Escalation</a></h4>
-<p>Five vectors from low-privilege user to SYSTEM.</p>
-<ul>
-<li><a href="/windows-privesc-credentials.html">Stored Credentials</a></li>
-<li><a href="/windows-privesc-scheduled-tasks.html">Scheduled Task Abuse</a></li>
-<li><a href="/windows-privesc-service-exe.html">Service Executable Permissions</a></li>
-<li><a href="/windows-privesc-unquoted-path.html">Unquoted Service Path</a></li>
-<li><a href="/windows-privesc-service-dacl.html">Insecure Service DACL</a></li>
-</ul>
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.12.54 AM.png" alt="login.php interface" style="max-width:100%;margin:2rem 0;">
+
+<p>I tried <code>admin:admin</code> and was admitted in to this 24x7 unprotected admin dashboard that reads like a Shopify knockoff:</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.15.36 AM.png" alt="admin dashboard interior" style="max-width:100%;margin:2rem 0;">
+
+<p>On the same page, hosting information sat in plain sight, and an <code>export pdf</code> button was right there waiting.</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.18.44 AM.png" alt="hosting info and export PDF button" style="max-width:100%;margin:2rem 0;">
 
 <hr>
 
-<h3>Web Exploitation</h3>
-<ul>
-<li><a href="/upload-vulnerabilities.html">Upload Vulnerabilities</a> — file upload bypass, client-side filter bypass, magic number spoofing, Node/Express backend exploitation</li>
-<li><a href="/burp-suite.html">Burp Suite</a> — header injection, union-based SQLi, Burp Macros + CSRF brute force</li>
-</ul>
+<h2>SysAdmin Profile Recon</h2>
+
+<p>I clicked through to the SysAdmin&rsquo;s profile.</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.19.58 AM.png" alt="SysAdmin profile showing Antarctica location" style="max-width:100%;margin:2rem 0;">
+
+<p>No wonder the dude cannot protect his account. He lives in Antarctica. Pretty sure they haven&rsquo;t laid fiber to the curb there yet.</p>
+
+<p>His profile reads like an uneducated heathen. No wonder they put you at the south pole branch, my man. It does say he loves to &ldquo;generate reports in pdf with the coolest tool I wrote.&rdquo; That brought my attention back to the <code>export pdf</code> button on the admin dashboard. To be fair, I&rsquo;d probably love the same if I lived at the south pole.</p>
+
+<p>View Source on the Admin profile revealed quite a bit:</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.27.34 AM.png" alt="view source on admin profile" style="max-width:100%;margin:2rem 0;">
+
+<p>The <code>export pdf</code> button points to <code>http://TARGET_IP/export2pdf.php</code> and generates reports for <code>http://127.0.0.1/server-info.php</code>.</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.30.20 AM.png" alt="source revealing export2pdf and 127.0.0.1 loopback" style="max-width:100%;margin:2rem 0;">
+
+<p>A loopback IP. The PDF generator is fetching server-side URLs and rendering them. That&rsquo;s an SSRF primitive sitting right in the open.</p>
 
 <hr>
 
-<h3>Post-Exploitation</h3>
+<h2>Identifying the Internal Endpoint</h2>
+
+<p>Feroxbuster was still running but slow. Switched to a tighter wordlist to find what I was actually after:</p>
+
+<pre><code>feroxbuster -u http://TARGET_IP -w /usr/share/seclists/Discovery/Web-Content/common.txt --quiet -s 200</code></pre>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.44.06 AM.png" alt="feroxbuster finding /internal" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/internal</code> confirmed.</p>
+
+<pre><code>http://TARGET_IP/internal/admin.php</code></pre>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.49.24 AM.png" alt="internal admin.php showing local-only access" style="max-width:100%;margin:2rem 0;">
+
+<p>Very clear message here. All roads point to local access.</p>
+
+<p>So the chain is:</p>
 <ul>
-<li><a href="/meterpreter.html">Metasploit: Meterpreter</a> — session management, architecture mismatch debugging, hashdump, NTLM cracking, targeted file discovery</li>
+<li><code>/internal/admin.php</code> is restricted to local requests</li>
+<li>The PDF generator (<code>/export2pdf.php</code>) makes server-side requests</li>
+<li>The PDF generator&rsquo;s source URL is controlled by a hidden form input</li>
 </ul>
+
+<p>If I can swap that input, the server fetches <code>/internal/admin.php</code> on my behalf and renders it inside a PDF I&rsquo;m allowed to download.</p>
 
 <hr>
 
-<h2>SANS Institute</h2>
+<h2>Exploiting the SSRF</h2>
 
-<h3>Baker221b — Mysteries in the Cloud</h3>
-<p>Cloud incident response workshop across four cases covering Azure, Microsoft 365, AWS, and GCP.</p>
-<ul>
-<li><a href="/baker221b-warmup.html">Azure Activity and Terminal Warmup</a></li>
-<li><a href="/baker221b-phishing.html">Cloud Account Compromise via Phishing</a> — Evilginx AiTM, user-agent pivot, M365 destructive activity</li>
-<li><a href="/baker221b-aws-key.html">Stolen Access Key from Source Code Repository</a> — TruffleHog, git history forensics, CloudTrail S3 pivot</li>
-<li><a href="/baker221b-gcp-shadow-it.html">Shadow IT in GCP Account</a> — inventory diff, asset type validation, VPC flow log analysis</li>
-</ul>
+<p>Right-clicked the <code>export pdf</code> button on the admin dashboard and clicked Inspect.</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 9.01.22 AM.png" alt="DevTools inspecting export PDF button" style="max-width:100%;margin:2rem 0;">
+
+<p>The form&rsquo;s hidden input pointed at <code>http://127.0.0.1/server-info.php</code>. Altered it to <code>http://127.0.0.1/internal/admin.php</code>.</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 9.03.49 AM.png" alt="DevTools showing modified input pointing at internal admin" style="max-width:100%;margin:2rem 0;">
+
+<p>Clicked Export PDF.</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 9.05.31 AM.png" alt="rendered PDF showing internal admin contents and flag" style="max-width:100%;margin:2rem 0;">
+
+<p>If I were getting paid, this was easy money.</p>
 
 <hr>
 
-<p><em>Updated as labs are completed. Active Directory coverage coming soon.</em></p>
+<h2>Closing Notes</h2>
+
+<p>We learned a valuable lesson today: MFA becomes a little tricky if you live at the south pole, and always sanitize/validate your inputs.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>nmap + feroxbuster &rarr; ports 22, 80; robots.txt + /backup/chat.txt
+&rarr; chat.txt leaked admin:admin defaults
+&rarr; admin login &rarr; dashboard with export PDF button
+&rarr; View source on SysAdmin profile &rarr; export PDF generator pulls 127.0.0.1/server-info.php
+&rarr; Feroxbuster /internal directory &rarr; /internal/admin.php restricted to local-only
+&rarr; DevTools modify hidden form input &rarr; swap server-info.php for /internal/admin.php
+&rarr; Export PDF &rarr; server fetches restricted endpoint via loopback &rarr; flag rendered in PDF</code></pre>
 
   </div>
-
-  <footer class="post-footer">
-  </footer>
+  <footer class="post-footer"></footer>
 </article>
 </main>
 
