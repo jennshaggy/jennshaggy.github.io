@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Honeynet Collapse: Initial Access Pot (Part 1) | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe DFIR challenge — honeypot WordPress server brute-forced and backdoored. SSH key privesc via .bak file, persistent kworker malware, DeceptiPot recovery mode exploitation.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/security-defense/honeynet-collapse-pt1.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/security-defense/honeynet-collapse-pt1.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Honeynet Collapse: Initial Access Pot (Part 1)">
+<meta property="og:description" content="TryHackMe DFIR — honeypot WordPress brute-forced and backdoored. SSH key privesc, persistent kworker malware, DeceptiPot recovery exploitation.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Honeynet Collapse: Initial Access Pot (Part 1)">
+<meta name="twitter:description" content="TryHackMe DFIR — honeypot WordPress brute-forced and backdoored. SSH key privesc, persistent kworker malware, DeceptiPot recovery exploitation.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Honeynet Collapse: Initial Access Pot (Part 1)</h1>
+    <div class="post-description">TryHackMe DFIR challenge &mdash; DeceptiTech deployed a honeypot WordPress server to its own DMZ and watched it get immediately owned. Brute-forced login, backdoor upload, SSH key privesc via a <code>.bak</code> file nobody deleted, persistent malware impersonating a kernel worker, and a misconfigured DeceptiPot recovery key left sitting in the config file. DFIR Jenn reporting for duty. Access credentials in hand. Let&rsquo;s do this.</div>
+  </header>
+
+  <div class="post-content">
+
+<hr>
+
+<h2>Confirming the WordPress Service</h2>
+
+<p>Lab provided the port, but due diligence first. Tailored WordPress nmap to confirm:</p>
+
+<pre><code>nmap -sV --script http-wordpress-enum TARGET_IP</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.26.09 AM.png" alt="nmap WordPress enumeration" style="max-width:100%;margin:1rem 0;">
+
+<p>Confirmed. Now into the box.</p>
+
+<hr>
+
+<h2>SSH Access and Initial Recon</h2>
+
+<pre><code>ssh ubuntu@TARGET_IP</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.14.47 AM.png" alt="SSH login as ubuntu user" style="max-width:100%;margin:1rem 0;">
+
+<p>Still gives a bit of a thrill even when credentials are handed over.</p>
+
+<pre><code>ls -la</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.16.25 AM.png" alt="home directory listing" style="max-width:100%;margin:1rem 0;">
+
+<p>I spy something interesting, but we&rsquo;ll follow the chain.</p>
+
+<hr>
+
+<h2>Q1: Which web page did the attacker attempt to brute force?</h2>
+
+<p>Apache logs live in <code>/var/log/apache2</code>. Head straight there.</p>
+
+<pre><code>cd /var/log/apache2
+ls -la
+head access.log -n 50</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.23.21 AM.png" alt="access.log first lines showing brute force attempts" style="max-width:100%;margin:1rem 0;">
+
+<p>The brute force pattern is unmistakable: hundreds of POST requests against the same endpoint.</p>
+
+<p>Full 50-line access log split across two screenshots since it didn&rsquo;t fit on one screen:</p>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.28.54 AM.png" alt="access log full output part 1" style="max-width:100%;margin:1rem 0;">
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.29.53 AM.png" alt="access log full output part 2" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Answer:</strong> <code>/wp-login.php</code></p>
+
+<hr>
+
+<h2>Q2: What is the absolute path to the backdoored PHP file?</h2>
+
+<p>WordPress files live in <code>/var/www/html</code>. From SSH:</p>
+
+<pre><code>cd /var/www/html
+ls -la
+cd wordpress
+ls -la</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.44.31 AM.png" alt="WordPress directory listing" style="max-width:100%;margin:1rem 0;">
+
+<p>Made my way to <code>/var/www/html/wordpress/wp-content/themes</code> and read <code>index.php</code>:</p>
+
+<pre><code>cat index.php</code></pre>
+
+<pre><code>&lt;?php
+// Silence is golden.</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.45.05 AM.png" alt="cat index.php showing silence is golden comment" style="max-width:100%;margin:1rem 0;">
+
+<p>I fully agree, hacker dude. Noted.</p>
+
+<p>Alright. Enough snooping around. Time to escalate to root and check the logs from the other direction.</p>
+
+<pre><code>sudo su
+ls -la
+cd /var/log/apache2
+tail -n 25 access.log</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.55.17 AM.png" alt="tail of access log showing later attacker activity" style="max-width:100%;margin:1rem 0;">
+
+<p>Now we&rsquo;ve examined the attacker&rsquo;s behavior in the logs from both directions.</p>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 7.57.07 AM.png" alt="attacker traversal evidence" style="max-width:100%;margin:1rem 0;">
+
+<p>They definitely traversed their way to adding <code>blocksy.php</code> on the <code>themes/404/blocksy</code> page.</p>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.01.12 AM.png" alt="backdoor file located" style="max-width:100%;margin:1rem 0;">
+
+<p>Well look at that. The backdoor itself. Bonus points to me. Good job, Jenn.</p>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.32.51 AM.png" alt="backdoored 404.php contents" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Answer:</strong> <code>/var/www/html/wordpress/wp-content/themes/blocksy/404.php</code></p>
+
+<hr>
+
+<h2>Q3 and Q4: Privesc Path and Port-Scan Target</h2>
+
+<p>Two for one special.</p>
+
+<p>First instinct: <code>.bak</code> files in <code>/etc</code>.</p>
+
+<pre><code>find /etc -name "*.bak"</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.09.39 AM.png" alt="find output revealing id_ed25519.bak" style="max-width:100%;margin:1rem 0;">
+
+<p>Well, that was easy.</p>
+
+<p>For PoC, pull <code>.bash_history</code>.</p>
+
+<pre><code>cd ~/
+ls -la</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.18.58 AM.png" alt="home directory files including bash history" style="max-width:100%;margin:1rem 0;">
+
+<pre><code>cat .bash_history</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.21.25 AM.png" alt="bash history showing attacker's escalation and port scan" style="max-width:100%;margin:1rem 0;">
+
+<p>The <code>.bash_history</code> should have been my first pit stop. To be fair, I planned to check audit logs and use <code>ausearch -sc execve -i</code> already. Patience is a virtue.</p>
+
+<p>The escalation path and port-scan target are now both visible. The escalation file was also blatantly in the initial <code>.bak</code> search, but PoC is always the best practice.</p>
+
+<p>I see you doing things, hacker dude. I see you.</p>
+
+<p><strong>Answer (privesc):</strong> <code>/etc/ssh/id_ed25519.bak</code></p>
+
+<p><strong>Answer (port-scanned IP):</strong> <code>172.16.8.216</code></p>
+
+<hr>
+
+<h2>Q5: MD5 Hash of the Persisting Malware</h2>
+
+<p>I noticed <code>cron</code> pop up in the initial log searches. The malware is persistent. Where do persistent processes roost in Linux?</p>
+
+<p>(...Jeopardy theme song plays...)</p>
+
+<p>The process list.</p>
+
+<p>Pull all PIDs, the absolute path of each executed command, and identify symbolic link destinations:</p>
+
+<pre><code>for i in $(ps ax -o pid); do \
+    readlink -eq /proc/$i/exe; \
+done 2&gt;/dev/null | \
+    sort -u</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.41.15 AM.png" alt="process list with /usr/sbin/kworker visible" style="max-width:100%;margin:1rem 0;">
+
+<p><code>/usr/sbin/kworker</code> looks sus as hell.</p>
+
+<p>In my experience, a statically linked binary aka <code>sbin</code> is not typical on Debian and Ubuntu. Examine further:</p>
+
+<pre><code>file /usr/sbin/kworker
+dpkg-query -S sbin/kworker</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.44.57 AM.png" alt="file and dpkg-query output for kworker" style="max-width:100%;margin:1rem 0;">
+
+<p><code>dpkg-query</code> (the tool that queries the dpkg database) doesn&rsquo;t recognize <code>/usr/sbin/kworker</code>, either.</p>
+
+<p>Where does this thing come from?</p>
+
+<pre><code>grep -RF kworker /{etc,lib}/systemd/</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.52.29 AM.png" alt="systemd grep finding kworker references" style="max-width:100%;margin:1rem 0;">
+
+<p>Looped through all executable files in <code>/sbin/</code> and <code>/bin/</code>, then asked dpkg which packages own them. Anything dpkg can&rsquo;t account for is suspicious by definition.</p>
+
+<pre><code>for i in $(find /{,s}bin/ -type f -perm /111); do echo "${i#/}"; done | \
+    LC_ALL=C xargs dpkg-query -S | \
+    grep -F 'no path found'</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 8.55.56 AM.png" alt="dpkg-query no path found for kworker" style="max-width:100%;margin:1rem 0;">
+
+<p>No path found. That affirms my instincts.</p>
+
+<p>While I&rsquo;m here, hunt for unrecognized or modified systemd units:</p>
+
+<pre><code>find \
+    /{etc,lib}/systemd/system -type f \
+    \( -name '*.service' -o -name '*.socket' -o -name '*.timer' -o -name '*.path' -o -name '*.mount' -o -name '*.target' \) 2&gt;/dev/null | \
+    while read -r f; do dpkg -S "${f#/}" &gt;/dev/null; done
+systemd-delta</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.01.25 AM.png" alt="systemd unit verification" style="max-width:100%;margin:1rem 0;">
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.01.51 AM.png" alt="systemd-delta output" style="max-width:100%;margin:1rem 0;">
+
+<p>Verify package integrity:</p>
+
+<pre><code>dpkg -V</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.04.47 AM.png" alt="dpkg -V showing integrity violations" style="max-width:100%;margin:1rem 0;">
+
+<p>The <code>5</code> indicates the MD5 sum of a file is not accurate. The file was changed.</p>
+
+<pre><code>sudo md5sum /usr/sbin/kworker</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.07.10 AM.png" alt="md5sum of kworker malware" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Answer:</strong> <code>d6f2d80e78f264aff8c7aea21acb6ca6</code></p>
+
+<hr>
+
+<h2>Q6: Access the DeceptiPot in Recovery Mode</h2>
+
+<p>Just as my therapist is encouraging me to do more frequently, I decide to ask for help:</p>
+
+<pre><code>deceptipot --help</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.09.44 AM.png" alt="deceptipot help output" style="max-width:100%;margin:1rem 0;">
+
+<p>Yes, terminal. I, too, have daemonized asking for help. Gotta grow somehow.</p>
+
+<pre><code>ls
+cd deceptipot
+ls -la</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.13.40 AM.png" alt="deceptipot directory listing" style="max-width:100%;margin:1rem 0;">
+
+<p>Dig deeper:</p>
+
+<pre><code>cat README.md
+cat deceptipot.conf</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.13.08 AM.png" alt="deceptipot config and README" style="max-width:100%;margin:1rem 0;">
+
+<p>The lab synopsis clearly states that emily &ldquo;misconfigured&rdquo; something, so configurations are the target. Check that <code>reckey</code>:</p>
+
+<pre><code>deceptipot -r 'EmilyR0ss_DeCePti!'</code></pre>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.18.27 AM.png" alt="recovery mode access prompt" style="max-width:100%;margin:1rem 0;">
+
+<p>Can. Did. Done.</p>
+
+<img src="/images/honeynet-collapse-pt1/Screenshot 2026-05-01 at 9.19.25 AM.png" alt="recovery mode access granted with flag" style="max-width:100%;margin:1rem 0;">
+
+<p><strong>Flag:</strong> <code>THM{acc3ss_gr4nt3d!}</code></p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>WordPress on TARGET_IP → /wp-login.php brute force
+→ Backdoor uploaded to /var/www/html/wordpress/wp-content/themes/blocksy/404.php
+→ Privesc via /etc/ssh/id_ed25519.bak (SSH key backup left readable)
+→ Post-privesc port scan against 172.16.8.216
+→ Persistent malware /usr/sbin/kworker (md5: d6f2d80e78f264aff8c7aea21acb6ca6)
+→ DeceptiPot reckey EmilyR0ss_DeCePti! → recovery mode access</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
