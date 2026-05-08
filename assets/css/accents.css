@@ -1,0 +1,18 @@
+/* accents.css — pilot color accents loaded alongside harmonize.css
+   Pilot page: meterpreter.html
+   Logo palette: purple #662de6, coral #ee6a78, magenta #d74cc0
+*/
+
+h1 {
+  border-bottom: 1px solid #662de6;
+  padding-bottom: 0.3em;
+}
+
+blockquote {
+  border-left: 1px solid #662de6;
+  padding-left: 1em;
+}
+
+a {
+  color: #ee6a78;
+}
