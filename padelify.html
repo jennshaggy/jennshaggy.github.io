@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Padelify | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="TryHackMe CTF — WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
+<meta name="description" content="TryHackMe CTF: WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/padelify.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -71,12 +71,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/padelify.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Padelify">
-<meta property="og:description" content="TryHackMe CTF — WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
+<meta property="og:description" content="TryHackMe CTF: WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Padelify">
-<meta name="twitter:description" content="TryHackMe CTF — WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
+<meta name="twitter:description" content="TryHackMe CTF: WAF fingerprinting, stored XSS cookie theft to moderator, URL-encoded LFI bypass to exfiltrate admin credentials, privilege escalation to admin via cookie swap.">
 </head>
 
 <body id="top">
@@ -242,7 +242,7 @@ WAF status = beyond confirmed.</p>
 
 <img src="/images/padelify/Screenshot 2026-05-17 at 2.32.13 PM.png" alt="Python listener catching the first XSS payload hit" style="max-width:100%;margin:2rem 0;">
 
-<p>The listener caught it, but the approach was a little too rogue. The good news: the bot will 100% pick up the message.</p>
+<p>The listener caught it, but the approach was a little too rogue. Too much case alternation and too many obfuscation tricks on <code>document</code> and <code>cookie</code> at once tripped the filter beyond parsing. The good news: the bot will 100% pick up the message.</p>
 
 <img src="/images/padelify/Screenshot 2026-05-17 at 2.32.48 PM.png" alt="listener output showing the bot response with partial cookie data" style="max-width:100%;margin:2rem 0;">
 
@@ -341,7 +341,7 @@ WAF status = beyond confirmed.</p>
 
 <pre><code>curl -A "Mozilla/5.0" http://10.145.143.71//config/app.conf</code></pre>
 
-<p>Blocked. Escalating through encoding.</p>
+<p>Blocked. Escalating through encoding. ModSecurity decodes URL-encoded paths once before applying its rules, so single encoding still gets caught. Double encoding survives the first decode pass.</p>
 
 <p>Single encoding:</p>
 
