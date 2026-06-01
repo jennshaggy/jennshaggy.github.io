@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Resume | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Professional resume and qualifications">
+<meta name="description" content="Jenn Shagrin: penetration tester, offensive security, OSINT and reconnaissance. CompTIA Security+, Network+, A+, ISC2 CC. Top 1% TryHackMe globally.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/resume.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -71,12 +71,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/resume.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Resume">
-<meta property="og:description" content="Professional resume and qualifications">
+<meta property="og:description" content="Jenn Shagrin: penetration tester, offensive security, OSINT and reconnaissance. CompTIA Security+, Network+, A+, ISC2 CC. Top 1% TryHackMe globally.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Resume">
-<meta name="twitter:description" content="Professional resume and qualifications">
+<meta name="twitter:description" content="Jenn Shagrin: penetration tester, offensive security, OSINT and reconnaissance. CompTIA Security+, Network+, A+, ISC2 CC. Top 1% TryHackMe globally.">
 </head>
 
 <body id="top">
@@ -145,184 +145,92 @@
 <main class="main">
 <article class="post-single">
   <header class="post-header">
-    <h1 class="post-title entry-hint-parent">
-      Resume
-    </h1>
+    <h1 class="post-title entry-hint-parent">Resume</h1>
   </header>
 
   <div class="post-content">
 
-<p><a href="/Jenn_Shagrin_Resume.pdf" download>Download PDF Resume</a></p>
+<p><a href="/Jenn_Shagrin_Resume.pdf">Download PDF Resume</a></p>
 
 <h2>Jenn Shagrin</h2>
 
-<p>Offensive Security | Penetration Testing | AI-Native Security Workflows<br>
+<p>Penetration Testing | Offensive Security | OSINT &amp; Reconnaissance<br>
 Albuquerque, NM | <a href="mailto:jennshagrin@proton.me">jennshagrin@proton.me</a> | <a href="https://linkedin.com/in/jenn-shagrin" target="_blank" rel="noopener">LinkedIn</a> | <a href="https://jennshaggy.github.io/applied-projects.html">jennshaggy.github.io</a><br>
 U.S. Citizen | Eligible for TS/SCI Clearance</p>
 
 <h3>Summary</h3>
 
-<p>Offensive security practitioner ranked in the top 1% of TryHackMe users globally, with documented hands-on work in Active Directory attack chains, privilege escalation, web exploitation, padding oracle attacks, SSRF and request smuggling, supply chain threat hunting, malware analysis, and AI-assisted incident response. Lab work spans TryHackMe, Hack The Box, LetsDefend, and PentesterLabs. CompTIA Security+, Network+, and A+ stacked in under eight weeks; ISC2 Certified in Cybersecurity completed 2026. Enrolled in Red Siege professional training and Microsoft Learn AI/ML engineering paths. Self-taught technologist since childhood; 20+ years translating between technical and non-technical audiences across entertainment, digital media, and nonprofit leadership roles; 4.0 GPA.</p>
+<p>Penetration tester with documented, hands-on offensive work spanning the full engagement lifecycle: reconnaissance and OSINT, web and network exploitation, Active Directory attack chains, privilege escalation, and post-exploitation. Ranked top 1% on TryHackMe globally. Particular strength in reconnaissance and enumeration, turning quiet signal (ETag byte sizes, error logs, leaked config) into footholds others miss. Trained in social engineering through Antisyphon. Lab work spans TryHackMe, Hack The Box, LetsDefend, and PentesterLabs. CompTIA Security+, Network+, A+ stacked in under eight weeks; ISC2 Certified in Cybersecurity completed 2026. Self-taught technologist since childhood; 20+ years translating between technical and non-technical audiences across entertainment, digital media, and nonprofit leadership; 4.0 GPA.</p>
 
 <h3>Technical Skills</h3>
 
-<h4>Offensive Security &amp; Exploitation</h4>
+<p><strong>Reconnaissance &amp; OSINT:</strong> target enumeration and attack-surface mapping, service and version fingerprinting (nmap, whatweb, wafw00f), content discovery (ffuf, gobuster, feroxbuster), WAF identification and evasion (User-Agent disguise, encoding bypass), subdomain and directory enumeration, metadata and config disclosure analysis, error-log and ETag intelligence</p>
 
-<p><strong>Active Directory:</strong> netexec, certipy-ad, BloodHound, targetedKerberoast.py, smbexec, xfreerdp; full attack chains from null session to SYSTEM</p>
+<p><strong>Web exploitation:</strong> SQLi (union, filter bypass, recursive obfuscation), SSTI (Twig CVE-2024-45411 sandbox bypass), file upload bypass, padding oracle (padre), SSRF via PDF and isOnline endpoints, multi-stage XSS chains (cookie theft + CSRF delivery), HTTP request smuggling via fake 101 + nginx WebSocket upgrade tunnel, LFI via URL-encoded path traversal, ModSecurity WAF bypass</p>
 
-<p><strong>Web:</strong> SQLi (union-based, filter bypass, recursive keyword obfuscation, pipe operator bypass), SSTI (Twig CVE-2024-45411 sandbox bypass), file upload bypass (client-side JS, extension blacklist, magic number spoofing), padding oracle (padre), XML-RPC credential attack, SSRF via PDF generator and isOnline endpoints, multi-stage XSS chains (cookie theft + CSRF delivery), HTTP request smuggling via fake 101 Switching Protocols + nginx WebSocket upgrade tunnel</p>
+<p><strong>Active Directory:</strong> netexec, certipy-ad, BloodHound, targetedKerberoast, smbexec, ESC1 cert abuse; null session to SYSTEM chains</p>
 
-<p><strong>Post-exploitation:</strong> Metasploit/msfvenom, Meterpreter (session management, x86/x64 architecture awareness, hashdump), PHP/Python/JS reverse shells, Python library hijack via cron, SUID rootbash, os.py hijack</p>
+<p><strong>Privilege escalation:</strong> Linux (kernel CVE-2015-1328, sudo, SUID, capabilities, cron, PATH, NFS no_root_squash, screen NOPASSWD, yum NOPASSWD GTFOBins, SSH key recovery + ssh2john, Docker socket abuse to host root); Windows (stored credentials, scheduled tasks, service exe, unquoted path, DACL)</p>
 
-<p><strong>Network:</strong> nmap (-sC -sV --script=vuln, http-enum, snmp-brute), RustScan, Gobuster, dirsearch, onesixtyone, snmpwalk/snmpset, NET-SNMP-EXTEND-MIB RCE, Telnet IAC byte recognition, FRRouting enumeration</p>
+<p><strong>Post-exploitation:</strong> Metasploit, Meterpreter, PHP/Python/JS reverse shells, Python library hijack, mkfifo named-pipe shells, pty.spawn stabilization, container escape via mounted host filesystem</p>
 
-<p><strong>Privilege escalation (Linux):</strong> kernel CVE-2015-1328, sudo misconfiguration, SUID abuse, capabilities, cron hijack, PATH hijack, NFS no_root_squash, Python library hijack, screen NOPASSWD session hijack, yum NOPASSWD GTFOBins plugin payload, SSH key backup recovery + ssh2john + john passphrase crack</p>
+<p><strong>Social engineering:</strong> full SE lifecycle (OSINT-driven target profiling, pretext development, pressure-proof pretexting) via Antisyphon training</p>
 
-<p><strong>Privilege escalation (Windows):</strong> stored credentials, scheduled task, service executable, unquoted path, DACL misconfiguration</p>
+<p><strong>Adversarial AI / LLM red-teaming:</strong> prompt injection reconstruction, LLM jailbreak analysis, guardrail bypass in test environments; Azure AI Foundry GPT-4o deployment with content guardrails, IAM, lifecycle policy</p>
 
-<p><strong>Tooling:</strong> Burp Suite (Repeater, Macros, CSRF brute force, Intruder, request smuggling via Repeater raw mode), Hydra, Searchsploit/Exploit-DB, WPScan, JoomScan, ffuf, dnsrecon, Sublist3r, John the Ripper (NT/MD5/RC4, ssh2john), hashcat (SHA1, bcrypt), padre, upx, hexeditor, ltrace, strings, steghide, stegseek, dnfile (.NET PE32 decompilation), python-evtx, OpenSSL, sqlmap</p>
+<p><strong>Defensive &amp; analysis depth:</strong> malware analysis (OleVBA, LNKParse3, PowerShell EVTX with python-evtx and 4104 detection, .NET PE32 reverse engineering with dnfile, RC4 and AES-256-CBC C2 decryption); DFIR (dpkg integrity validation, systemd unit hunting, .bash_history forensics, Wireshark/Tshark C2 reconstruction); supply chain (npm dependency injection analysis, JavaScript deobfuscation, Docker overlay forensics); cloud IR (Azure Entra ID and M365 UAL, AWS CloudTrail and S3 pivot, GCP VPC flow logs); SIEM and detection (Elastic/ELK, Kibana, Sysmon)</p>
 
-<h4>Defensive Security &amp; Threat Hunting</h4>
+<p><strong>Tooling:</strong> Burp Suite, Hydra, sqlmap, John, hashcat, padre, netexec, certipy-ad, BloodHound, dnfile, python-evtx, steghide, stegseek, Volatility, Wireshark, Splunk, Nessus, CyberChef, Autopsy</p>
 
-<p><strong>Supply chain:</strong> npm dependency injection analysis, JavaScript deobfuscation (Node.js DevTools + custom decode scripts), postinstall hook identification, MITRE T1546.004 persistence, C2 traffic decoding, Docker overlay filesystem forensics, ps aux process masquerading</p>
-
-<p><strong>Memory forensics:</strong> Volatility (process trees, C2 artifact recovery, credential dumping reconstruction, stage 2 payload tracing, scheduled task persistence identification)</p>
-
-<p><strong>SIEM / log analysis:</strong> Elastic Stack/ELK, Kibana, Sysmon; detection of UAC bypass, DCSync, credential dumping, lateral movement, ransomware staging</p>
-
-<p><strong>Cloud IR:</strong> Azure (Entra ID, M365 Unified Audit Log, Evilginx AiTM, user-agent pivot), AWS (CloudTrail, S3 pivot, TruffleHog git history forensics), GCP (VPC flow log analysis, shadow IT inventory diff, asset type validation)</p>
-
-<p><strong>Malware analysis:</strong> OleVBA macro extraction, LNKParse3 shortcut forensics, KeePass credential theft identification, PowerShell EVTX log analysis (python-evtx, jq, script block 4104 detection), Wireshark/Tshark C2 traffic reconstruction, PCAP anomaly detection by file size deviation, RC4 hex-encoded payload decoding chain, .NET PE32 reverse engineering with dnfile, AES-256-CBC C2 traffic decryption with SHA-256 derived keys, Linux malware persistence detection via dpkg integrity validation and systemd unit verification, .bash_history forensic reconstruction</p>
-
-<p><strong>Phishing:</strong> email artifact analysis, multi-stage compromise reconstruction, attacker tradecraft documentation, IOC identification, MITRE ATT&amp;CK mapping</p>
-
-<h4>AI &amp; Cloud Security</h4>
-
-<p><strong>Azure AI Foundry:</strong> deployed GPT-4o (GlobalStandard), configured content guardrails (Microsoft.Default, DefaultV2), API key auth, IAM, rate limit management, lifecycle policy; documented security implications of guardrail vs. WAF misconfiguration</p>
-
-<p><strong>AI attack surfaces:</strong> prompt injection reconstruction (LLM jailbreak via role-reframing), AI-assisted IR workflow (agentic tool use, path validation, session management)</p>
-
-<p><strong>AI training:</strong> Microsoft AI/ML Engineer Learning Path (completed); TryHackMe AI Cybersecurity path (in progress); AI-assisted cybersecurity workflow integration</p>
-
-<p><strong>Azure fundamentals:</strong> resource groups, subscriptions, IAM, secure deployment; AZ-900 preparation in progress</p>
-
-<h4>Systems &amp; Tooling</h4>
-
-<p><strong>OS environments:</strong> Kali Linux (bare metal, GMKtec M7 Ultra), Windows Server 2019, Windows 10/11, Ubuntu, Debian, macOS, Cisco IOS</p>
-
-<p><strong>Languages / scripting:</strong> Python, Bash, PHP, JavaScript, HTML/CSS; custom PHP invite code brute-force scripts, Node.js decode scripts, Python library hijack payloads</p>
-
-<p><strong>Additional tools:</strong> Wireshark, Splunk, Nessus, CyberChef, Autopsy, Volatility, LNKParse3, OleVBA, upx, hexeditor, Linux Exploit Suggester, jq, rlwrap</p>
+<p><strong>Languages:</strong> Python, Bash, PHP, JavaScript</p>
 
 <p><strong>Frameworks:</strong> NIST CSF, MITRE ATT&amp;CK, OWASP Top 10</p>
 
-<h3>Offensive Security Projects</h3>
+<h3>Offensive Security Projects (TryHackMe, 2025-2026)</h3>
 
-<h4>Active Directory Attack Chains, TryHackMe CTF (2026)</h4>
+<p><strong>Active Directory:</strong> Operation Endgame (Kerberoast, BloodHound, targetedKerberoast, smbexec to SYSTEM); Ledger (certipy-ad, ESC1 cert abuse, Administrator TGT)</p>
 
-<p><strong>Operation Endgame:</strong> RustScan enumeration, NetExec guest/LDAP null session, Kerberoast CODY_ROY (RC4, john), credential spray, BloodHound path to JERRI_LANCASTER via targetedKerberoast, plaintext credentials in PowerShell sync script, smbexec to SYSTEM</p>
+<p><strong>Web exploitation &amp; chained attacks:</strong> Sequence (stored XSS to cookie theft, MD5 CSRF token forging, bot-driven privilege escalation, Docker socket abuse to host root); Padelify (ModSecurity WAF evasion, stored XSS cookie theft, double-encoded LFI to config disclosure, admin credential recovery); Voyage (Joomla CVE-2023-23752 API leak, SSH pivot, insecure pickle deserialization RCE, cap_sys_module kernel module escape); Daily Bugle (Joomla CVE-2017-8917 SQLi, template editor RCE, yum NOPASSWD root); CyberCrafted (steg, custom Python user enum, sqlmap dump, screen NOPASSWD root); What's Your Name (three-stage XSS chain, cookie theft, CSRF for admin password reset); Surfer (SSRF via PDF generator); Decryptify (JS deobfuscation, padding oracle RCE); Injects (Twig sandbox bypass, recursive SQLi obfuscation); Jack (XML-RPC, plugin RCE, Python library hijack); Valley (PCAP credential recovery, dual hash crack, library hijack); Matryoshka (three-layer Docker-in-Docker escape); CAPTCHApocolypse (Selenium + Tesseract OCR CAPTCHA bypass brute force); Operation Takeover (FRRouting Telnet, SNMP RCE)</p>
 
-<p><strong>Ledger:</strong> certipy-ad guest LDAP enumeration (487 users), shared password reuse, xfreerdp RDP, ESC1 cert abuse on ServerAuth template (EnrolleeSuppliesSubject, Authenticated Users enrollment), Administrator TGT via certipy auth, smbexec shell as Administrator</p>
+<p><strong>Privilege escalation:</strong> Linux (7 vectors, separate writeups: kernel exploit, sudo breakout, SUID, capabilities, cron, PATH hijack, NFS); Windows (5 vectors: credential harvesting, scheduled tasks, service exe, unquoted path, DACL)</p>
 
-<h4>Web Exploitation, TryHackMe CTF (2025-2026)</h4>
+<p><strong>Malware analysis &amp; DFIR:</strong> Masquerade (PowerShell EVTX deobfuscation, RC4 + AES-256-CBC C2 decryption, .NET PE32 dnfile decompilation); Honeynet Collapse Pt1 (Linux DFIR, dpkg integrity, systemd hunting, .bash_history forensics)</p>
 
-<p><strong>Injects:</strong> client-side JS filter bypass via Burp, SQLi login (pipe operator vs. OR), recursive keyword obfuscation (seSELECTlect), mail.log credential recovery, DROP TABLE via Burp, SSTI {{7x7}} confirmation, Twig CVE-2024-45411 sandbox bypass, RCE</p>
+<p><strong>Supply chain &amp; cloud IR:</strong> Axios Supply Chain Attack (UNC1069, malicious npm postinstall, JavaScript deobfuscation, Docker forensics, MITRE T1546.004 persistence documentation); SANS Baker221b Workshop (Azure Evilginx AiTM, AWS CloudTrail, GCP shadow IT, Azure AI Foundry deployment)</p>
 
-<p><strong>Jack:</strong> WPScan enumeration (users, XML-RPC, User Role Editor plugin), Metasploit XML-RPC brute force, Burp ure_other_roles=administrator privilege escalation, PHP reverse shell via Akismet plugin editor, SSH id_rsa extraction, Python os.py cron hijack for root</p>
-
-<p><strong>Valley:</strong> non-standard port scan, dev notes in static slot (/static/00), client-side JS credential exposure (siemDev/california), FTP PCAP retrieval, Wireshark HTTP POST credential recovery, UPX binary unpack, dual MD5 hash crack (john), Python base64 library hijack via valleyAdmin group, SUID rootbash</p>
-
-<p><strong>Decryptify:</strong> JavaScript array deobfuscation, API password extraction, invite code algorithm reverse engineering, custom PHP brute-force script, user enumeration via differential error response, HTTP enum discovering /logs/, padding oracle decrypt+encrypt (padre), arbitrary shell command execution</p>
-
-<p><strong>Upload Vulnerabilities:</strong> client-side filter bypass (Burp filename + content-type), extension blacklist bypass (.php5), GIF magic number spoofing (hexeditor), Node/Express backend identification (X-Powered-By header), traversal via admin POST request correction, JS reverse shell</p>
-
-<p><strong>Operation Takeover:</strong> FRRouting v10.0 Telnet VTY enumeration, IAC byte recognition (0xFF), ncrack credential attack, onesixtyone SNMP community string discovery (pr1v4t3), snmpset write access confirmation, NET-SNMP-EXTEND-MIB RCE, cat /root/flag.txt via SNMP</p>
-
-<p><strong>Daily Bugle:</strong> Joomla 3.7.0 SQLi via CVE-2017-8917 with joomblah.py (Python2/3 compatibility patch via sed), bcrypt hash extraction and john crack, Joomla template editor PHP reverse shell drop in active Prostar template, configuration.php database credential exposure, password reuse pivot to user, yum NOPASSWD GTFOBins plugin payload to root</p>
-
-<p><strong>CyberCrafted:</strong> off-path steghide + stegseek (rockyou.txt) Base32 recovery from JPEG (classified as red herring after methodical follow-through), custom Python user enumeration script against admin login differential error oracle, sqlmap dump of admin credentials and SHA1 hash, hashcat crack, mkfifo named-pipe reverse shell as www-data, pty.spawn shell stabilization, /home/.ssh/id_rsa theft, ssh2john + john passphrase crack, plaintext credential pivot via plugin log file, sudo /usr/bin/screen NOPASSWD session hijack to root</p>
-
-<p><strong>What's Your Name:</strong> three-stage XSS chain. Stage 1: stored XSS via registration Name field reviewed by moderator bot, document.cookie exfil to Python listener, moderator session hijack via DevTools cookie swap. Stage 2: chat.php innerHTML raw rendering, second XSS payload triggers admin bot review and admin cookie theft. Stage 3: img onerror + fetch credentials:include CSRF delivered through chat.php XSS, admin bot's browser POSTs new password to change_password.php with admin cookie attached, admin login as new password</p>
-
-<p><strong>Surfer:</strong> robots.txt + /backup/chat.txt admin credential leak, hidden form input manipulation via DevTools, SSRF via PDF generator targeting /internal/admin.php loopback-restricted endpoint, server-side fetch and PDF render exfiltration of restricted content</p>
-
-<h4>Privilege Escalation, TryHackMe (2025-2026)</h4>
-
-<p><strong>Linux (7 vectors):</strong> kernel exploit CVE-2015-1328 (LES identification, manual validation, HTTP transfer, target compile); sudo -l find breakout; SUID base64 for privileged file read and /etc/shadow hash crack; vim cap_setuid via getcap; cron script replacement with reverse shell; SUID binary PATH hijack via ltrace + fake binary in /tmp; NFS no_root_squash static x86-64 SUID payload (resolved architecture and glibc mismatch)</p>
-
-<p><strong>Windows (5 vectors):</strong> PowerShell history + IIS web.config + cmdkey + PuTTY registry credential harvesting; scheduled task batch file overwrite + Netcat reverse shell; writable service binary replacement with msfvenom payload; unquoted service path traversal payload; BUILTIN\Users SERVICE_ALL_ACCESS DACL reconfiguration to LocalSystem</p>
-
-<h4>AI-Assisted Incident Response, TryHackMe CTF (2026)</h4>
-
-<p><strong>ContAInment:</strong> SSH enumeration, PCAP anomaly detection by file size deviation (2262 vs. 198 bytes), AI agent orchestration for PCAP reassembly, prompt injection session log reconstruction, LLM jailbreak analysis (incident response daemon role reframing), PII and credential extraction from jailbroken LLM, encrypted archive recovery (westtechvictim1), AI agent flag extraction</p>
-
-<h4>Supply Chain Threat Hunting, TryHackMe (2026)</h4>
-
-<p><strong>Axios Supply Chain Attack (UNC1069 / North Korea attribution):</strong> identified malicious Axios 1.14.1; analyzed typing-coreutils@1.6.4 dependency and postinstall hook (node postinst.js); deobfuscated heavily obfuscated JavaScript via custom Node.js decode script; extracted encryption key (OrDeR_7077), recovered C2 URL, and analyzed Linux curl payload (pypi.org/latest POST body used as legitimate traffic camouflage); performed Docker overlay filesystem forensics; identified process masquerading as unattended-upgr; documented T1546.004 persistence via ~/.profile and npm debug log forensics as detection evidence</p>
-
-<h4>Malware Analysis &amp; DFIR, TryHackMe CTF (2026)</h4>
-
-<p><strong>Masquerade:</strong> Windows DFIR investigation. Wrestled python-evtx through dependency conflicts to parse Powershell-Operational.evtx. Identified split-string obfuscated PowerShell in event_record_id 6 (script block 4104 logging), reconstructed C2 domain api-edgecloud.xyz and RC4 decryption key. Pivoted to PCAP analysis via tshark to identify two C2 IPs (payload delivery and beacon). Hex-decoded then RC4-decrypted .NET PE32 payload (amdfendrsr.exe). Decompiled .NET assembly with dnfile to identify CreateAesKey method. Decrypted AES-256-CBC C2 traffic in HTML comment template using SHA-256 derived key with zero IV, recovered attacker command sequence and flag</p>
-
-<p><strong>Honeynet Collapse Pt1 (Initial Access Pot):</strong> Linux DFIR investigation of compromised WordPress honeypot. Apache log analysis identified /wp-login.php brute force and backdoor at /var/www/html/wordpress/wp-content/themes/blocksy/404.php. Privilege escalation reconstructed via .bak file enumeration (/etc/ssh/id_ed25519.bak readable to attacker). Persistent malware identified via process list inspection (readlink /proc/PID/exe), package integrity validation (dpkg-query -S, dpkg -V), and systemd unit verification. Recovery mode access via deceptipot reckey misconfiguration</p>
-
-<h4>Post-Exploitation &amp; Meterpreter, TryHackMe (2025)</h4>
-
-<p>psexec SMB initial access, x86/x64 session architecture mismatch diagnosis, hashdump, NTLM hash cracking (john --format=NT), targeted file discovery with <code>where /r</code> vs. recursive crawl, net share enumeration</p>
-
-<h4>Cloud Incident Response, SANS Baker221b Workshop (2025)</h4>
-
-<p><strong>Azure:</strong> Evilginx AiTM phishing, Entra ID sign-in analysis, user-agent pivot, M365 Unified Audit Log destructive activity identification</p>
-
-<p><strong>AWS:</strong> TruffleHog git history forensics, CloudTrail S3 pivot, stolen access key investigation</p>
-
-<p><strong>GCP:</strong> shadow IT detection via inventory diff, asset type validation, VPC flow log analysis</p>
-
-<p><strong>Azure AI Foundry:</strong> GPT-4o deployment with content guardrails, API key auth, rate limiting, lifecycle management; documented guardrail misconfiguration risk</p>
+<p><strong>Adversarial AI:</strong> ContAInment (PCAP anomaly detection, AI agent orchestration, prompt injection session reconstruction, LLM jailbreak analysis)</p>
 
 <h3>Certifications &amp; Training</h3>
 
 <ul>
-<li>CompTIA: Security+ | Network+ | A+ &mdash; all active through 2028&ndash;2029 (Stackable: CIOS, CSIS, CAPP)</li>
+<li>CompTIA: Security+ | Network+ | A+, all active through 2028-2029 (Stackable: CIOS, CSIS, CAPP)</li>
 <li>ISC2 Certified in Cybersecurity (CC), passed 2026</li>
+<li>Antisyphon: How to Build Pressure-Proof Pretexts (social engineering lifecycle), 2026</li>
 <li>TryHackMe: Jr. Penetration Tester | SOC Level 1 | Web Fundamentals | Web Application Pentesting | AI Security</li>
-<li>Red Siege: Kerberos Attack &amp; Defense (Kerberoasting, Silver/Golden Ticket, Pass-the-Ticket) | Offense for Defense | Pentesting Beyond the Basics (in progress)</li>
-<li>Microsoft AI/ML Engineer Learning Path (completed) | Microsoft AZ-900 preparation (in progress) | Azure AI Foundry hands-on deployment</li>
-<li>CompTIA CyberDefense Pro (in progress) | AI Prompting Essentials (in progress)</li>
+<li>Red Siege: Kerberos Attack &amp; Defense | Offense for Defense | Pentesting Beyond the Basics (in progress)</li>
+<li>Microsoft AI/ML Engineer Learning Path (completed); AZ-900 (Expected July 2026); AZ-104 (coursework complete, exam expected Fall 2026); CompTIA CyberDefense Pro (in progress)</li>
 </ul>
 
 <h3>Professional Experience</h3>
 
-<p><strong>Head of IT / System Administration, Invasion Group &amp; Righteous Babe Records</strong> | 2022&ndash;2024</p>
-<ul>
-<li>Led secure infrastructure implementation for public-facing and internal systems across multi-site operations.</li>
-<li>Managed web platforms, backup systems, endpoint protection, and stakeholder-specific content delivery workflows.</li>
-<li>Implemented AAA access controls, identity-system hardening, and cloud access workflows to reduce operational and cybersecurity risk.</li>
-<li>Provided L1&ndash;L2 support for internal staff and resolved escalated access and application issues; coordinated third-party integrations across stakeholders.</li>
-</ul>
+<p><strong>Head of IT / System Administration, Invasion Group &amp; Righteous Babe Records</strong> | 2022-2024<br>
+Led secure infrastructure across multi-site operations; managed web platforms, endpoint protection, and stakeholder content delivery; implemented AAA access controls and identity hardening; provided L1-L2 support and coordinated third-party integrations.</p>
 
-<p><strong>Co-Founder, Crumpled Thoughts (501(c)(3)), Albuquerque, NM</strong> | 2021&ndash;Present</p>
-<ul>
-<li>Designed and operate secure networking and cloud infrastructure for a nonprofit serving underrepresented communities (POC, LGBTQ+, immigrants, low-income).</li>
-<li>Develop and deliver cybersecurity fundamentals, digital safety, and technical literacy curriculum aligned with NIST and SOC-style frameworks.</li>
-<li>Member, New Mexico Technology Council and NMTC Women in Tech peer group.</li>
-</ul>
+<p><strong>Co-Founder, Crumpled Thoughts (501(c)(3)), Albuquerque, NM</strong> | 2021-Present<br>
+Designed and operate secure networking and cloud infrastructure for nonprofit serving underrepresented communities; develop and deliver cybersecurity fundamentals and digital safety curriculum aligned with NIST and SOC frameworks; member, NM Technology Council and NMTC Women in Tech.</p>
 
-<p><strong>Freelance IT Support &amp; Technical Consulting, Independent</strong> | 2005&ndash;Present</p>
-<ul>
-<li>Delivered IT and security support across diverse clients: device hardening, secure hosting, remote access, DNS/firewall management, identity management, and backup infrastructure.</li>
-<li>Provided Tier 1&ndash;2 application support and resolved escalated access and configuration issues; administered GSuite and Microsoft 365 environments; guided clients in implementing secure workflows and backup strategy.</li>
-</ul>
+<p><strong>Freelance IT Support &amp; Technical Consulting, Independent</strong> | 2005-Present<br>
+Delivered IT and security support across diverse clients: device hardening, secure hosting, DNS/firewall management, identity management, backup infrastructure; administered GSuite and Microsoft 365 environments.</p>
 
 <h3>Education</h3>
 
 <p><strong>A.A.S. Computer Information Systems, Cybersecurity</strong> | Expected 2026<br>
-California Institute of Applied Technology | GPA: 4.0 | Systems, Networking, Security Ops, Azure Cloud, Databases</p>
+California Institute of Applied Technology | GPA: 4.0</p>
 
 <h3>Additional</h3>
 
 <ul>
-<li>TryHackMe: Top 1% globally | 100% true-positive rate on IoC triage in SOC/SIEM labs | Platinum League first-place badge | Handle: [0xD][LEGEND]</li>
+<li>TryHackMe: Top 1% globally | Platinum League first-place badge | Handle: [0xD][LEGEND]</li>
 <li>Vice President, CIAT Cybersecurity Club (2026)</li>
 <li>Red Siege Offensive Wednesday participant (April 2026) with active mentorship</li>
 <li>BSides Albuquerque 2026 CFP submitted: &ldquo;I Didn&rsquo;t Switch Careers. I Translated: A Nonlinear Path into Cyber&rdquo;</li>
