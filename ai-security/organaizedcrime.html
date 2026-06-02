@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>organAIzedcrime | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="organAIzedcrime: a Go CLI that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Tactic and technique queries, OWASP LLM Top 10, STRIDE, NIST AI RMF, and tool mappings.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/ai-security/organaizedcrime.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/ai-security/organaizedcrime.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="organAIzedcrime">
+<meta property="og:description" content="organAIzedcrime: a Go CLI that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Tactic and technique queries, OWASP LLM Top 10, STRIDE, NIST AI RMF, and tool mappings.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="organAIzedcrime">
+<meta name="twitter:description" content="organAIzedcrime: a Go CLI that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Tactic and technique queries, OWASP LLM Top 10, STRIDE, NIST AI RMF, and tool mappings.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">organAIzedcrime</h1>
+    <div class="post-description">A Go CLI that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Think searchsploit for AI/ML.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>A Go command-line tool that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Think searchsploit for AI/ML: when you are fingerprinting a model endpoint or planning an attack path, the technique intel, tool mappings, and framework cross-references are one command away instead of buried in a browser tab.</p>
+
+<p>I designed it, built it, shipped it, and keep extending it from real engagement friction. Currently at v0.3.2, running natively on Kali Linux and macOS.</p>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-23 at 9.08.25 AM.png" alt="organAIzedcrime CLI running in terminal showing MITRE ATLAS output" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>What it does</h2>
+
+<p>organAIzedcrime ingests the live MITRE ATLAS dataset and lets you query it by tactic, technique, or keyword, then cross-references the OWASP LLM Top 10, STRIDE for AI, and NIST AI RMF, and maps techniques to the actual tools you would reach for.</p>
+
+<pre><code>atlas fetch                       Pull the latest ATLAS intel
+atlas tactics list                The playbook. 16 ways to ruin someone's Tuesday.
+atlas tactic get &lt;name&gt;           Tactic detail and its techniques
+atlas technique get &lt;id&gt;          Full technique detail, clean markdown
+atlas technique get &lt;id&gt; --tools  Technique plus the security tools and usage
+atlas search &lt;keyword&gt;            Hunt by concept across every tactic and technique
+atlas owasp list                  OWASP LLM Top 10 (2025)
+atlas owasp get &lt;LLMxx&gt;           Entry detail with ATLAS technique mappings
+atlas recon ports                 AI infrastructure port table and nmap command
+atlas recon fingerprint           Service fingerprinting: headers, API signatures, errors, gRPC
+atlas recon endpoints             AI endpoint naming conventions (ffuf/feroxbuster wordlist)
+atlas stride list                 STRIDE categories for AI systems
+atlas stride get &lt;S|T|R|I|D|E&gt;    Category detail with ATLAS and OWASP mappings
+atlas nist list                   NIST AI RMF functions
+atlas nist get &lt;GV|MP|MS|MG&gt;      Function detail with categories and mappings</code></pre>
+
+<hr>
+
+<h2>How it is built</h2>
+
+<p>Go 1.26 on the Cobra CLI framework, parsing the STIX 2.1 ATLAS bundle with a two-pass parser. A GitHub Actions workflow cross-compiles on every tagged release for linux amd64 and arm64, macOS amd64 and arm64, and Windows. The codebase separates cleanly into command handlers, data models, a STIX loader, a markdown renderer, and self-contained OWASP, STRIDE, and NIST modules.</p>
+
+<hr>
+
+<h2>Why it exists, and how it grows</h2>
+
+<p>organAIzedcrime began as the bedrock of a larger idea: a structured, kill-chain-mapped path into AI and ML offensive security, built against the experience-gatekeeping problem where you cannot get hired without experience you cannot get access to build. The buildable core of that idea was making MITRE ATLAS queryable from the terminal, and v0.1 shipped in a single session, parsing 16 tactics and 170 techniques from live ATLAS data. As real engagements piled up, it grew from a reference into an operator&rsquo;s instrument, which is where the searchsploit-for-AI shape came from.</p>
+
+<p>The development loop is the part I am the most proud of: CTFs are the QA suite. Every AI and ML engagement runs organAIzedcrime live, every point of friction gets documented, and features get derived from where the tool fell short in the field. That is how the recon helpers, the tool mappings, and the framework cross-references all earned their place.</p>
+
+<p>It also surfaces gaps in ATLAS itself. Several techniques I have used repeatedly in CTFs, including JSON schema extraction, Python code embedding for system prompt leakage, authority creep, and anchor phrase extraction, do not have clean ATLAS coverage yet. Cataloguing that gap is the kind of contribution framework maintainers notice.</p>
+
+<hr>
+
+<h2>Where it is going</h2>
+
+<p>v0.4 is the searchsploit moment for AI and ML: a payload and extraction-pattern library mapped to technique IDs.</p>
+
+<pre><code>atlas technique get AML.T0051 --payloads</code></pre>
+
+<p>That would surface the actual attack patterns behind a technique: anchor-phrase extraction, phrase concatenation, the <code>&lt;|endoftext|&gt;</code> prefix, DAN and Crescendo escalation, JSON schema extraction. The gap between knowing a technique exists and knowing how to execute it is exactly where v0.4 lives.</p>
+
+<hr>
+
+<h2>Source</h2>
+
+<p>GitHub: <a href="https://github.com/jennshaggy/-organAIzedcrime" target="_blank" rel="noopener noreferrer">github.com/jennshaggy/-organAIzedcrime</a></p>
+
+<p>The project domain is reserved and will go live once functionality expands.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
