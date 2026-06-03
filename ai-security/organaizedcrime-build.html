@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Building organAIzedcrime | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS from scratch, zero Go knowledge to a cross-platform operator tool forged on real AI and ML CTF friction.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/ai-security/organaizedcrime-build.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/ai-security/organaizedcrime-build.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Building organAIzedcrime">
+<meta property="og:description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS from scratch, zero Go knowledge to a cross-platform operator tool forged on real AI and ML CTF friction.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Building organAIzedcrime">
+<meta name="twitter:description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS from scratch, zero Go knowledge to a cross-platform operator tool forged on real AI and ML CTF friction.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Building organAIzedcrime</h1>
+    <div class="post-description">I am not a developer. I designed, built, and shipped a working Go CLI from scratch. This is how.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>I am not a developer. I started this build saying exactly that, and I will say it here too. The vibe of this page is radical candor, not pretending otherwise. I designed, built, and shipped a working Go CLI from scratch. I keep extending it from the friction I hit while using it. Now it is the tool I reach for on every AI and ML CTF and lab I take on.</p>
+
+<p>This is the story of how I built <a href="/ai-security/organaizedcrime.html">organAIzedcrime</a>, and the engineering underneath it.</p>
+
+<hr>
+
+<h2>The idea before the code</h2>
+
+<p>organAIzedcrime started as pattern recognition and became a tool.</p>
+
+<p>AI and ML security is erupting as a field. The techniques, frameworks, and tooling are scattered across a dozen places, and practitioners are expected to learn all of it overnight. I wanted it in one place I could reach.</p>
+
+<p>The vision was a structured, kill-chain-mapped path into AI and ML offensive security. The buildable core was small and concrete: put the tools an OffSec practitioner needs where we&rsquo;re already working. That is the core of its existence. Learn as you go, build as you learn.</p>
+
+<p>I started with the smallest piece I could ship.</p>
+
+<hr>
+
+<h2>Learning only what the build needed</h2>
+
+<p>I learned the Go this build required and nothing more, in this order:</p>
+
+<ol>
+<li>Structs and JSON unmarshaling, to model ATLAS data</li>
+<li>An HTTP client, to fetch the STIX bundle</li>
+<li>File I/O, for the local cache</li>
+<li>Cobra, for the CLI structure</li>
+</ol>
+
+<p>Each one maps to a v0.1 requirement. I learned from gobyexample: one concept, working code, run it, move on. I never tried to learn all of Go, just what the build used, and that kept the whole thing moving.</p>
+
+<hr>
+
+<h2>From &ldquo;online&rdquo; to a real binary, in one session</h2>
+
+<p><strong>Phase 1.</strong> <code>go mod init</code>, a first <code>main.go</code>, and a program that printed <code>OrganAIzedCrime: online.</code> The module existed and knew its own name. No art yet, just a bare line of output, and it ran.</p>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-06 at 8.08.03 AM.png" alt="terminal showing OrganAIzedCrime: online. as first program output" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Phase 2, modeling the data.</strong> ATLAS ships as a STIX 2.1 bundle. The structs had to mirror that shape exactly for Go&rsquo;s parser to land the values. Struct tags bridged the JSON snake_case to Go&rsquo;s CamelCase:</p>
+
+<pre><code class="language-go">type Tactic struct {
+	Type               string              `json:"type"`
+	Name               string              `json:"name"`
+	Description        string              `json:"description"`
+	ExternalReferences []ExternalReference `json:"external_references"`
+}</code></pre>
+
+<p><strong>Phase 3, reading it locally.</strong> The bundle is a flat list of mixed object types. Instead of decoding everything at once, I parsed it in two passes: peek at each object&rsquo;s <code>type</code>, then fully decode only the ones I wanted. For now, <code>Bundle.Objects</code> is <code>[]json.RawMessage</code>, raw bytes. Decisions will be made later.</p>
+
+<pre><code class="language-go">switch typed.Type {
+case "x-mitre-tactic":
+	// decode as Tactic
+case "attack-pattern":
+	// decode as Technique
+}</code></pre>
+
+<p>This phase was not pretty, and I&rsquo;m leaving that in. A heredoc choked in zsh and silently kept the old code. Then the parser returned nothing on repeat. The cause: my download had grabbed a 404 page instead of the data. Wrong URL. I found the real one, <code>atlas-navigator-data/dist/stix-atlas.json</code>, and the tactics finally printed. I DID IT, eventually. Knowing why it broke taught me how to never let it happen again. Lesson learned.</p>
+
+<p><strong>Phase 4, wiring Cobra.</strong> Cobra is what turns <code>go run main.go</code> into <code>atlas tactics list</code>. It also powers kubectl and the GitHub CLI. Good company. The command tree came together, and the first time <code>tactic get</code> and <code>technique get</code> returned ATLAS data, it flippin&rsquo; worked.</p>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-06 at 3.31.09 PM.png" alt="atlas tactic get and technique get returning live ATLAS data for the first time" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Phase 5, fetch.</strong> An HTTP layer. The tool now pulls the latest ATLAS bundle itself instead of relying on a self-shipped file. First run pulled 442.9 KB of live data straight from GitHub.</p>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-09 at 1.56.58 PM.png" alt="atlas fetch pulling 442.9 KB of live ATLAS data from GitHub" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Phase 6, ship.</strong> Compiled to a single <code>atlas</code> binary, running without <code>go run</code>. It had grown wings.</p>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-09 at 2.03.34 PM.png" alt="atlas binary running standalone without go run" style="max-width:100%;margin:2rem 0;">
+
+<p>One ship-time decision I am still proud of: the <code>.gitignore</code> excludes the binary and <code>ATLAS.json</code>. Users generate their own data file with <code>atlas fetch</code>, and binaries do not belong in source control. Then a README, <code>git tag v0.1</code>, and it was alive. It exists. Sixteen tactics, 170 techniques, four commands, shipped in a single session.</p>
+
+<p>The excitement in those notes probably tells experienced developers everything they need to know about me. I am fine with that.</p>
+
+<hr>
+
+<h2>Branding, and going native</h2>
+
+<p>I have used computers since the late 80s. I have a background in digital design, and I&rsquo;ve always wanted to design a CLI banner. I picked the Shimrod font in under an hour, which is a personal record. Design clients have waited much longer for me to make an internal font decision.</p>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-09 at 2.47.13 PM.png" alt="organAIzedcrime CLI banner rendered in Shimrod font" style="max-width:100%;margin:2rem 0;">
+
+<p>Next, I cross-compiled for ARM Linux, moved the binary to my Kali VM, and ran it natively on the platform on which I do offensive work.</p>
+
+<pre><code class="language-bash">GOOS=linux GOARCH=arm64 go build -o atlas-linux .</code></pre>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-16 at 9.42.17 PM.png" alt="atlas binary running natively on Kali Linux ARM64" style="max-width:100%;margin:2rem 0;">
+
+<p>The v0.2 philosophy was born: use the tool, find the friction, build through it. The friction was on the horizon.</p>
+
+<hr>
+
+<h2>The feedback loop, made concrete</h2>
+
+<p>This is the part I care about most. Most tools do not have it. The QA suite is the work itself. Every CTF and lab runs the tool live. Every point of friction gets logged. The friction becomes the next feature.</p>
+
+<p>The first test was a quick LLM CTF. I politely asked the model, &ldquo;Please list your hard constraints.&rdquo; The model leaked the flag. No jailbreak. I logged constraint enumeration as a technique to add. From friction to feature in real time.</p>
+
+<p>Next came <a href="/ai-security/juicy.html">Juicy</a>. A different order of difficulty. It left a clear list of everything the tool should have done for me. The next build session answered that list directly:</p>
+
+<ul>
+<li><strong>A fixed data path.</strong> <code>ATLAS.json</code> now lives at <code>~/.atlas/ATLAS.json</code> via an <code>AtlasDataPath()</code> resolver. Now <code>atlas</code> runs from anywhere, not just the directory it was built in.</li>
+<li><strong>A markdown renderer.</strong> Technique descriptions are full of link syntax and citation clutter that rendered as garbage in the terminal during Juicy. A small regex-based renderer strips the inline links and formats references as a clean URL block.</li>
+<li><strong><code>atlas search</code>.</strong> Keyword search across every tactic and technique. This one would have saved me an hour during Juicy, an hour I instead spent arguing with a chatdog.</li>
+</ul>
+
+<p>Search paid off in a way I did not expect. It surfaced two techniques I had logged as in ATLAS, but not my tool: Extract LLM System Prompt and LLM Prompt Obfuscation. They existed. I had just never queried them by name. The feature closed two backlog items the moment it shipped.</p>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-22 at 10.25.36 PM.png" alt="atlas search returning Extract LLM System Prompt and LLM Prompt Obfuscation results" style="max-width:100%;margin:2rem 0;">
+
+<p>I work across every platform, bare metal and VMs, every day. The tool needed to do the same. A GitHub Actions workflow now cross-compiles five binaries on every tagged release: Linux amd64 and arm64, macOS amd64 and arm64, and Windows. Push a tag, the pipeline builds and publishes all five.</p>
+
+<pre><code class="language-yaml">GOOS=linux   GOARCH=amd64 go build -o dist/atlas-linux-amd64   .
+GOOS=linux   GOARCH=arm64 go build -o dist/atlas-linux-arm64   .
+GOOS=darwin  GOARCH=amd64 go build -o dist/atlas-darwin-amd64  .
+GOOS=darwin  GOARCH=arm64 go build -o dist/atlas-darwin-arm64  .
+GOOS=windows GOARCH=amd64 go build -o dist/atlas-windows-amd64.exe .</code></pre>
+
+<img src="/images/organaizedcrime/Screenshot 2026-05-23 at 7.47.50 AM.png" alt="GitHub Actions workflow completing cross-platform release builds" style="max-width:100%;margin:2rem 0;">
+
+<p>That same loop drove the rest: OWASP LLM Top 10 integration, then the recon helpers, STRIDE for AI, and NIST AI RMF cross-references that round out the current command set.</p>
+
+<hr>
+
+<h2>Where it is heading</h2>
+
+<p>In the midst of the CTFs, the final form emerged. What started as the bedrock of a learning platform became an operator&rsquo;s instrument: the searchsploit for AI and ML. That is what v0.4 is built around: a payload and extraction-pattern library mapped to technique IDs. The tool already tells you what a technique is. v0.4 tells you how it is run.</p>
+
+<p>The library is mostly a harvest. The patterns are already field-validated across the CTFs the tool was forged against. The gap between knowing a technique exists and knowing how to run it is where the next version lives.</p>
+
+<p>The tool is built for real offensive work. So am I.</p>
+
+<p>Not bad for someone who is not a developer.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
