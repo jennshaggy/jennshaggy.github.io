@@ -177,6 +177,86 @@
   
   <div class="post-content">
 
+<h2>Home Lab</h2>
+
+<p>A real Active Directory environment, built from scratch on bare metal, managed from a couch in Albuquerque.</p>
+
+<h3>The hardware</h3>
+
+<p>The host is a NanoNuc running Proxmox, a type-1 hypervisor sitting on the home network. Everything else runs as a VM on top of it. Boot into Proxmox and the lab furniture showroom opens. Boot into Kali and it&rsquo;s pentest workstation mode. F7 picks the room.</p>
+
+<img src="/images/home-lab/Pasted image 20260523222359 copy.jpg" alt="NanoNuc running Proxmox, the bare metal host for the home lab" style="max-width:100%;margin:2rem 0;">
+
+<h3>The architecture</h3>
+
+<p>Four nodes, one domain:</p>
+
+<p><strong>DC01</strong> runs Active Directory Domain Services and DNS. It is the domain controller for the lab, handling authentication and name resolution across the environment.</p>
+
+<img src="/images/home-lab/Pasted image 20260524112800.png" alt="DC01 Active Directory Domain Services configuration" style="max-width:100%;margin:2rem 0;">
+
+<p>Getting the Windows Server VMs running on Proxmox requires VirtIO drivers. Without them, the VM can&rsquo;t see its network adapter or storage controller. The virtio-win ISO handles it.</p>
+
+<img src="/images/home-lab/Pasted image 20260524113924.png" alt="VirtIO drivers ISO attached in Proxmox" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/home-lab/Pasted image 20260524120828.png" alt="VirtIO drivers installed successfully" style="max-width:100%;margin:2rem 0;">
+
+<p>Once the drivers are installed and the adapter is confirmed up:</p>
+
+<img src="/images/home-lab/Pasted image 20260524122258.png" alt="network adapter confirmed up after VirtIO driver install" style="max-width:100%;margin:2rem 0;">
+
+<p>AD promoted, DNS configured, domain live:</p>
+
+<img src="/images/home-lab/Pasted image 20260524141627 copy.png" alt="Active Directory promoted, DNS configured, domain live" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>fileserver</strong> is a domain-joined Windows server providing shared file services. Folder redirection is configured via Group Policy, so the domain user&rsquo;s Documents folder lives on the fileserver rather than the local machine. That is not a default. That is a deliberate configuration.</p>
+
+<p>Before the VirtIO guest tools run, Device Manager looks like this:</p>
+
+<img src="/images/home-lab/Pasted image 20260524175923.png" alt="Device Manager before VirtIO guest tools showing unrecognized hardware" style="max-width:100%;margin:2rem 0;">
+
+<p>After the tools install and the fileserver joins the domain:</p>
+
+<img src="/images/home-lab/Pasted image 20260524212209.png" alt="fileserver joined to domain after VirtIO guest tools install" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>linuxvpn</strong> is an Ubuntu Server VM running Tailscale as both an exit node and a subnet router. This is the lab&rsquo;s remote access layer. No router ports are open. No port-forwarding rules exist. Tailscale routes traffic through linuxvpn without touching the firewall, which means the lab is reachable from any trusted device without exposing anything publicly. Most people port-forward and call it a day. This is the other approach.</p>
+
+<p><strong>WIN11-CLIENT</strong> is a domain-joined Windows 11 workstation. It authenticates against DC01, has its Documents redirected to fileserver, and can be used to simulate a real end-user endpoint inside the domain.</p>
+
+<p>A honeypot node is on the roadmap.</p>
+
+<h3>Remote access via Tailscale</h3>
+
+<p>With linuxvpn as the Tailscale gateway, the lab supports:</p>
+
+<ul>
+<li>Remote access into the home network without opening router ports</li>
+<li>Exit node routing (linuxvpn acts as a private VPN endpoint)</li>
+<li>Subnet routing, so Tailscale-connected devices can reach the full lab LAN directly</li>
+<li>Safer admin access to Proxmox, SSH, RDP, and internal web tools over Tailscale instead of the public internet</li>
+<li>Simulating &ldquo;remote worker&rdquo; behavior: take the WIN11-CLIENT off-network and test internal resource access through the VPN</li>
+</ul>
+
+<img src="/images/home-lab/Pasted image 20260525115449.png" alt="Tailscale subnet routing and exit node configuration on linuxvpn" style="max-width:100%;margin:2rem 0;">
+
+<p>The practical end-state: the entire lab is reachable from a laptop at a coffee shop with no public-facing attack surface.</p>
+
+<h3>Operating it</h3>
+
+<p>Managing a lab is different from building one. Building is a project. Operating is a practice.</p>
+
+<p>Group Policy handles folder redirection across the domain. Documents for every domain user route to the fileserver share automatically.</p>
+
+<img src="/images/home-lab/Pasted image 20260525164632.png" alt="Group Policy folder redirection configuration" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/home-lab/Pasted image 20260525165052.png" alt="Group Policy folder redirection applied across domain users" style="max-width:100%;margin:2rem 0;">
+
+<p>The monitoring plan covers authentication events, admin privilege assignments, account changes, Kerberos activity, and scan detection. Splunk dashboards are in progress. A honeypot node is queued once the baseline is solid.</p>
+
+<p>Security findings as they come up live in <a href="/security-defense/">Security &amp; Defense</a>.</p>
+
+<hr>
+
 <div class="tools-header">
   <img src="/images/iminsane.jpeg" alt="Network equipment and tools" class="network-image">
   <p class="image-caption">One box of many - routers, switches, cables, and testing equipment accumulated across multiple deployments</p>
