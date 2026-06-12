@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Cache Me Outside | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe OSINT CTF: leaked screenshot pivots to Komoot profile and GitHub, commit metadata email recovery, Romanian phone via OOO auto-reply, Irigatii.ro location anchor, city Timisoara and tram station identified.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/security-defense/cache-me-outside.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/security-defense/cache-me-outside.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Cache Me Outside">
+<meta property="og:description" content="TryHackMe OSINT CTF: leaked screenshot pivots to Komoot profile and GitHub, commit metadata email recovery, Romanian phone via OOO auto-reply, Irigatii.ro location anchor, city Timisoara and tram station identified.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cache Me Outside">
+<meta name="twitter:description" content="TryHackMe OSINT CTF: leaked screenshot pivots to Komoot profile and GitHub, commit metadata email recovery, Romanian phone via OOO auto-reply, Irigatii.ro location anchor, city Timisoara and tram station identified.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Cache Me Outside</h1>
+    <div class="post-description">TryHackMe OSINT CTF. A retired hacker left pieces of his identity scattered across the open internet. One leaked conversation screenshot is the starting thread. Follow it.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>I have a deep passion for OSINT. I came out of the closet in my late teens, which means I sharpened my teeth lightly stalking crushes on LiveJournal and MySpace. Years later, the tools have changed as my instincts age like a fine wine. Notice the details, preserve the anomalies and artifacts, pivot carefully, and never assume one profile tells the whole story.</p>
+
+<h2>The seed image</h2>
+
+<img src="/images/cache-me-outside/Pasted image 20260611214733.png" alt="Leaked conversation screenshot showing Komoot profile link and handle JJ" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Visible OSINT clues from the screenshot:</strong></p>
+
+<pre><code>Komoot profile: https://www.komoot.com/user/5667624959835
+Handle: JJ ^_^
+Platform clue: Discord-style chat screenshot
+Lifestyle clues: hiking, cycling, route logging
+Likely next evidence source: Komoot profile</code></pre>
+
+<h2>Komoot recon</h2>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 9.56.08 PM.png" alt="Komoot profile for Jim Lee showing bio, follower count, and linked GitHub" style="max-width:100%;margin:2rem 0;">
+
+<p>Meet Jim Lee.</p>
+
+<p>Former hacker, &ldquo;trying to turn his life around.&rdquo; Newfound love for the outdoors, and hopefully also sunscreen after hacking in a basement away from sunlight around the clock. He&rsquo;s also seen running in his animated profile photo. It&rsquo;s unclear if he&rsquo;s running from the police or enjoys running outside in skaterboi shoes and a baseball cap.</p>
+
+<p>Follows no one, has 213 followers. As the kids would say, &ldquo;very sus.&rdquo;</p>
+
+<p>Jim links to a GitHub from his profile. Images can be opened in a new tab at full size.</p>
+
+<p>The flat-earth image enlarged:</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.00.02 PM.png" alt="Komoot flat-earth tour summary image enlarged to full size" style="max-width:100%;margin:2rem 0;">
+
+<p>The URL for that image:</p>
+
+<pre><code>https://tourpic-vector.maps.komoot.net/user_tour_summary/?hash=H4sIAAAAAAAA_zMDABR6uB0BAAAA&amp;width=1920&amp;q=80</code></pre>
+
+<img src="/images/cache-me-outside/Pasted image 20260611220217.png" alt="Komoot profile image URL showing different hosting path from tour image" style="max-width:100%;margin:2rem 0;">
+
+<p>The profile image URL structure is notably different from the flat-earth image. Same platform, different hosting path. Worth noting for later.</p>
+
+<h2>GitHub enumeration</h2>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.04.02 PM.png" alt="Jim Lee GitHub profile showing Jim Lee Security Consulting, one pinned repo, and April 16 activity" style="max-width:100%;margin:2rem 0;">
+
+<p>Critical findings:</p>
+<ul>
+<li>Jim owns a company: Jim Lee Security Consulting</li>
+<li>One pinned repo</li>
+<li>The only active day in the past 12 months is April 16, 2026, with 3+ contributions</li>
+<li>Jim mentions running again on his GitHub bio</li>
+</ul>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.07.53 PM.png" alt="GitHub contribution graph with April 16 selected, showing commits from join date" style="max-width:100%;margin:2rem 0;">
+
+<p>The commits from April 16 are visible once that date is clicked. It coincides with the day Jim joined GitHub.</p>
+
+<p>Hunter.io is my first instinct for information on Jim Lee Security Consulting. That&rsquo;s the professional-engagement brain. Recalibrating for the room.</p>
+
+<p>A quotation-enclosed Google search for &ldquo;Jim Lee Security Consulting&rdquo; leads only back to the GitHub, meaning the company name is likely a fabrication.</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.14.42 PM.png" alt="Google search results for Jim Lee Security Consulting returning only the GitHub profile" style="max-width:100%;margin:2rem 0;">
+
+<h2>Social media pivot via handle</h2>
+
+<p>Searching for <code>JimL33t</code> (nice play on hacker words, Jim) surfaces a Threads profile. One of the posted images shows the surrounding area near Jim&rsquo;s location:</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.17.18 PM.png" alt="Threads profile for JimL33t with posted image showing surrounding area" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.17.36 PM.png" alt="Second Threads image showing more of the local environment near Jim's location" style="max-width:100%;margin:2rem 0;">
+
+<p>No replies, no additional media, no reposts on Threads.</p>
+
+<p>Back to Google for <code>JimL33t</code>: another Threads link appears, seemingly reposted by <code>@blueloycristina</code>, who populated search results after commenting on one of Jim&rsquo;s posts. The comments section appears several times across two pages of results.</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.19.34 PM.png" alt="Google search results for JimL33t showing Threads link reposted by blueloycristina" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.21.21 PM.png" alt="Second page of Google results showing comments section appearing multiple times" style="max-width:100%;margin:2rem 0;">
+
+<p>CTRL+F for &ldquo;Jim&rdquo; and &ldquo;JimL33t&rdquo; returns nothing. It&rsquo;s hiding in the comments. Tab left open.</p>
+
+<p>Jim also has an Instagram and actually follows humans on this account. Tab left open.</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.22.58 PM.png" alt="Instagram profile for JimL33t showing followed accounts" style="max-width:100%;margin:2rem 0;">
+
+<h2>Location recon via image</h2>
+
+<p>Google Image search on Jim&rsquo;s Threads photos. Business sign visible: <code>IRIGATII.RO</code>. Romanian URL.</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.24.46 PM.png" alt="Google Image search on Threads photo identifying IRIGATII.RO business sign" style="max-width:100%;margin:2rem 0;">
+
+<p>Confirmed:</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.29.19 PM.png" alt="Irigatii.ro website homepage confirming Romanian irrigation business" style="max-width:100%;margin:2rem 0;">
+
+<p>Firefox translation applied:</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.29.55 PM.png" alt="Firefox translation of Irigatii.ro showing Romanian text in English" style="max-width:100%;margin:2rem 0;">
+
+<p>Contact page in English. Irigatii.ro must do great work. Look how green everything is around their business location:</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.31.10 PM.png" alt="Irigatii.ro contact page showing business address and lush surrounding greenery" style="max-width:100%;margin:2rem 0;">
+
+<p>Street address pulled into Google:</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.32.27 PM.png" alt="Google Maps showing Irigatii.ro street address location in Romania" style="max-width:100%;margin:2rem 0;">
+
+<p>Fruitful. Tab left open. The pieces are converging.</p>
+
+<h2>GitHub commit metadata</h2>
+
+<p>Back to GitHub. More to enumerate.</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.39.20 PM.png" alt="GitHub pull request showing Clean up README by removing comments with Files Changed expanded" style="max-width:100%;margin:2rem 0;">
+
+<p>On the pull request &ldquo;Clean up README by removing comments&rdquo; &gt; Files Changed &gt; expanding all available:</p>
+
+<pre><code>jimleepro1-cell/jimleepro1-cell is a ✨ special ✨ repository because its README.md appears on your GitHub profile.</code></pre>
+
+<p>WAIT. The commit hash. As an active GitHub user, I know the commit hash works as a direct URL.</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.56.13 PM.png" alt="GitHub commit view showing full SHA hash to the right of the Verified badge" style="max-width:100%;margin:2rem 0;">
+
+<p>The hash can be copied to the right of &ldquo;Verified.&rdquo;</p>
+
+<p>There&rsquo;s something to be said for the merge request as well. Someone opened a PR against Jim&rsquo;s repo, and the commit may preserve the change even if it was never merged.</p>
+
+<p><strong>Full SHA:</strong> <code>65583ca88efce74e56182b5541362448a2e926c5</code></p>
+
+<p>Testing the hash directly:</p>
+
+<pre><code>github.com/jiml33t/jiml33t/tree/65583ca88efce74e56182b5541362448a2e926c5</code></pre>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.59.18 PM.png" alt="GitHub tree view at full commit SHA revealing ytdexter00-creator reference" style="max-width:100%;margin:2rem 0;">
+
+<p>Who is <code>ytdexter00-creator</code>? YouTube is the likely platform for that prefix.</p>
+
+<p>Raw README via the hash:</p>
+
+<pre><code>raw.githubusercontent.com/jiml33t/jiml33t/65583ca88efce74e56182b5541362448a2e926c5/README.md</code></pre>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 10.41.21 PM.png" alt="Raw README at the full commit SHA showing uncleaned content before sweep commits" style="max-width:100%;margin:2rem 0;">
+
+<p>GitHub supports a patch view by appending <code>.patch</code> to the PR or commit URL. Curling the API:</p>
+
+<pre><code class="language-bash">curl -s https://github.com/jiml33t/jiml33t/pull/4.patch | less</code></pre>
+
+<p>Nothing there. New approach: the oldest raw README is the best &ldquo;before cleanup&rdquo; snapshot. Jim ran three sweep commits after the first one.</p>
+
+<p>Pull request details:</p>
+
+<pre><code class="language-bash">curl -s https://api.github.com/repos/jiml33t/jiml33t/pulls/4 | jq</code></pre>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-12 at 7.40.06 AM.png" alt="GitHub API pull request details showing PR metadata and commit references" style="max-width:100%;margin:2rem 0;">
+
+<p>On the right path. The very first commit is most likely to carry what needed to be removed.</p>
+
+<p>List all commits oldest-first, with full author metadata:</p>
+
+<pre><code class="language-bash">curl -s "https://api.github.com/repos/jiml33t/jiml33t/commits?per_page=100" \
+| jq -r 'reverse[] | "\(.sha)  \(.commit.author.date)  \(.commit.message)  \(.commit.author.name) &lt;\(.commit.author.email)&gt;"'</code></pre>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 11.14.02 PM.png" alt="GitHub API commit list oldest-first showing author name and email in first commit metadata" style="max-width:100%;margin:2rem 0;">
+
+<p>Bingo. Found his email.</p>
+
+<h2>Email interaction</h2>
+
+<p>A Google search for the email returns nothing. Jim&rsquo;s Komoot profile was clear about his pivot away from hacking. An out-of-office auto-reply is worth testing.</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 11.12.13 PM.png" alt="OOO auto-reply email returning Jim's full name and Romanian mobile phone number" style="max-width:100%;margin:2rem 0;">
+
+<p>Yes. There absolutely is.</p>
+
+<pre><code>Full name: Jim Lee
+Email: [recovered from GitHub commit metadata]
+Phone: [Romanian mobile, recovered from OOO auto-reply]</code></pre>
+
+<p>Romanian phone number. The Irigatii.ro location is now the anchor for city and transit station.</p>
+
+<h2>Location resolution</h2>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 11.19.52 PM.png" alt="Initial Google and Gemini search for Romanian transit station returning tourist framing" style="max-width:100%;margin:2rem 0;">
+
+<p>Google and Gemini defaulted to tourist/city-center framing until the query was reframed:</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 11.33.27 PM.png" alt="Reframed query for AEM junction and surrounding region returning targeted transit results" style="max-width:100%;margin:2rem 0;">
+
+<p>The answer is three words. Digging into the AEM junction and surrounding region:</p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 11.31.28 PM.png" alt="Map and search results for Timisoara transit network around the Irigatii.ro location" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>City:</strong> <code>Timișoara</code><br>
+<strong>Train station:</strong> <code>Piața Gheorghe Domășneanu</code></p>
+
+<img src="/images/cache-me-outside/Screenshot 2026-06-11 at 11.35.09 PM.png" alt="Confirmed tram station Piata Gheorghe Domasneanu serving the identified location" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Complete OSINT Chain</h2>
+
+<pre><code>Seed image
+  -> Komoot profile ID
+  -> Jim Lee identity
+  -> linked GitHub
+  -> reused handle JimL33t / social pivot
+  -> GitHub commit metadata
+  -> email recovered from first commit author field
+  -> authorized email interaction
+  -> OOO auto-reply returned Romanian mobile number
+  -> Romanian location clues
+  -> Irigatii.ro / Timișoara
+  -> transit correlation
+  -> Piața Gheorghe Domășneanu</code></pre>
+
+<p><strong>Final answers:</strong></p>
+<ul>
+<li>Full name: Jim Lee</li>
+<li>Email: [recovered from GitHub commit metadata &mdash; first commit, author field]</li>
+<li>Phone: [Romanian mobile &mdash; recovered from OOO auto-reply]</li>
+<li>City: Timișoara</li>
+<li>Tram station: Piața Gheorghe Domășneanu</li>
+</ul>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
