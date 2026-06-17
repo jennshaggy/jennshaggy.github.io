@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>MacHunt | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe Mac forensics CTF: APFS image mounting, plist analysis, Safari history, DHCP lease, TCC permissions, LaunchAgent persistence, and full attack chain reconstruction from a phishing-delivered pkg installer.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/security-defense/machunt.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/security-defense/machunt.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="MacHunt">
+<meta property="og:description" content="TryHackMe Mac forensics CTF: APFS image mounting, plist analysis, Safari history, DHCP lease, TCC permissions, LaunchAgent persistence, and full attack chain reconstruction from a phishing-delivered pkg installer.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MacHunt">
+<meta name="twitter:description" content="TryHackMe Mac forensics CTF: APFS image mounting, plist analysis, Safari history, DHCP lease, TCC permissions, LaunchAgent persistence, and full attack chain reconstruction from a phishing-delivered pkg installer.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span class="active">Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">MacHunt</h1>
+    <div class="post-description">TryHackMe Mac forensics CTF. Jake received a phishing job offer on LinkedIn. A malicious pkg installer compromised his Mac. The task: mount the image, trace the attack chain, and identify the full extent of the damage.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Jake had gained some good knowledge and skills in the game development field, so he decided to enter the industry through a decent job. Little did he know that fake recruiters were waiting. A well-crafted phishing attack with a promising job offer compromised his Mac machine. The task: investigate Jake&rsquo;s machine, determine the attack chain, and identify the full extent of the damage.</p>
+
+<p>I&rsquo;ll be fair, I&rsquo;m a technology enthusiast. Even that feels like a dramatic understatement. As of late, I have a mix of all three major operating systems in front of my face and at arm&rsquo;s reach at any given hour of the day.</p>
+
+<p>Today&rsquo;s configuration for this room is amusing: Kali VM running a Mac VM on MacOS. What a world.</p>
+
+<h2>Mounting the image</h2>
+
+<pre><code class="language-bash">ls -la</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 7.19.37 AM.png" alt="ls -la output showing files in the working directory" style="max-width:100%;margin:2rem 0;">
+
+<p>Located the image in the <code>/home/ubuntu/Jack_Mac</code> folder:</p>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 7.20.51 AM.png" alt="Directory listing showing Jack_Mac.img file" style="max-width:100%;margin:2rem 0;">
+
+<p>Mount it, then switch to root:</p>
+
+<pre><code class="language-bash">sudo apfs-fuse -v 4 /home/ubuntu/Jack_Mac.img /home/ubuntu/mac
+sudo su</code></pre>
+
+<p>Locate where Ubuntu mounted the image:</p>
+
+<pre><code class="language-bash">lsblk -f
+mount | grep -Ei 'Jack|loop|apfs|hfs'</code></pre>
+
+<p>The last line of the <code>grep</code> output has the location of the mounted image.</p>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 7.34.30 AM.png" alt="grep output showing mounted APFS image location" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">ls -la /home/ubuntu/mac</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 7.37.09 AM.png" alt="ls -la of mounted mac directory showing root filesystem structure" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">ls -la /home/ubuntu/mac/root</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 7.37.52 AM.png" alt="ls -la of mac/root showing macOS root directory contents" style="max-width:100%;margin:2rem 0;">
+
+<p><code>plist</code> files live in a user&rsquo;s library. Navigate there:</p>
+
+<pre><code class="language-bash">ls -la /home/ubuntu/mac/root/Users
+ls -la /home/ubuntu/mac/root/Users/jake
+ls -la /home/ubuntu/mac/root/Users/jake/Library</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 7.40.19 AM.png" alt="ls -la of jake's Library directory" style="max-width:100%;margin:2rem 0;">
+
+<h2>Most recently accessed folder</h2>
+
+<p>Windows has File Explorer. Kali has Thunar. On Mac, you have Finder. To find the most recently accessed folder, locate the Finder <code>plist</code>:</p>
+
+<pre><code class="language-bash">cd "/home/ubuntu/mac/root/Users/jake/Library/Preferences"
+ls | grep -i finder</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 7.47.53 AM.png" alt="grep output locating com.apple.finder.plist" style="max-width:100%;margin:2rem 0;">
+
+<p>Check whether the <code>plist</code> is XML or binary:</p>
+
+<pre><code class="language-bash">file com.apple.finder.plist</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 7.50.15 AM.png" alt="file command output showing com.apple.finder.plist is binary format" style="max-width:100%;margin:2rem 0;">
+
+<p>Binary. With XML we could use <code>cat</code> and <code>grep</code>. Binary requires a different approach. <code>plutil</code> is not installed on this machine, so we will not be installing it. Python to the rescue:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import plistlib, pprint
+
+with open("com.apple.finder.plist", "rb") as f:
+    data = plistlib.load(f)
+
+print(data.keys())
+PY</code></pre>
+
+<p>We&rsquo;ve located the artifact: <code>FXRecentFolders</code>.</p>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.02.05 AM.png" alt="Python plistlib output showing plist keys including FXRecentFolders" style="max-width:100%;margin:2rem 0;">
+
+<p>Print the <code>FXRecentFolders</code> key:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import plistlib, pprint
+
+with open("com.apple.finder.plist", "rb") as f:
+    data = plistlib.load(f)
+
+pprint.pp(data["FXRecentFolders"])
+PY</code></pre>
+
+<p>The output returns a <code>file-bookmark</code> blob (Apple&rsquo;s encoded path and bookmark data) as a list. <code>FXRecentFolders</code> sorts by most recently accessed first. <code>plistutil</code>, which was flagged as unavailable earlier, is accessible from this part of the image. Running it makes the blob human-readable:</p>
+
+<pre><code class="language-bash">plistutil -p com.apple.finder.plist | less</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.10.47 AM.png" alt="plistutil output showing FXRecentFolders with Downloads as the first entry" style="max-width:100%;margin:2rem 0;">
+
+<p><code>Downloads</code> is the first entry.</p>
+
+<p><strong>Most recently accessed folder:</strong> <code>Downloads</code></p>
+
+<h2>Social platform used to deliver the document</h2>
+
+<p>Downloads is our most likely snitch:</p>
+
+<pre><code class="language-bash">ls -la "/home/ubuntu/mac/root/Users/jake/Downloads"</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.14.30 AM.png" alt="ls -la of Jake's Downloads folder showing the TechTHM Interview Instructions PDF" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>.localized
+TechTHM Interview Instructions - Content Writer.pdf</code></pre>
+
+<p>As a Mac user, Jake likely uses Safari. Firefox is a close second guess. Any active Mac user who has tried Chrome knows it runs like a virus, at least on Intel-based Macs. Side note: if you have a Mac running like it&rsquo;s dying and Google Chrome installed, look up how to cleanly uninstall it. There will be hidden files in the Mac library to axe as well. Take the time to find a reputable guide that covers removing all traces, and be amazed at how well your computer can actually run.</p>
+
+<p>Back on track. Safari history:</p>
+
+<pre><code class="language-bash">ls -la "/home/ubuntu/mac/root/Users/jake/Library/Safari"</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.22.27 AM.png" alt="ls -la of jake's Safari directory showing History.db" style="max-width:100%;margin:2rem 0;">
+
+<p><code>History.db</code> is what we&rsquo;re looking for: Safari history in SQLite format. Query the tables:</p>
+
+<pre><code class="language-python">python3 -c 'import sqlite3; db="/home/ubuntu/mac/root/Users/jake/Library/Safari/History.db"; con=sqlite3.connect(db); cur=con.cursor(); print("\n".join(r[0] for r in cur.execute("SELECT name FROM sqlite_master WHERE type=\'table\' ORDER BY name;"))); con.close()'</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.29.00 AM.png" alt="Python sqlite3 output listing tables in Safari History.db" style="max-width:100%;margin:2rem 0;">
+
+<p>The tables hath been found.</p>
+
+<p><code>sqlite3</code> is unavailable in this environment for direct querying, so strings:</p>
+
+<pre><code class="language-bash">strings "/home/ubuntu/mac/root/Users/jake/Library/Safari/History.db" | grep -Ei 'linkedin|facebook|instagram|twitter|x\.com|discord|reddit|meetmelive|techthm|pdf|download'</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.38.09 AM.png" alt="strings grep output of Safari History.db showing LinkedIn results" style="max-width:100%;margin:2rem 0;">
+
+<p>I think we have a resounding answer.</p>
+
+<p><strong>Social platform used to deliver the document:</strong> <code>LinkedIn</code></p>
+
+<h2>Attacker's download link</h2>
+
+<p>The PDF in Jake&rsquo;s Downloads folder almost certainly contains the URL. Extract readable strings from it:</p>
+
+<pre><code class="language-bash">strings "/home/ubuntu/mac/root/Users/jake/Downloads/TechTHM Interview Instructions - Content Writer.pdf" | grep -Ei 'http|meetmelive|download|app|dmg|pkg|zip'</code></pre>
+
+<p>Bingo.</p>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.42.58 AM.png" alt="strings grep output of the PDF showing the malicious MeetMeLiveInstaller.pkg download URL" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Attacker&rsquo;s download link:</strong> <code>http://files.techthm.careers.thm:8080/MeetMeLiveInstaller.pkg</code></p>
+
+<h2>Network Jake connected to</h2>
+
+<p>macOS stores known Wi-Fi networks in a <code>plist</code>. Check the system configuration directory:</p>
+
+<pre><code class="language-bash">ls -la "/home/ubuntu/mac/root/Library/Preferences/SystemConfiguration"</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.46.28 AM.png" alt="ls -la of SystemConfiguration showing com.apple.airport.preferences.plist" style="max-width:100%;margin:2rem 0;">
+
+<p><code>com.apple.airport.preferences.plist</code> holds known networks. Inspect its keys with Python, then narrow to <code>known-networks</code>:</p>
+
+<pre><code class="language-bash">ls -la /home/ubuntu/mac/root/Library/Preferences | grep -i wifi</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 8.58.48 AM.png" alt="grep output locating com.apple.wifi.known-networks.plist" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">strings "/home/ubuntu/mac/root/Library/Preferences/com.apple.wifi.known-networks.plist" | less</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.02.24 AM.png" alt="strings output of wifi known-networks plist showing Jake M. iPhone network" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Network Jake connected to:</strong> <code>Jake M. iPhone</code></p>
+
+<h2>IP address assigned to Jake's system</h2>
+
+<p>Check the DHCP lease:</p>
+
+<pre><code class="language-bash">ls -la /home/ubuntu/mac/root/private/var/db/dhcpclient/leases</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.05.00 AM.png" alt="ls -la of DHCP leases directory showing en0.plist" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cat /home/ubuntu/mac/root/private/var/db/dhcpclient/leases/en0.plist</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.06.00 AM.png" alt="DHCP lease plist contents showing assigned IP address 192.168.64.2" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>IP assigned to Jake&rsquo;s system:</strong> <code>192.168.64.2</code></p>
+
+<h2>Application install timestamp</h2>
+
+<p>Check the Applications folder:</p>
+
+<pre><code class="language-bash">ls -la /home/ubuntu/mac/root/Applications | grep -i meet</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.14.35 AM.png" alt="ls output of Applications directory filtered to MeetMeLive.app" style="max-width:100%;margin:2rem 0;">
+
+<p>Pull the install history:</p>
+
+<pre><code class="language-bash">cat /home/ubuntu/mac/root/Library/Receipts/InstallHistory.plist | grep -A20 -B5 -i MeetMeLive</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.15.49 AM.png" alt="InstallHistory.plist entry for MeetMeLive showing install timestamp 2025-04-30 08:54:20" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Application install timestamp:</strong> <code>2025-04-30 08:54:20</code></p>
+
+<h2>Permission explicitly granted by Jake</h2>
+
+<p>macOS TCC (Transparency, Consent, and Control) tracks what permissions users grant to applications. Check the TCC database:</p>
+
+<pre><code class="language-bash">ls -la /home/ubuntu/mac/root/Library/Application\ Support/com.apple.TCC</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.18.51 AM.png" alt="ls -la of com.apple.TCC directory showing TCC.db" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">strings "/home/ubuntu/mac/root/Library/Application Support/com.apple.TCC/TCC.db" | grep -i -A3 -B3 meet</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.20.41 AM.png" alt="strings grep output of TCC.db showing kTCCServiceSystemPolicyAllFiles for MeetMeLive" style="max-width:100%;margin:2rem 0;">
+
+<p>TCC found <code>kTCCServiceSystemPolicyAllFiles</code>. The human-readable name for that is <code>Full Disk Access</code>.</p>
+
+<p>I&rsquo;m on computers way too much, y&rsquo;all. I could stand to be a little more readable myself.</p>
+
+<p><strong>Permission granted:</strong> <code>Full Disk Access</code></p>
+
+<h2>Persistence mechanism</h2>
+
+<p>LaunchAgents is macOS&rsquo;s mechanism for running programs at login. I learned that lesson once and once only. Thankfully not with malware.</p>
+
+<pre><code class="language-bash">ls -la /home/ubuntu/mac/root/Library/LaunchAgents
+ls -la /home/ubuntu/mac/root/Users/jake/Library/LaunchAgents</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.27.25 AM.png" alt="ls -la of system LaunchAgents directory" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.29.34 AM.png" alt="ls -la of jake's LaunchAgents directory showing MeetMeLive launch agent" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Persistence mechanism:</strong> <code>LaunchAgents</code></p>
+
+<h2>Exfiltration URL</h2>
+
+<p>Still on the LaunchAgents path:</p>
+
+<pre><code class="language-bash">cat /home/ubuntu/mac/root/Users/jake/Library/LaunchAgents/MeetMeLive.sh</code></pre>
+
+<img src="/images/machunt/Screenshot 2026-06-15 at 9.32.59 AM.png" alt="MeetMeLive.sh contents showing exfiltration URL http://techthm.thm/exfil" style="max-width:100%;margin:2rem 0;">
+
+<p>Pretty darn sure that&rsquo;s it.</p>
+
+<p><strong>Exfiltration URL:</strong> <code>http://techthm.thm/exfil</code></p>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>LinkedIn phishing message
+  -&gt; PDF delivered: TechTHM Interview Instructions
+  -&gt; PDF contained malicious URL: files.techthm.careers.thm:8080/MeetMeLiveInstaller.pkg
+  -&gt; Jake connected to iPhone hotspot (Jake M. iPhone)
+  -&gt; Jake's IP: 192.168.64.2
+  -&gt; MeetMeLive.app installed: 2025-04-30 08:54:20
+  -&gt; Jake granted Full Disk Access (kTCCServiceSystemPolicyAllFiles)
+  -&gt; LaunchAgent set for startup persistence
+  -&gt; Data exfiltrated to: http://techthm.thm/exfil</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
