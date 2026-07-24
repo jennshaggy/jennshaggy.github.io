@@ -1,4 +1,4 @@
-/* Homepage preview: remove PaperMod content constraints */
+/* Homepage: remove PaperMod content constraints */
 .profile .entry-content {
   display: block;
   overflow: visible;
@@ -10,7 +10,7 @@
   max-width: none;
 }
 
-/* Mobile navigation preview */
+/* Mobile navigation */
 #menu-toggle {
   display: none;
 }
