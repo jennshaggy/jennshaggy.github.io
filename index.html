@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Blue-team analyst with red-team curiosity. Focused on incident response, endpoint hardening, and systems defense.">
+<meta name="description" content="Offensive security across applications, systems, networks, and AI, with hands-on testing and security tooling built at the systems level.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -69,15 +69,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/homepage.css">
 <meta property="og:url" content="https://jennshaggy.github.io/">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Jenn Shagrin">
-<meta property="og:description" content="Blue-team analyst with red-team curiosity">
+<meta property="og:description" content="Offensive security across applications, systems, networks, and AI.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Jenn Shagrin">
-<meta name="twitter:description" content="Blue-team analyst with red-team curiosity">
+<meta name="twitter:description" content="Offensive security across applications, systems, networks, and AI.">
 <style>
 @media (max-width: 600px) {
     #menu { gap: 8px; font-size: 0.9rem; }
@@ -111,6 +112,13 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
+                    <span class="menu-toggle-label">Menu</span>
+                    <span class="menu-toggle-icon" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
             </div>
         </div>
         <ul id="menu">
@@ -129,8 +137,9 @@
     <img draggable="false" src="https://jennshaggy.github.io/images/profile.png" alt="Jenn Shagrin" title="Jenn Shagrin" height="120" width="120">
     <h1>Jenn Shagrin</h1>
     <div class="entry-content">
-      Blue-team analyst with red-team curiosity. Focused on incident response, endpoint hardening, and systems defense. Building skills through hands-on labs, certifications, and real-world projects.<br>
-      Albuquerque, NM · CIAT student · Blue-team + systems builder
+      Offensive security across applications, systems, networks, and AI.<br><br>
+      I work at the systems level, tracing the connections between applications, identities, infrastructure, and human decisions. I follow those connections through hands-on testing and build security tooling to work through problems, not around them.<br><br>
+      Albuquerque, NM · Offensive security · Systems-level analysis
     </div>
     <div class="buttons">
       <a class="button" href="about.html" rel="noopener">
@@ -215,6 +224,75 @@
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+    (() => {
+        const menuToggle = document.getElementById("menu-toggle");
+        const menu = document.getElementById("menu");
+
+        if (!menuToggle || !menu) {
+            return;
+        }
+
+        document.documentElement.classList.add("js-menu-ready");
+
+        const closeMenu = (restoreFocus = false) => {
+            menuToggle.setAttribute("aria-expanded", "false");
+            menu.classList.remove("menu-open");
+
+            if (restoreFocus) {
+                menuToggle.focus();
+            }
+        };
+
+        menuToggle.addEventListener("click", () => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(!isOpen)
+            );
+            menu.classList.toggle("menu-open", !isOpen);
+        });
+
+        menu.addEventListener("click", (event) => {
+            if (event.target.closest("a")) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (
+                isOpen &&
+                !menu.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (event.key === "Escape" && isOpen) {
+                closeMenu(true);
+            }
+        });
+
+        const desktopQuery =
+            window.matchMedia("(min-width: 769px)");
+
+        desktopQuery.addEventListener("change", (event) => {
+            if (event.matches) {
+                closeMenu();
+            }
+        });
+    })();
 </script>
 </body>
 </html>
