@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>The Cinder Engine | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Reverse engineered a custom four-byte virtual machine inside a stripped ARM64 binary, then built a Python disassembler, emulator, and inverse solver.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/the-cinder-engine.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/the-cinder-engine.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="The Cinder Engine">
+<meta property="og:description" content="Reverse engineered a custom four-byte virtual machine inside a stripped ARM64 binary, then built a Python disassembler, emulator, and inverse solver.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="The Cinder Engine">
+<meta name="twitter:description" content="Reverse engineered a custom four-byte virtual machine inside a stripped ARM64 binary, then built a Python disassembler, emulator, and inverse solver.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">The Cinder Engine</h1>
+    <div class="post-description">Reverse engineered a custom four-byte virtual machine inside a stripped ARM64 binary, then built a Python disassembler, emulator, and inverse solver.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>A small set of imports and one spectacularly useful <code>bad opcode</code> string led from a stripped ARM64 executable to the custom virtual machine hiding inside it.</p>
+
+<table>
+<tbody>
+<tr><th scope="row">Event</th><td>Hack The Box Cyber Apocalypse 2026</td></tr>
+<tr><th scope="row">Category</th><td>Reversing</td></tr>
+<tr><th scope="row">Focus</th><td>Custom VM reverse engineering</td></tr>
+<tr><th scope="row">Difficulty</th><td>Medium</td></tr>
+<tr><th scope="row">Points</th><td>950</td></tr>
+<tr><th scope="row">Outcome</th><td>Solved</td></tr>
+</tbody>
+</table>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.22.23 PM.png" alt="The Cinder Engine challenge overview on Hack The Box" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>The assignment</h2>
+
+<p>The challenge supplied one executable with no source code or explanation of the input it expected. I needed to determine how it processed input and recover the value that reached its success path.</p>
+
+<p>The binary turned out to be a native wrapper around an embedded bytecode program. Recovering that inner machine's four-byte instruction format exposed a reversible eight-round transformation.</p>
+
+<hr>
+
+<h2>Executive summary</h2>
+
+<p>I began with <code>file</code>, <code>sha256sum</code>, <code>strings</code>, and <code>readelf</code>. The binary was a stripped ARM64 ELF with a very small observable interface: <code>getc</code>, <code>putc</code>, <code>fwrite</code>, and the string <code>bad opcode</code>.</p>
+
+<p>Following that string's cross-reference in Ghidra led to the VM dispatcher. I recovered its registers, memory, instruction format, embedded ROM, and supported opcodes, then built <code>cinder_vm.py</code> to disassemble and emulate the bytecode.</p>
+
+<p>The disassembly revealed a 32-byte input loop followed by an initial key XOR and eight rounds of S-box substitution, XOR mixing, and round-key application. I reversed those operations, recovered the accepted input, and ran it through the Python VM. The emulator executed 13,813 virtual instructions and produced the redacted flag.</p>
+
+<hr>
+
+<h2>Initial evidence</h2>
+
+<p>I extracted the archive and identified the binary:</p>
+
+<pre><code>file the_cinder_engine/cinder</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.26.37 PM.png" alt="file command output identifying ARM64 ELF executable" style="max-width:100%;margin:2rem 0;">
+
+<p>We have an ARM64 executable.</p>
+
+<p>I recorded its size and SHA-256 digest so the rest of the analysis remained tied to one artifact:</p>
+
+<pre><code>ls -lh the_cinder_engine/cinder
+sha256sum the_cinder_engine/cinder</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.27.59 PM.png" alt="Binary file size and SHA-256 digest" style="max-width:100%;margin:2rem 0;">
+
+<p>Next, I checked whether Ghidra was the right tool for this:</p>
+
+<pre><code>strings -a -n 4 the_cinder_engine/cinder
+
+readelf -Ws the_cinder_engine/cinder |
+awk '$7 == "UND"'</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.31.30 PM.png" alt="strings output showing bad opcode and minimal interface" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.31.48 PM.png" alt="readelf showing undefined symbols including getc putc fwrite" style="max-width:100%;margin:2rem 0;">
+
+<p>The imports showed a narrow interface:</p>
+
+<ol>
+<li><code>getc</code> read individual bytes.</li>
+<li><code>putc</code> wrote individual bytes.</li>
+<li><code>fwrite</code> could emit a larger message.</li>
+<li><code>bad opcode</code> suggested an interpreter or state machine.</li>
+</ol>
+
+<p>To Ghidra.</p>
+
+<hr>
+
+<h2>Investigation and solve path</h2>
+
+<h3>Phase 1: Follow <code>bad opcode</code></h3>
+
+<p>I imported the binary using Ghidra's ARM64 little-endian language:</p>
+
+<pre><code>AARCH64:LE:64:v8A</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.37.14 PM.png" alt="Ghidra import with ARM64 little-endian language selected" style="max-width:100%;margin:2rem 0;">
+
+<p>After the initial analysis completed, I opened:</p>
+
+<pre><code>Window
+&gt; Defined Strings
+&gt; bad opcode</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.43.25 PM.png" alt="Ghidra Defined Strings window showing bad opcode" style="max-width:100%;margin:2rem 0;">
+
+<p>I followed the string label into its only reference:</p>
+
+<pre><code>Right-click s_bad_opcode_00100e70
+&gt; References
+&gt; Show References To</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.46.07 PM.png" alt="Ghidra cross-reference to bad opcode string" style="max-width:100%;margin:2rem 0;">
+
+<p>Opening that location in the Decompiler exposed the correct function:</p>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.48.13 PM.png" alt="Ghidra decompiler showing VM dispatcher function" style="max-width:100%;margin:2rem 0;">
+
+<p>The first part read from <code>stdin</code> one byte at a time and stored up to <code>0x1000</code> bytes. The surrounding control flow repeatedly fetched instructions from an embedded data region.</p>
+
+<p>Oooooh. Juicy. Ghidra exposed a custom virtual machine.</p>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 1.52.46 PM.png" alt="Decompiled switch statement revealing the VM instruction set" style="max-width:100%;margin:2rem 0;">
+
+<h3>Phase 2: Recover the VM specification</h3>
+
+<p>The decompiled switch statement defined the virtual instruction set. Each instruction occupied four bytes, with the opcode in the fourth byte.</p>
+
+<table>
+<tr><td><strong>Property</strong></td><td><strong>Recovered behavior</strong></td></tr>
+<tr><td>Input</td><td>Up to 4,096 bytes from <code>stdin</code>.</td></tr>
+<tr><td>Instruction size</td><td>Four bytes.</td></tr>
+<tr><td>Opcode</td><td>Fourth instruction byte.</td></tr>
+<tr><td>Registers</td><td>16 general-purpose registers.</td></tr>
+<tr><td>Memory</td><td>65,536-byte virtual memory region.</td></tr>
+<tr><td>Embedded image</td><td>Begins at <code>DAT_00100e80</code>.</td></tr>
+<tr><td><code>0xe0</code></td><td>Consume one input byte.</td></tr>
+<tr><td><code>0xe1</code></td><td>Emit one output byte.</td></tr>
+<tr><td><code>0x00</code></td><td>Halt.</td></tr>
+<tr><td>Unknown opcode</td><td>Print <code>bad opcode</code>.</td></tr>
+</table>
+
+<p>The remaining cases covered moves, shifts, rotations, arithmetic, bitwise operations, memory access, comparisons, and conditional jumps.</p>
+
+<p>At this point, the native ARM64 code had given me the design of the inner machine. The embedded bytecode would explain the challenge logic.</p>
+
+<h3>Phase 3: Build the disassembler and emulator</h3>
+
+<p>I built <code>cinder_vm.py</code> to:</p>
+
+<ol>
+<li>Read <code>cinder</code> as raw bytes.</li>
+<li>Extract its embedded VM image.</li>
+<li>Decode the four-byte instructions.</li>
+<li>Emulate the registers, memory, branches, input, and output.</li>
+<li>Reverse the validation transformation.</li>
+<li>Verify the recovered input through forward execution.</li>
+</ol>
+
+<p>The complete utility belongs on the site's <a href="/scripts/">Scripts page</a>. This writeup keeps the portions needed to understand and reproduce the solve.</p>
+
+<p>I tested the disassembler first:</p>
+
+<pre><code>python3 cinder_vm.py \
+  the_cinder_engine/cinder \
+  --disassemble |
+sed -n '1,35p'</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 2.07.44 PM.png" alt="Disassembler output showing decoded VM instructions" style="max-width:100%;margin:2rem 0;">
+
+<p>Aha! The disassembler works.</p>
+
+<p>The opening instructions established the input path:</p>
+
+<pre><code>li     r8, 0x0020
+in     r5
+store  [r4 + 0x0000], r5
+store  [r4 + 0x0040], r5
+addi   r4, r4, 0x0001
+cmp    r4, r8
+jnz    0x000c</code></pre>
+
+<p>The VM expected 32 input bytes. It stored each byte in the active state at <code>memory[r4]</code> and preserved a second copy at <code>memory[r4 + 0x40]</code>.</p>
+
+<p>The next instructions selected round-key material at ROM offset <code>0x11c4</code>, applied it with XOR, and substituted each byte through an S-box beginning at <code>0x10c4</code>. A long sequence of loads and XORs formed the linear mixing layer.</p>
+
+<h3>Phase 4: Trace the comparison and success path</h3>
+
+<p>I inspected the end of the round structure:</p>
+
+<pre><code>python3 cinder_vm.py \
+  the_cinder_engine/cinder \
+  --disassemble |
+sed -n '1015,1060p'</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 2.10.20 PM.png" alt="Disassembly showing end of round structure and comparison" style="max-width:100%;margin:2rem 0;">
+
+<p>There is the complete round structure.</p>
+
+<p>I pulled the next section to see where it led:</p>
+
+<pre><code>python3 cinder_vm.py \
+  the_cinder_engine/cinder \
+  --disassemble |
+sed -n '1060,1080p'</code></pre>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 2.11.58 PM.png" alt="Disassembly showing target comparison and success output path" style="max-width:100%;margin:2rem 0;">
+
+<p>The two sections showed the complete validation path:</p>
+
+<ol>
+<li><code>0x1014</code> stored the last mixed byte, completing a 32-byte result at <code>0x80</code> through <code>0x9f</code>.</li>
+<li><code>0x1018</code> through <code>0x102c</code> copied the result into the active state at <code>0x00</code> through <code>0x1f</code>.</li>
+<li><code>0x1030</code> through <code>0x1054</code> applied the next 32-byte round key.</li>
+<li><code>0x1058</code> through <code>0x1064</code> advanced the round counter until it reached nine.</li>
+<li><code>0x1068</code> through <code>0x108c</code> compared the final state with the 32-byte target at ROM offset <code>0x12e4</code>.</li>
+<li>Any mismatch changed <code>r11</code> from zero to one.</li>
+<li><code>jnz 0x10c0</code> halted when the mismatch marker was set.</li>
+<li>The success path XORed 26 bytes of preserved input with ROM data at <code>0x1304</code> and printed the result.</li>
+</ol>
+
+<p>The VM therefore applied:</p>
+
+<pre><code>Input
+Initial key XOR
+Eight rounds: S-box, linear XOR mixing, round-key XOR
+Target comparison
+Success-only flag decoding</code></pre>
+
+<h3>Phase 5: Reverse the transformation</h3>
+
+<p>A 32-byte input allows up to 2<sup>256</sup> candidates. The recovered operations gave me a better route.</p>
+
+<p>I started with the stored target and reversed rounds eight through one:</p>
+
+<ol>
+<li>Remove the round key with XOR.</li>
+<li>Invert the 32 by 32 XOR-mixing matrix.</li>
+<li>Apply the inverse S-box.</li>
+</ol>
+
+<p>After the eighth inverse round, I removed the initial key.</p>
+
+<p>XOR reverses itself:</p>
+
+<pre><code>A XOR K XOR K = A</code></pre>
+
+<p>The S-box was a permutation of all 256 byte values, so I built its inverse by swapping each input-output mapping:</p>
+
+<pre><code class="language-python">inverse_sbox = [0] * 256
+
+for original, substituted in enumerate(sbox):
+    inverse_sbox[substituted] = original</code></pre>
+
+<p>The mixing layer used XOR relationships between the 32 state bytes. I represented those relationships as a binary matrix and inverted it with Gaussian elimination over GF(2).</p>
+
+<p>The reverse loop was:</p>
+
+<pre><code class="language-python">state = bytes(target)
+
+for round_number in range(8, 0, -1):
+    state = bytes(
+        value ^ key
+        for value, key in zip(state, keys[round_number])
+    )
+    state = invert_linear(rows, state)
+    state = bytes(inverse_sbox[value] for value in state)
+
+accepted_input = bytes(
+    value ^ key
+    for value, key in zip(state, keys[0])
+)</code></pre>
+
+<h3>Phase 6: Verify through the VM</h3>
+
+<p>I ran the solver against the original binary:</p>
+
+<pre><code>python3 cinder_vm.py \
+  the_cinder_engine/cinder \
+  --solve |
+tee cinder_solve.txt</code></pre>
+
+<p>The public output remains redacted:</p>
+
+<img src="/images/the-cinder-engine/Screenshot 2026-07-26 at 2.16.23 PM.png" alt="Solver output showing verified recovery after 13813 VM instructions" style="max-width:100%;margin:2rem 0;">
+
+<p>The emulator consumed the recovered input, executed the original embedded program, reached the success-only output path, and halted after 13,813 virtual instructions.</p>
+
+<hr>
+
+<h2>Why the approach worked</h2>
+
+<p>The <code>bad opcode</code> reference placed every supported virtual operation in one function. That made it an efficient semantic anchor inside a stripped binary.</p>
+
+<p>Once the dispatcher was documented, the challenge moved into the embedded bytecode. The first instructions exposed the input length and storage pattern. The final instructions exposed the comparison target and output path. The code between them defined the transformation that had to be reversed.</p>
+
+<p>The emulator provided the final validation. It tested instruction decoding, register behavior, memory addressing, signed branches, input handling, transformation order, comparison logic, and output generation against the embedded program.</p>
+
+<hr>
+
+<h2>Security relevance</h2>
+
+<p>The challenge demonstrates the limits of client-side obfuscation. The VM increased the cost of analysis, but its interpreter, bytecode, constants, target, and output path were present in the executable.</p>
+
+<p>For offensive security work, the useful lesson is methodological: follow semantic anchors, reconstruct only the machinery needed for the objective, and validate the model against program behavior.</p>
+
+<hr>
+
+<h2>What I learned</h2>
+
+<p>This was my first serious Ghidra workflow, and the custom VM made the learning curve worthwhile. I moved from one useful error string to a recovered instruction set, a readable disassembly, an emulator, and an inverted validation routine.</p>
+
+<p>The moment the disassembler produced coherent instructions changed the challenge. Raw bytes had become a program I could reason through.</p>
+
+<p>And yes, I know: reverse engineering is amazing.</p>
+
+<hr>
+
+<h2>Attribution and AI use</h2>
+
+<p>I solved and documented The Cinder Engine during Hack The Box Cyber Apocalypse 2026 as a member of the CIAT Cybersecurity Club team.</p>
+
+<p>I used AI to support development and debugging of <code>cinder_vm.py</code>, including translation of the recovered dispatcher and implementation of the GF(2) inversion. I performed the Ghidra analysis, validated the VM model against the bytecode, ran the tooling, and submitted the flag.</p>
+
+<hr>
+
+<h2>Full attack chain</h2>
+
+<ol>
+<li>Identified <code>cinder</code> as a stripped ARM64 ELF.</li>
+<li>Used strings and imports to identify interpreter-like behavior.</li>
+<li>Followed <code>bad opcode</code> into the VM dispatcher in Ghidra.</li>
+<li>Recovered the four-byte instruction format, registers, memory, ROM, and opcodes.</li>
+<li>Built a Python disassembler and emulator.</li>
+<li>Decoded the 32-byte input loop and eight-round validation transform.</li>
+<li>Reversed the round keys, S-box, and GF(2) mixing layer.</li>
+<li>Recovered the accepted 32-byte input.</li>
+<li>Executed it through the reconstructed VM.</li>
+<li>Verified the redacted output after 13,813 virtual instructions.</li>
+</ol>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
