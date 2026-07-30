@@ -156,6 +156,132 @@
 
 <hr>
 
+<h2>corpse_sync.py</h2>
+
+<p>Decodes the anomalous audit log produced by the CorpSyncAudit challenge. Matches timestamp and region records, reverses the five-bit conditional XOR transformations, packs six numeric fields into 32-bit words, and recovers four payload bytes per record.</p>
+
+<p>Source: <a href="/corpsyncaudit.html">CorpSyncAudit</a>. Download: <a href="/scripts/corpse_sync.py">corpse_sync.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">REGION_INDEX</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;WORLD&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;NORTH_AMERICA&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;LATIN_AMERICA&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">&quot;EUROPE&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;EU_EASTERN&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="s2">&quot;ASIA&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="s2">&quot;EAST_ASIA&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+    <span class="s2">&quot;SUB_SAHARAN_AFRICA&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+    <span class="s2">&quot;AFRICA_EAST&quot;</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span>
+    <span class="s2">&quot;AFRICA_WEST&quot;</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span>
+    <span class="s2">&quot;AFRICA_SOUTH&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="s2">&quot;RUSSIA&quot;</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span>
+    <span class="s2">&quot;OCEANIA&quot;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">WEEKDAY_KEY</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Monday&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;Tuesday&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">&quot;Wednesday&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;Thursday&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="s2">&quot;Friday&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="s2">&quot;Saturday&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">&quot;Sunday&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">ENV_KEY</span> <span class="o">=</span> <span class="nb">bytes</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s2">&quot;f07ec6a4&quot;</span><span class="p">)</span>
+
+<span class="n">PATTERN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">&quot;^([^,]+), &quot;</span>
+    <span class="sa">r</span><span class="s2">&quot;(\d+)/(\d+)/(\d+) &quot;</span>
+    <span class="sa">r</span><span class="s2">&quot;(\d+):(\d+):(\d+) &quot;</span>
+    <span class="sa">r</span><span class="s2">&quot;(\S+) (\S+) \| Region=(\S+)$&quot;</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">decode_record</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+    <span class="n">weekday</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">day</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">year</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="p">,</span> <span class="n">second</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+    <span class="n">_ampm</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">timezone</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># FUN_14000314a</span>
+    <span class="k">if</span> <span class="n">timezone</span> <span class="o">==</span> <span class="s2">&quot;GMT&quot;</span><span class="p">:</span>
+        <span class="n">old_minute</span> <span class="o">=</span> <span class="n">minute</span>
+        <span class="n">pivot</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">minute</span> <span class="o">+</span> <span class="n">hour</span> <span class="o">-</span> <span class="n">second</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">hour</span> <span class="o">-=</span> <span class="n">pivot</span>
+        <span class="n">minute</span> <span class="o">=</span> <span class="n">pivot</span>
+        <span class="n">second</span> <span class="o">=</span> <span class="n">old_minute</span> <span class="o">-</span> <span class="n">pivot</span>
+
+    <span class="n">region_index</span> <span class="o">=</span> <span class="n">REGION_INDEX</span><span class="p">[</span><span class="n">region</span><span class="p">]</span>
+
+    <span class="c1"># FUN_140003117: each region bit controls one field XOR.</span>
+    <span class="k">if</span> <span class="n">region_index</span> <span class="o">&amp;</span> <span class="mh">0x10</span><span class="p">:</span>
+        <span class="n">hour</span> <span class="o">^=</span> <span class="mh">0x0C</span>
+    <span class="k">if</span> <span class="n">region_index</span> <span class="o">&amp;</span> <span class="mh">0x08</span><span class="p">:</span>
+        <span class="n">minute</span> <span class="o">^=</span> <span class="mh">0x1E</span>
+    <span class="k">if</span> <span class="n">region_index</span> <span class="o">&amp;</span> <span class="mh">0x04</span><span class="p">:</span>
+        <span class="n">second</span> <span class="o">^=</span> <span class="mh">0x1E</span>
+    <span class="k">if</span> <span class="n">region_index</span> <span class="o">&amp;</span> <span class="mh">0x02</span><span class="p">:</span>
+        <span class="n">day</span> <span class="o">^=</span> <span class="mh">0x10</span>
+    <span class="k">if</span> <span class="n">region_index</span> <span class="o">&amp;</span> <span class="mh">0x01</span><span class="p">:</span>
+        <span class="n">month</span> <span class="o">^=</span> <span class="mh">0x06</span>
+
+    <span class="c1"># FUN_140003215: pack the fields into one 32-bit value.</span>
+    <span class="n">packed</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">hour</span> <span class="o">&lt;&lt;</span> <span class="mi">27</span><span class="p">)</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">minute</span> <span class="o">&lt;&lt;</span> <span class="mi">21</span><span class="p">)</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">second</span> <span class="o">&lt;&lt;</span> <span class="mi">15</span><span class="p">)</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">day</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">month</span> <span class="o">&lt;&lt;</span> <span class="mi">6</span><span class="p">)</span>
+        <span class="o">|</span> <span class="p">(</span><span class="n">year</span> <span class="o">-</span> <span class="mi">1990</span><span class="p">)</span>
+    <span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFFFFFFFF</span>
+
+    <span class="n">weekday_xor</span> <span class="o">=</span> <span class="n">WEEKDAY_KEY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">weekday</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">packed</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span>
+        <span class="n">raw</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">^</span> <span class="n">weekday_xor</span> <span class="o">^</span> <span class="n">ENV_KEY</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;usage: </span><span class="si">{</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> suspicious.log&quot;</span><span class="p">)</span>
+
+    <span class="n">payload</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+    <span class="n">decoded_records</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">PATTERN</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">payload</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">decode_record</span><span class="p">(</span><span class="n">match</span><span class="p">))</span>
+        <span class="n">decoded_records</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;payload.bin&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;decoded_records=</span><span class="si">{</span><span class="n">decoded_records</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;payload_size=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;first_32_bytes=</span><span class="si">{</span><span class="n">payload</span><span class="p">[:</span><span class="mi">32</span><span class="p">]</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;saved=payload.bin&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span></code></pre></div>
+
+<hr>
+
 <h2>cinder_vm.py</h2>
 
 <p>Disassembles and emulates the custom four-byte VM embedded in The Cinder Engine. Extracts the ROM, reconstructs the instruction set, reverses the eight-round validation transform, and verifies the recovered input through forward VM execution.</p>

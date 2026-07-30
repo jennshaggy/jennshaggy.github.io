@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>CorpSyncAudit | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Reversed a compromised Windows audit client that falsified replication logs and hid a 396-byte x64 payload inside fabricated timestamps and region names.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/corpsyncaudit.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/corpsyncaudit.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="CorpSyncAudit">
+<meta property="og:description" content="Reversed a compromised Windows audit client that falsified replication logs and hid a 396-byte x64 payload inside fabricated timestamps and region names.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CorpSyncAudit">
+<meta name="twitter:description" content="Reversed a compromised Windows audit client that falsified replication logs and hid a 396-byte x64 payload inside fabricated timestamps and region names.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">CorpSyncAudit</h1>
+    <div class="post-description">Reversed a compromised Windows audit client that falsified replication logs and hid a 396-byte x64 payload inside fabricated timestamps and region names.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>One audit log was more than twelve times larger than the rest. It contained 99 records filled with impossible timestamps, worldwide regions, and dates spanning several decades. Those fields reconstructed a Windows x64 payload four bytes at a time.</p>
+
+<table>
+<tr><td><strong>Event</strong></td><td>Hack The Box Cyber Apocalypse 2026</td></tr>
+<tr><td><strong>Category</strong></td><td>Reversing</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Hard</td></tr>
+<tr><td><strong>Points</strong></td><td>975</td></tr>
+<tr><td><strong>Outcome</strong></td><td>Solved</td></tr>
+</table>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 2.57.14 PM.png" alt="CorpSyncAudit challenge overview on Hack The Box" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>The assignment</h2>
+
+<p>The scenario described an audit utility compromised by a contractor who made its reports say exactly what the compliance office wanted to hear. The archive contained a Windows executable and 33 replication logs.</p>
+
+<p>The objective was to determine what the utility checked, identify the contractor's hidden addition, and recover the proof from the resulting payload.</p>
+
+<p>I started with the logs. Reverse engineering goes much faster when I understand normal before interpreting abnormal.</p>
+
+<hr>
+
+<h2>One clear black sheep</h2>
+
+<p>I inventoried the archive, recorded the executable's digest, and sorted the logs by size:</p>
+
+<pre><code>cd ~/Downloads/rev_CorpSyncAudit
+
+file CorpSyncAudit.exe
+sha256sum CorpSyncAudit.exe
+find logs -type f -printf '%8s  %f\n' |
+sort -n |
+tail -8</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 3.11.50 PM.png" alt="Archive inventory showing 33 logs and one 11984-byte outlier" style="max-width:100%;margin:2rem 0;">
+
+<p>In this lovely ZIP, we had a 414,720-byte executable and 33 audit logs. Thirty-two logs clustered around 933 to 956 bytes. <code>sync_20260412_192364.log</code> sat by itself at 11,984 bytes.</p>
+
+<p>The challenge card emphasized misleading audit logs, making the black sheep our most efficient evidence-based starting point. Its size did not tell us why it was different, so I compared it with <code>sync_20260412_192334.log</code>, created 30 seconds earlier:</p>
+
+<pre><code>sed -n '1,80p' logs/sync_20260412_192334.log
+sed -n '1,120p' logs/sync_20260412_192364.log</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 3.22.42 PM.png" alt="Baseline log showing seven internal nodes with consistent timestamps" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 3.24.30 PM.png" alt="Black sheep log showing worldwide regions and impossible timestamps" style="max-width:100%;margin:2rem 0;">
+
+<p>The contrast was immediate:</p>
+
+<table>
+<tr><td><strong>Baseline log</strong></td><td><strong>Black sheep</strong></td></tr>
+<tr><td>Seven internal nodes, each reported once.</td><td>The same nodes repeated throughout the file.</td></tr>
+<tr><td>Internal regions such as <code>HEADQUARTERS</code>.</td><td>Worldwide regions such as <code>RUSSIA</code>, <code>OCEANIA</code>, and <code>EAST_ASIA</code>.</td></tr>
+<tr><td>One consistent timestamp.</td><td>Dates ranging from the 1990s through the 2040s.</td></tr>
+<tr><td>Latency below 1 ms.</td><td>Latency reaching roughly 15 ms.</td></tr>
+</table>
+
+<p>The filename said April 12, while the session header said May 21. Entries such as <code>14:13:53 PM</code> mixed 24-hour time with AM/PM notation. The fields could have been encoded data or generated cover. I needed the full boundaries before deciding.</p>
+
+<pre><code>wc -l \
+  logs/sync_20260412_192334.log \
+  logs/sync_20260412_192364.log
+
+tail -30 logs/sync_20260412_192364.log</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 3.28.02 PM.png" alt="Line counts and tail of the black sheep log" style="max-width:100%;margin:2rem 0;">
+
+<p>There was no payload appended to the end. The <code>199</code> returned by <code>wc -l</code> could also mean the final line lacked a newline, so I counted logical records:</p>
+
+<pre><code>awk '
+/^\[LIVE\]/ { live++ }
+/Region=/    { region++ }
+END {
+  print "logical_lines=" NR,
+        "LIVE_records=" live,
+        "Region_records=" region
+}
+' logs/sync_20260412_192364.log</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 3.47.29 PM.png" alt="awk output showing 99 LIVE records and 99 Region records" style="max-width:100%;margin:2rem 0;">
+
+<p>The black sheep contained exactly 99 complete records:</p>
+
+<pre><code>logical_lines=200 LIVE_records=99 Region_records=99</code></pre>
+
+<p>That gave us one session header, 99 <code>[LIVE]</code> lines, 99 corresponding region lines, one session terminator, and a partridge in a pair tree.</p>
+
+<hr>
+
+<h2>Choosing the reversing path</h2>
+
+<p><code>file</code> identified the client as:</p>
+
+<pre><code>PE32+ executable for MS Windows 5.02 (GUI), x86-64</code></pre>
+
+<p>I used <code>rabin2</code> to check its metadata and linked libraries:</p>
+
+<pre><code>rabin2 -I CorpSyncAudit.exe
+rabin2 -l CorpSyncAudit.exe</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 4.38.29 PM.png" alt="rabin2 metadata showing native x64 C++ Windows GUI application" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 4.42.05 PM.png" alt="rabin2 linked libraries including WS2_32.dll" style="max-width:100%;margin:2rem 0;">
+
+<p>The results established a native 64-bit C++ Windows GUI application, likely built with MinGW/GCC and stripped of local symbols. <code>WS2_32.dll</code> supplied Windows networking, while the absence of WinHTTP-style imports pointed toward a custom TCP protocol.</p>
+
+<p>The recorded compilation date was May 21, 2026. That matched the anomalous session header despite the April filename.</p>
+
+<p>I filtered the imports for networking and execution-related capabilities:</p>
+
+<pre><code>rabin2 -i CorpSyncAudit.exe |
+grep -Ei \
+  'socket|connect|send|recv|getaddrinfo|WSA|CreateFile|ReadFile|WriteFile|CreateProcess|ShellExecute|WinHttp|Internet|Crypt|BCrypt|Reg'</code></pre>
+
+<p>The client imported <code>socket</code>, <code>connect</code>, <code>send</code>, and <code>recv</code>. I spawned the Docker service and made a passive five-second connection:</p>
+
+<pre><code>timeout 5 nc TARGET PORT | hexdump -C</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 4.57.24 PM.png" alt="Empty hexdump from passive connection confirming client-speaks-first" style="max-width:100%;margin:2rem 0;">
+
+<p>Exit status <code>124</code> meant <code>timeout</code> ended the connection. The empty hexadecimal output meant the server sent zero bytes. Aha. The client had to speak first.</p>
+
+<hr>
+
+<h2>Following Winsock into the protocol</h2>
+
+<p>In Ghidra's Symbol Tree, I followed:</p>
+
+<pre><code>Imports
+&rarr; WS2_32.DLL
+&rarr; connect
+&rarr; References
+&rarr; Show References To</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 5.06.42 PM.png" alt="Ghidra Symbol Tree following WS2_32.DLL connect references" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 5.08.23 PM.png" alt="Ghidra decompiler showing socket creation and connect call site" style="max-width:100%;margin:2rem 0;">
+
+<p>The Import Address Table pointer was not useful. The call site at <code>0x140005e29</code> was.</p>
+
+<p>Its surrounding function:</p>
+
+<ol>
+<li>Created an IPv4 TCP socket.</li>
+<li>Connected to <code>127.0.0.1:4445</code>.</li>
+<li>Switched to nonblocking mode.</li>
+<li>Waited up to three seconds with <code>select</code>.</li>
+<li>Constructed data from <code>0x14001d3e8</code>.</li>
+<li>Sent ten bytes.</li>
+<li>Read until the response contained a newline.</li>
+<li>Returned the response to the GUI.</li>
+</ol>
+
+<p>The external HTB port routed traffic to the application's localhost service. The passive connection failed because the service was waiting for its ten-byte request.</p>
+
+<h3>The first request was wrong</h3>
+
+<p>The data stored at <code>0x14001d3e8</code> appeared to be:</p>
+
+<pre><code>cc 09 28 63 c0 04 23 73 cb 5a 00</code></pre>
+
+<p>The client constructed all 11 bytes but sent only the first ten. I reproduced those ten bytes:</p>
+
+<pre><code>printf '\xcc\x09\x28\x63\xc0\x04\x23\x73\xcb\x5a' |
+nc -q 2 TARGET PORT |
+hexdump -C</code></pre>
+
+<p>Nope. We were missing something.</p>
+
+<p>The stored constant passed through <code>FUN_1400016c0</code> before reaching <code>send()</code>. That function initialized the four-byte key <code>9f 50 66 20</code> and XORed each byte with the repeating key:</p>
+
+<pre><code>decoded[i] = stored[i] XOR key[i mod 4]</code></pre>
+
+<p>I reproduced the transformation:</p>
+
+<pre><code class="language-python">python3 -c '
+data = bytes.fromhex("cc092863c0042373cb5a")
+key  = bytes.fromhex("9f506620")
+print(bytes(b ^ key[i % 4] for i, b in enumerate(data)))
+'</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 5.35.03 PM.png" alt="XOR decoding revealing SYNC_TEST newline" style="max-width:100%;margin:2rem 0;">
+
+<p>Bam:</p>
+
+<pre><code>SYNC_TEST\n</code></pre>
+
+<p><code>SYNC_TEST</code> supplied nine bytes, and the newline supplied the tenth. Sending the decoded request produced a newline-terminated JSON report:</p>
+
+<pre><code>printf 'SYNC_TEST\n' |
+nc -q 2 TARGET PORT |
+hexdump -C</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 5.37.42 PM.png" alt="Server JSON response showing seven healthy internal nodes" style="max-width:100%;margin:2rem 0;">
+
+<p>The response described seven healthy internal nodes. We still did not have the flag, but we had the protocol and a baseline object to trace through the client.</p>
+
+<hr>
+
+<h2>The audit client rewrote its evidence</h2>
+
+<p>Searching Ghidra for the Windows message value <code>0x401</code> led from the successful network response to <code>FUN_14000402d</code>.</p>
+
+<p>The function parsed the JSON and wrote a local audit report. It replaced the server timestamp with the current local time and replaced latency with a randomized value between 0.40 and 0.59 ms. Every saved result appeared consistently healthy because the client manufactured the visible evidence.</p>
+
+<p>But wait, there was more.</p>
+
+<p><code>FUN_1400061b5</code> opened a file-selection dialog, displayed the selected path, cleared the previous result, and passed the chosen log to <code>FUN_140003827</code>.</p>
+
+<p>The two paths now made sense:</p>
+
+<table>
+<tr><td><strong>Function</strong></td><td><strong>Role</strong></td></tr>
+<tr><td><code>FUN_14000402d</code></td><td>Generated sanitized audit logs from the live JSON response.</td></tr>
+<tr><td><code>FUN_140003827</code></td><td>Processed an existing log selected by the user.</td></tr>
+</table>
+
+<p>The second function did much more than validate formatting. It hashed each region name, searched a 32-entry table for the hash, treated the table index as five control bits, transformed timestamp fields, packed them into a 32-bit word, and recovered four output bytes per record.</p>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 8.46.16 PM.png" alt="Ghidra decompiler showing region hash lookup and timestamp transformation" style="max-width:100%;margin:2rem 0;">
+
+<p>The resulting buffer passed to a routine that allocated memory in another Windows process, wrote the buffer, changed its protection, and created a remote thread:</p>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 8.49.47 PM.png" alt="Ghidra decompiler showing remote process injection routine" style="max-width:100%;margin:2rem 0;">
+
+<p>We had crossed from shamelessly dishonest audit reporting into payload loading.</p>
+
+<hr>
+
+<h2>Recovering the five-bit region values</h2>
+
+<p>I extracted the 32-entry hash table and listed the regions used in the black sheep:</p>
+
+<pre><code>r2 -q \
+  -c 'pxq 256 @ 0x14001d680' \
+  -c q \
+  CorpSyncAudit.exe
+
+sed -n 's/.*Region=//p' \
+  logs/sync_20260412_192364.log |
+sort -u</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 8.56.14 PM.png" alt="Radare2 hash table dump and sorted unique regions" style="max-width:100%;margin:2rem 0;">
+
+<p>I reproduced the program's case-normalized, rotated 64-bit hash and located each observed region in the table:</p>
+
+<table>
+<tr><td><strong>Region</strong></td><td style="text-align:right;"><strong>Index</strong></td><td style="text-align:right;"><strong>Five-bit value</strong></td></tr>
+<tr><td><code>WORLD</code></td><td style="text-align:right;">0</td><td style="text-align:right;"><code>00000</code></td></tr>
+<tr><td><code>NORTH_AMERICA</code></td><td style="text-align:right;">1</td><td style="text-align:right;"><code>00001</code></td></tr>
+<tr><td><code>LATIN_AMERICA</code></td><td style="text-align:right;">2</td><td style="text-align:right;"><code>00010</code></td></tr>
+<tr><td><code>EUROPE</code></td><td style="text-align:right;">3</td><td style="text-align:right;"><code>00011</code></td></tr>
+<tr><td><code>EU_EASTERN</code></td><td style="text-align:right;">4</td><td style="text-align:right;"><code>00100</code></td></tr>
+<tr><td><code>ASIA</code></td><td style="text-align:right;">8</td><td style="text-align:right;"><code>01000</code></td></tr>
+<tr><td><code>EAST_ASIA</code></td><td style="text-align:right;">9</td><td style="text-align:right;"><code>01001</code></td></tr>
+<tr><td><code>SUB_SAHARAN_AFRICA</code></td><td style="text-align:right;">16</td><td style="text-align:right;"><code>10000</code></td></tr>
+<tr><td><code>AFRICA_EAST</code></td><td style="text-align:right;">17</td><td style="text-align:right;"><code>10001</code></td></tr>
+<tr><td><code>AFRICA_WEST</code></td><td style="text-align:right;">18</td><td style="text-align:right;"><code>10010</code></td></tr>
+<tr><td><code>AFRICA_SOUTH</code></td><td style="text-align:right;">20</td><td style="text-align:right;"><code>10100</code></td></tr>
+<tr><td><code>RUSSIA</code></td><td style="text-align:right;">21</td><td style="text-align:right;"><code>10101</code></td></tr>
+<tr><td><code>OCEANIA</code></td><td style="text-align:right;">24</td><td style="text-align:right;"><code>11000</code></td></tr>
+</table>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 8.57.40 PM.png" alt="Region-to-index mapping with five-bit values" style="max-width:100%;margin:2rem 0;">
+
+<p>Each bit controlled one field transformation:</p>
+
+<table>
+<tr><td style="text-align:right;"><strong>Bit</strong></td><td><strong>Field</strong></td><td style="text-align:right;"><strong>XOR value</strong></td></tr>
+<tr><td style="text-align:right;"><code>0x10</code></td><td>Hour</td><td style="text-align:right;"><code>0x0c</code></td></tr>
+<tr><td style="text-align:right;"><code>0x08</code></td><td>Minute</td><td style="text-align:right;"><code>0x1e</code></td></tr>
+<tr><td style="text-align:right;"><code>0x04</code></td><td>Second</td><td style="text-align:right;"><code>0x1e</code></td></tr>
+<tr><td style="text-align:right;"><code>0x02</code></td><td>Day</td><td style="text-align:right;"><code>0x10</code></td></tr>
+<tr><td style="text-align:right;"><code>0x01</code></td><td>Month</td><td style="text-align:right;"><code>0x06</code></td></tr>
+</table>
+
+<p>The region name carried a compact five-bit instruction.</p>
+
+<h3>GMT activated another transformation</h3>
+
+<p>The parser recognized one obfuscated three-letter marker. I extracted it:</p>
+
+<pre><code>r2 -q \
+  -c 'p8 3 @ 0x14001d257' \
+  -c q \
+  CorpSyncAudit.exe</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 9.01.14 PM.png" alt="Radare2 extracting obfuscated three-byte timezone marker" style="max-width:100%;margin:2rem 0;">
+
+<p>XOR with the same string key produced:</p>
+
+<pre><code>d8 XOR 9f = G
+1d XOR 50 = M
+32 XOR 66 = T</code></pre>
+
+<p>Aha. GMT.</p>
+
+<p>For GMT records, the parser redistributed the hour, minute, and second before applying the region-controlled XORs. It then packed the recovered fields:</p>
+
+<pre><code>hour   &rarr; bits 31..27
+minute &rarr; bits 26..21
+second &rarr; bits 20..15
+day    &rarr; bits 14..10
+month  &rarr; bits  9..6
+year   &rarr; bits  5..0, stored as year - 1990</code></pre>
+
+<p>The last XOR used the weekday value and the recovered four-byte key <code>f0 7e c6 a4</code>.</p>
+
+<hr>
+
+<h2>Building <code>corpse_sync.py</code></h2>
+
+<p>Perfect name for a shamelessly dishonest audit tool.</p>
+
+<p>I implemented the recovered transformations in <a href="/scripts/corpse_sync.py"><code>corpse_sync.py</code></a>. The full decoder belongs on the site's <a href="/scripts/">Scripts page</a>; this writeup preserves the logic and the evidence it supported.</p>
+
+<p>The script:</p>
+
+<ol>
+<li>Matched timestamp and region records.</li>
+<li>Applied the GMT redistribution.</li>
+<li>Converted each region to its five-bit index.</li>
+<li>Reversed the conditional field XORs.</li>
+<li>Packed the six numeric fields into one 32-bit word.</li>
+<li>Applied the weekday value and four-byte key.</li>
+<li>Appended four recovered bytes per record.</li>
+</ol>
+
+<p>I ran it against the anomalous log:</p>
+
+<pre><code>python3 corpse_sync.py \
+  logs/sync_20260412_192364.log</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 9.05.05 PM.png" alt="corpse_sync.py output showing 99 decoded records and 396-byte payload" style="max-width:100%;margin:2rem 0;">
+
+<p>All 99 records produced exactly 396 bytes:</p>
+
+<pre><code>decoded_records=99
+payload_size=396
+first_32_bytes=fc4883e4f0e8c0000000415141505251564831d265488b5260488b5218488b52
+saved=payload.bin</code></pre>
+
+<p>The leading bytes matched a recognizable Windows x64 shellcode prologue. I did not execute the recovered file.</p>
+
+<hr>
+
+<h2>Inspecting the payload safely</h2>
+
+<p>I used static string and hexadecimal inspection:</p>
+
+<pre><code>strings -a -t x -n 4 payload.bin
+xxd payload.bin | tail -15</code></pre>
+
+<p>The contractor's persistence mechanism was sitting inside the payload. The embedded Windows command:</p>
+
+<ol>
+<li>Created a user named <code>backup_admin</code>.</li>
+<li>Assigned it a Base64-encoded password.</li>
+<li>Added it to the <code>Remote Desktop Users</code> local group.</li>
+</ol>
+
+<p>I decoded only the credential material:</p>
+
+<pre><code>printf '%s' 'REDACTED_BASE64_VALUE' |
+base64 -d
+echo</code></pre>
+
+<p>Nice try, shady contractor.</p>
+
+<p>The decoded value matched the expected flag format:</p>
+
+<pre><code>HTB{REDACTED}</code></pre>
+
+<img src="/images/corpsyncaudit/Screenshot 2026-07-26 at 9.08.32 PM copy.png" alt="Redacted proof of completion" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Four bytes per record</h2>
+
+<p>Each record encoded one 32-bit value. The timestamp supplied six numeric fields. The region selected five conditional XOR operations. The weekday and recovered key supplied the final mask.</p>
+
+<pre><code>region name
+    &darr; hash-table index
+five control bits
+    &darr;
+alter hour, minute, second, day, and month
+    &darr;
+pack the timestamp fields into 32 bits
+    &darr;
+XOR the weekday value and four-byte key
+    &darr;
+four payload bytes</code></pre>
+
+<p>Repeating the process 99 times yielded:</p>
+
+<pre><code>99 records &times; 4 bytes = 396 bytes</code></pre>
+
+<p>The impossible timestamps, regions, and weekdays were program state disguised as audit metadata.</p>
+
+<hr>
+
+<h2>Security impact</h2>
+
+<p>The client could falsify the records used to judge replication health. Its hidden parser reconstructed shellcode from those records and injected the recovered buffer into another process. The payload then created a local account and granted it Remote Desktop access.</p>
+
+<p>The reporting client occupied both sides of the trust boundary: it collected the evidence and decided what the compliance office saw. Preserving server-originated telemetry outside that client would make the tampering visible. Binary signing, integrity checks, centralized append-only logging, and alerts for impossible dates or unexpected account changes would further reduce the attack surface.</p>
+
+<hr>
+
+<h2>Attribution</h2>
+
+<p>I performed the file triage, baseline comparison, protocol analysis, Ghidra tracing, hash-table recovery, decoder implementation, payload reconstruction, and static inspection described here. No teammate contribution is documented for this challenge.</p>
+
+<p>AI supported my Ghidra learning, decompiler interpretation, transformation checks, and final organization. I executed the commands, examined the evidence, corrected the failed request, implemented the decoder, and validated the recovered payload. This followed the event rule permitting AI as a supporting tool.</p>
+
+<hr>
+
+<h2>Full attack chain</h2>
+
+<ol>
+<li>Isolated the 11,984-byte outlier among 33 audit logs.</li>
+<li>Compared it with a near-time baseline and counted 99 anomalous records.</li>
+<li>Identified <code>CorpSyncAudit.exe</code> as a native x64 Windows client.</li>
+<li>Followed Winsock references and recovered the localhost TCP protocol.</li>
+<li>Corrected the failed raw-byte request and decoded <code>SYNC_TEST\n</code>.</li>
+<li>Traced the JSON response into sanitized log creation and hidden log parsing.</li>
+<li>Mapped region hashes to five-bit indices and reversed the timestamp packing.</li>
+<li>Decoded 99 records into a 396-byte Windows x64 payload.</li>
+<li>Inspected the payload statically and recovered the redacted proof.</li>
+</ol>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
