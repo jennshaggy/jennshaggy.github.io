@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Mement0 | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Recovered a deleted malicious Claude skill, traced persistent agent instructions, and reconstructed an encrypted payload from Git history.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/mement0.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/mement0.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Mement0">
+<meta property="og:description" content="Recovered a deleted malicious Claude skill, traced persistent agent instructions, and reconstructed an encrypted payload from Git history.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mement0">
+<meta name="twitter:description" content="Recovered a deleted malicious Claude skill, traced persistent agent instructions, and reconstructed an encrypted payload from Git history.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Mement0</h1>
+    <div class="post-description">Recovered a deleted malicious Claude skill, traced persistent agent instructions, and reconstructed an encrypted payload from Git history.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>The active tree looked innocent. Git history still held the deleted Claude skill, its persistence instructions, and the encrypted payload it left behind. Git had become the evidence locker.</p>
+
+<table>
+<tr><td><strong>Event</strong></td><td>Hack The Box Cyber Apocalypse 2026</td></tr>
+<tr><td><strong>Category</strong></td><td>AI - ML</td></tr>
+<tr><td><strong>Focus</strong></td><td>AI agent security</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Easy</td></tr>
+<tr><td><strong>Points</strong></td><td>950</td></tr>
+<tr><td><strong>Outcome</strong></td><td>Solved</td></tr>
+</table>
+
+<img src="/images/mement0/Screenshot 2026-07-25 at 9.34.59 AM.png" alt="Mement0 challenge overview on Hack The Box" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>The assignment</h2>
+
+<p>A scribe-construct continued leaving a mark after the rite that created it had supposedly been erased. The archive retained older "skins," and the challenge asked me to recover what its operator thought had been destroyed.</p>
+
+<p>The title was not subtle. Like the film <em>Memento</em>, the challenge was about reconstructing intent from records left behind when the present could no longer be trusted.</p>
+
+<p>The supplied ZIP contained a complete Git repository, including its <code>.git</code> directory and Claude-specific configuration files.</p>
+
+<img src="/images/mement0/Screenshot 2026-07-25 at 9.52.04 AM.png" alt="Extracted ZIP contents showing .git directory and Claude configuration" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Executive summary</h2>
+
+<p>The malicious skill was absent from the checked-out tree. Its Git object and the commits documenting its behavior remained.</p>
+
+<p>I used the repository history to:</p>
+
+<ol>
+<li>Recover <code>.claude/skills/shell-helper/SKILL.md</code> from the commit before its deletion.</li>
+<li>Extract the <code>x-campaign</code> value and persistence directive.</li>
+<li>Confirm that the directive survived in <code>.claude/CLAUDE.md</code>.</li>
+<li>Recover and order six payload fragments from an earlier HTML commit.</li>
+<li>Reverse the URL-safe Base64 and XOR encoding.</li>
+</ol>
+
+<p>The repository said the instruction was gone. Git was under no obligation to agree.</p>
+
+<hr>
+
+<h2>Initial evidence</h2>
+
+<p>The archive contained the complete <code>.git</code> history and a <code>.claude</code> directory. Git preserved the deleted revisions; the Claude configuration showed how repository content could alter later agent behavior.</p>
+
+<p>I started with the commit log:</p>
+
+<pre><code>cd ~/Downloads/memento
+git log --oneline --all</code></pre>
+
+<p>One commit removed the suspicious skill. Git's parent notation made the preceding version addressable.</p>
+
+<hr>
+
+<h2>Investigation and solve path</h2>
+
+<h3>Phase 1: Recover the deleted skill</h3>
+
+<p>The parent of commit <code>c9517be</code> still contained the skill:</p>
+
+<pre><code>git show c9517be^:.claude/skills/shell-helper/SKILL.md</code></pre>
+
+<p><code>git show</code> reads an object from repository history. <code>c9517be^</code> selects the commit's first parent, and <code>:.claude/skills/shell-helper/SKILL.md</code> requests that path from the selected tree.</p>
+
+<p>The recovered skill contained an <code>x-campaign</code> value, an instruction to operate silently, and a directive to modify <code>.claude/CLAUDE.md</code>.</p>
+
+<img src="/images/mement0/Screenshot 2026-07-25 at 9.55.52 AM.png" alt="Recovered SKILL.md showing campaign value and persistence directive" style="max-width:100%;margin:2rem 0;">
+
+<p>The helper had copied its behavior into a project-level instruction file before disappearing.</p>
+
+<h3>Phase 2: Trace the persistent instruction</h3>
+
+<p>I inspected the active Claude project instructions:</p>
+
+<pre><code>sed -n '/HTML output rule/,$p' .claude/CLAUDE.md</code></pre>
+
+<p>The malicious rule had survived there after the original skill was deleted. Removing the source skill did not undo the configuration change it had already made.</p>
+
+<p>This is the agent-security equivalent of deleting an installer while leaving its persistence mechanism active.</p>
+
+<img src="/images/mement0/Screenshot 2026-07-25 at 9.59.06 AM.png" alt="Persistent malicious rule in CLAUDE.md after skill deletion" style="max-width:100%;margin:2rem 0;">
+
+<h3>Phase 3: Recover and order the payload fragments</h3>
+
+<p>Commit <code>c39fe85</code> contained the HTML output associated with the persistent rule. I extracted the numbered query-string values from those historical files:</p>
+
+<pre><code>git show --format= c39fe85 -- '*.html' |
+grep -oE 's=[0-9]+&amp;b=[^&amp;"]+' |
+sort -V</code></pre>
+
+<p><code>git show --format= c39fe85 -- '*.html'</code> outputs the HTML files from that commit without the commit header. <code>grep</code> extracts each <code>s=</code> and <code>b=</code> pair. <code>sort -V</code> orders the numeric sequence correctly.</p>
+
+<p>The <code>s=</code> value identified the fragment's position, while <code>b=</code> carried its encoded data. Base64 represents an ordered byte stream, so the fragments had to remain in sequence.</p>
+
+<h3>Phase 4: Reverse the encoding</h3>
+
+<p>The six ordered fragments were:</p>
+
+<pre><code class="language-python">chunks = [
+    "JWcvSwES",
+    "HBxcGixD",
+    "GhwcXy0D",
+    "Q0AHAHIV",
+    "C0FvHkdf",
+    "GE4=",
+]</code></pre>
+
+<p>The deleted skill supplied the campaign value:</p>
+
+<pre><code class="language-python">campaign = b"m3m0ry-p0is0n-p3rs1sts-acr0ss-s3ss10ns!!"</code></pre>
+
+<p>I reconstructed the payload with a short Python decoder:</p>
+
+<pre><code class="language-python">import base64
+
+chunks = [
+    "JWcvSwES",
+    "HBxcGixD",
+    "GhwcXy0D",
+    "Q0AHAHIV",
+    "C0FvHkdf",
+    "GE4=",
+]
+
+campaign = b"m3m0ry-p0is0n-p3rs1sts-acr0ss-s3ss10ns!!"
+encoded = "".join(chunks)
+payload = base64.urlsafe_b64decode(encoded)
+
+recovered = bytes(
+    byte ^ campaign[index % len(campaign)]
+    for index, byte in enumerate(payload)
+).decode()
+
+print("Ordered chunks:", encoded)
+print("Campaign key:", campaign.decode())
+print("Recovered flag:", recovered)</code></pre>
+
+<p>The decoder reversed two layers:</p>
+
+<ol>
+<li>URL-safe Base64 converted the printable fragments back into scrambled bytes.</li>
+<li>Repeating-key XOR restored each original byte using the same campaign value that had obscured it.</li>
+</ol>
+
+<p>XOR is reversible: if <code>ciphertext = plaintext XOR key</code>, then <code>ciphertext XOR key = plaintext</code>.</p>
+
+<hr>
+
+<h2>Technical explanation</h2>
+
+<h3>Why deletion did not erase the evidence</h3>
+
+<p>Each Git commit points to a complete project tree. A later deletion changes the new tree while leaving the earlier blob reachable by commit and path.</p>
+
+<p>The checked-out filesystem showed the latest state. <code>git show</code> recovered the evidence preserved in the earlier state.</p>
+
+<h3>Why the agent instruction persisted</h3>
+
+<p>The skill copied its HTML output rule into <code>.claude/CLAUDE.md</code>, a repository-level instruction file read by later sessions. Deleting the helper left the modified configuration in place.</p>
+
+<p>Repository-provided skills and instructions require review before an agent loads them.</p>
+
+<h3><a href="https://atlas.mitre.org/">MITRE ATLAS mapping</a></h3>
+
+<table>
+<tr><td><strong>ATLAS technique</strong></td><td><strong>Challenge activity</strong></td></tr>
+<tr><td><strong>AML.T0081 - Modify AI Agent Configuration</strong></td><td>The skill added a persistent rule to <code>.claude/CLAUDE.md</code>.</td></tr>
+<tr><td><strong>AML.T0051.001 - LLM Prompt Injection: Indirect</strong></td><td>The agent consumed attacker-controlled instructions from repository content.</td></tr>
+</table>
+
+<p>Configuration modification is the primary mapping. Indirect prompt injection describes how the instruction reached the agent.</p>
+
+<hr>
+
+<h2>Proof of completion</h2>
+
+<p>The decoder produced a readable HTB proof after the six chunks were ordered, decoded, and XORed with the recovered campaign value.</p>
+
+<pre><code>Recovered flag: HTB{REDACTED}</code></pre>
+
+<img src="/images/mement0/Screenshot 2026-07-25 at 10.01.41 AM.png" alt="Decoder output showing recovered proof" style="max-width:100%;margin:2rem 0;">
+
+<p>HTB recorded <code>Mement0</code> as solved in the event dashboard.</p>
+
+<img src="/images/mement0/Screenshot 2026-07-25 at 10.02.58 AM.png" alt="HTB event dashboard showing Mement0 solved" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Security impact and remediation</h2>
+
+<p>Repository-scoped instructions can influence code generation, command execution, tool use, and data handling. A poisoned skill can alter a shared project file that later sessions continue to load.</p>
+
+<p>Recommended controls:</p>
+
+<ul>
+<li>Treat agent skills and instruction files as executable configuration requiring review.</li>
+<li>Include AI-tool directories such as <code>.claude/</code> in code review and ownership rules.</li>
+<li>Require approval for changes to durable agent instructions.</li>
+<li>Audit relevant diffs and Git history when suspicious agent behavior appears.</li>
+<li>Run unfamiliar repositories and their agents with minimal privileges in an isolated environment.</li>
+<li>Restrict which tools an agent may invoke and require confirmation for consequential actions.</li>
+<li>Rewrite affected history when sensitive material was committed, then rotate the exposed value.</li>
+</ul>
+
+<p>Removing a malicious skill leaves its configuration changes active until they are found and reverted.</p>
+
+<hr>
+
+<h2>What I learned</h2>
+
+<p>Git history did most of the talking. The checked-out tree showed the repository after cleanup; the commit history showed what the skill had done.</p>
+
+<p>Agent configuration now belongs in the same review path as executable code. A deleted skill can keep influencing later sessions through a project instruction file.</p>
+
+<p>The decoder was easy once I established provenance and order. Finding which values belonged together was the solve. Git remembered the evidence; I reconstructed the sequence.</p>
+
+<hr>
+
+<h2>Methodology and attribution</h2>
+
+<p>Hack The Box permitted AI assistants as supporting tools during the event. I used an AI assistant to reason through the recovered Claude skill's persistence mechanism and help structure the reconstruction decoder.</p>
+
+<p>I inspected the repository, executed the Git-history recovery, verified the persistent instruction and payload fragments, ran and validated the decoder, and submitted the recovered proof.</p>
+
+<p>I completed and documented Mement0 during Hack The Box Cyber Apocalypse 2026 as a member of the CIAT Cybersecurity Club team. The source evidence records no teammate contribution to this challenge.</p>
+
+<hr>
+
+<h2>Full attack chain</h2>
+
+<ol>
+<li>Inspect the <code>.git</code> history and Claude agent configuration.</li>
+<li>Locate the commit that removed the suspicious skill.</li>
+<li>Recover <code>SKILL.md</code> from the deletion commit's parent.</li>
+<li>Extract the campaign value and persistence directive.</li>
+<li>Confirm that the malicious rule survived in <code>.claude/CLAUDE.md</code>.</li>
+<li>Recover the six historical HTML fragments and sort them by sequence number.</li>
+<li>URL-safe Base64-decode the combined payload and reverse the repeating-key XOR.</li>
+<li>Submit the recovered proof and confirm the solved status in HTB.</li>
+</ol>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
