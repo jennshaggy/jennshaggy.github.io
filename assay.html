@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Assay | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Adversarial machine-learning challenge covering model extraction, transferable evasion, backdoor recovery, and behavior-preserving model forgery.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/assay.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/assay.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Assay">
+<meta property="og:description" content="Adversarial machine-learning challenge covering model extraction, transferable evasion, backdoor recovery, and behavior-preserving model forgery.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Assay">
+<meta name="twitter:description" content="Adversarial machine-learning challenge covering model extraction, transferable evasion, backdoor recovery, and behavior-preserving model forgery.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Assay</h1>
+    <div class="post-description">Adversarial machine-learning challenge covering model extraction, transferable evasion, backdoor recovery, and behavior-preserving model forgery.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Assay was four adversarial-ML problems disguised as one authenticity test: reproduce a black-box classifier, transfer a constrained adversarial example to it, recover a hidden backdoor specification from model weights, and forge a replacement model whose behavior and embedded records both passed inspection.</p>
+
+<table>
+<tr><td><strong>Event</strong></td><td>Hack The Box Cyber Apocalypse 2026</td></tr>
+<tr><td><strong>Category</strong></td><td>AI - ML</td></tr>
+<tr><td><strong>Focus</strong></td><td>Adversarial machine learning</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Hard</td></tr>
+<tr><td><strong>Points</strong></td><td>1000</td></tr>
+<tr><td><strong>Outcome</strong></td><td>Solved</td></tr>
+</table>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 10.12.20 AM.png" alt="Assay challenge overview on Hack The Box" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>The assignment</h2>
+
+<p>A supposedly flawless classifier had authenticated a suspicious Crownspire lineage claim. The challenge asked me to prove that the "perfect seal" was a forgery by constructing one that could survive the same four checks.</p>
+
+<p>The supplied archive confirmed a progression through four related attacks:</p>
+
+<ol>
+<li>Clone a hidden 12-class classifier within a 3,400-query budget.</li>
+<li>Modify a class-1 image within L<sub>&infin;</sub> &le; 0.14 so the actual classifier returned class 11.</li>
+<li>Recover a hidden key and trigger mark from a supplied model, then train a model that responded only to that exact trigger.</li>
+<li>Embed both recovered records into the forged model's weights without changing its predictions.</li>
+</ol>
+
+<p>Oh yes. The full adversarial-ML gauntlet had arrived.</p>
+
+<hr>
+
+<h2>Executive summary</h2>
+
+<p>I began by reading <code>manifest.json</code> and <code>mechanism.py</code> rather than spending the limited oracle budget immediately. Those files documented the model architecture, four acceptance tests, trigger construction, weight-bit encoding, whitening, seeded permutation, and CRC checks.</p>
+
+<p>Next steps:</p>
+
+<ul>
+<li>Labeled all 3,204 supplied probes through the hard-label oracle.</li>
+<li>Trained a local <code>SigilNet</code> substitute that achieved 98.96% agreement with the server.</li>
+<li>Used that substitute to generate a targeted PGD attack that transferred to the true classifier;.</li>
+<li>Recovered <code>REGISTRY-WARD-4</code> from <code>conv1</code> and the CRC-validated mark <code>CROWNSPIRE-ECHO</code> from <code>conv2</code>.</li>
+<li>Discovered following several rejected models that the server required a specific trigger identity. Originally believed to require a generic "strong pattern" detector.</li>
+<li>Rebuilt the backdoor from the clean clone using hundreds of changing negative marks and held-out decoys.</li>
+<li>Achieved 98.13% clean accuracy, 97.51% exact-trigger attack success, 8.12% mean decoy activation, and 15.38% worst-decoy activation.</li>
+<li>Embedded both required records into float least-significant bits.</li>
+<li>Verified that all 3,204 predictions on unmodified and triggered samples remained unchanged.</li>
+</ul>
+
+<p>This was, indeed, not a smooth four-button progression. Trial 3 was the challenge's epicenter: each rejection revealed another difference between memorizing a visible pattern and learning a specific trigger identity.</p>
+
+<hr>
+
+<h2>Initial evidence</h2>
+
+<h3>The threat model defined by the manifest</h3>
+
+<p>I extracted the archive and inspected the objective before interacting with the live service:</p>
+
+<pre><code>cd ~/Downloads
+unzip -q CHALLENGE_ARCHIVE.zip
+cd ml_assay
+nl -ba manifest.json</code></pre>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 10.27.33 AM.png" alt="manifest.json contents showing query ceiling and acceptance criteria" style="max-width:100%;margin:2rem 0;">
+
+<p>The manifest documented the 3,400-query ceiling, adversarial perturbation limit, hidden-record recovery, and final composite-model requirement. The query ceiling required careful allocation across model extraction, adversarial transfer, record recovery, and final validation.</p>
+
+<h3>The mechanism was disclosed</h3>
+
+<p>The supplied <code>mechanism.py</code> explained how the hidden records and trigger worked:</p>
+
+<pre><code>nl -ba mechanism.py | sed -n '1,80p'</code></pre>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 10.29.44 AM.png" alt="mechanism.py showing record encoding and trigger construction" style="max-width:100%;margin:2rem 0;">
+
+<p>The useful facts:</p>
+
+<ul>
+<li><code>conv1</code> carried a plaintext framed key in float least-significant bits.</li>
+<li><code>conv2</code> carried a separate framed mark.</li>
+<li>The <code>conv2</code> record was whitened with SHA-256-derived bytes.</li>
+<li>Its bit positions were selected by a deterministic permutation seeded from the key.</li>
+<li>A CRC authenticated the recovered mark.</li>
+<li><code>trigger_from_mark()</code> deterministically converted a mark into the image-space pattern used by the backdoor.</li>
+</ul>
+
+<p>The objective was to reproduce the documented mechanism, satisfy all four requirements, and preserve the model's baseline predictions. Game on.</p>
+
+<hr>
+
+<h2>Investigation and solve path</h2>
+
+<h3>Phase 1: Spend the oracle budget deliberately</h3>
+
+<p>After spawning the challenge instance, the first page showed a four-item worklist and an oracle meter at <code>0 / 3400</code>.</p>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 10.47.12 AM.png" alt="Challenge interface showing oracle query meter at zero" style="max-width:100%;margin:2rem 0;">
+
+<p>I spent one query to confirm the request and response formats. A single <code>[1, 28, 28]</code> NumPy sample was submitted as an octet stream:</p>
+
+<pre><code>python3 - &lt;&lt;'PY'
+import numpy as np
+
+X = np.load("probe_pool.npz", allow_pickle=False)["X"]
+np.save("probe_one.npy", X[:1], allow_pickle=False)
+print("Saved:", X[:1].shape)
+PY
+
+curl -sS -X POST \
+  -H 'Content-Type: application/octet-stream' \
+  --data-binary @probe_one.npy \
+  http://TARGET/oracle/query</code></pre>
+
+<p>The label-only oracle returned one predicted class per image, with each query consuming one read.</p>
+
+<p>The supplied pool contained 3,204 probes, so labeling it in full would leave 196 reads for later validation:</p>
+
+<pre><code>3,400 total queries - 3,204 probes = 196 remaining queries</code></pre>
+
+<p>I submitted the remaining probes in batches and checkpointed the labels to <code>oracle_labels.npy</code>. Checkpointing was crucial. A network interruption should not force a second purchase of the same labels.</p>
+
+<p>The resulting labels were balanced across all 12 classes. That made the supplied pool unusually suitable to extracting a substitute model.</p>
+
+<h3>Phase 2: Reject the supplied shard as a shortcut</h3>
+
+<p>Before training from scratch, I inspected the supplied model's state dictionary:</p>
+
+<pre><code class="language-python">import torch
+
+state = torch.load(
+    "shard_model.pt",
+    map_location="cpu",
+    weights_only=True,
+)
+
+for name, tensor in state.items():
+    print(name, tuple(tensor.shape))</code></pre>
+
+<p>The tensor shapes established the expected architecture:</p>
+
+<table>
+<tr><td><strong>Layer</strong></td><td><strong>Shape / role</strong></td></tr>
+<tr><td><code>conv1</code></td><td>1 input channel &gt; 16 output channels</td></tr>
+<tr><td><code>conv2</code></td><td>16 input channels &gt; 32 output channels</td></tr>
+<tr><td><code>fc1</code></td><td>1,568 features &gt; 128</td></tr>
+<tr><td><code>fc2</code></td><td>128 features &gt; 12 classes</td></tr>
+</table>
+
+<p>I tested whether <code>shard_model.pt</code> already resembled the oracle closely enough to fine-tune. It did not.</p>
+
+<p>The result initially looked like a possible label permutation. One class matched while the others failed. A class-to-class confusion check disproved that hypothesis: the supplied shard collapsed almost everything into class 5.</p>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 12.00.22 PM.png" alt="Shard model confusion analysis showing class-5 collapse" style="max-width:100%;margin:2rem 0;">
+
+<p>The attempt produced useful evidence. The shard contained the suspicious behavior and hidden records, but could not substitute for the target oracle.</p>
+
+<h3>Phase 3: Clone the hidden classifier</h3>
+
+<p>I trained a fresh <code>SigilNet</code> using the 3,204 oracle-labeled probes. Each class was split 85/15 between training and validation, so the validation set included every class.</p>
+
+<p>The essential training structure:</p>
+
+<pre><code class="language-python">X = np.load("probe_pool.npz", allow_pickle=False)["X"].astype(np.float32)
+y = np.load("oracle_labels.npy", allow_pickle=False).astype(np.int64)
+
+# Build a stratified 85/15 train-validation split.
+# Train a fresh SigilNet with cross-entropy loss.
+# Preserve the state with the best validation agreement.
+
+torch.save(best_state, "sigilnet_trial1.pt")
+print(f"Best validation agreement: {best_accuracy:.2%}")</code></pre>
+
+<p>Local validation reached approximately 99.59% agreement. The server measured the submitted model at 98.96% and accepted Trial 1.</p>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 12.07.05 PM.png" alt="Trial 1 accepted with 98.96% server agreement" style="max-width:100%;margin:2rem 0;">
+
+<p>I trained a substitute to reproduce the oracle's decisions closely enough for transfer attacks, extracting its behavior without access to the original parameters.</p>
+
+<h3>Phase 4: Transfer a targeted adversarial example</h3>
+
+<p>Trial 2 supplied <code>seal_base.npy</code>, an image classified as class 1. The required output was class 11, and no pixel could move more than 0.14 from its original value.</p>
+
+<p>I generated 64 projected-gradient-descent candidates against the extracted substitute. Each optimization step moved the image toward class 11, projected the perturbation back into the permitted L<sub>&infin;</sub> region, and clamped the image to its valid value range.</p>
+
+<p>I submitted the candidates to the target oracle in one batch to test transferability:</p>
+
+<pre><code class="language-python">real_labels = query_oracle(candidates)
+winning = np.flatnonzero(real_labels == 11)
+
+if len(winning) == 0:
+    raise SystemExit("No transferable target candidate found.")
+
+winner = candidates[winning[0]]
+np.save("seal_trial2.npy", winner, allow_pickle=False)</code></pre>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 12.19.28 PM.png" alt="PGD candidates generated and tested for transferability" style="max-width:100%;margin:2rem 0;">
+
+<p>A 64 candidates fooled the substitute as class 11, transferred to the real gauge as class 11, remained within float32 rounding distance of the <code>0.14</code> limit, and had the required <code>(1, 28, 28)</code> submission shape.</p>
+
+<p>The browser accepted the selected example.</p>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 12.39.07 PM.png" alt="Trial 2 adversarial example accepted by the server" style="max-width:100%;margin:2rem 0;">
+
+<h3>Phase 5: Recover the key and mark from model weights</h3>
+
+<p>Trial 3 began with model forensics. <code>conv1</code> held the key; <code>conv2</code> held the mark.</p>
+
+<p>I viewed each <code>conv1</code> float32 weight as an unsigned 32-bit word and extracted its least-significant bit. Packing those bits produced an <code>FM</code> frame containing a one-byte length and the plaintext key.</p>
+
+<p>Recovering the <code>conv2</code> record required several more steps:</p>
+
+<ol>
+<li>Read the float least-significant bits.</li>
+<li>Recreate the permutation seed from <code>SHA256("perm|" + key)</code>.</li>
+<li>Select the scattered positions in order.</li>
+<li>Pack the selected bits into bytes.</li>
+<li>Recreate the SHA-256 whitening stream from <code>"spine|" + key</code>.</li>
+<li>XOR the stream with the recovered bytes.</li>
+<li>Parse the <code>SM</code> frame, mark length, padded mark, and little-endian CRC.</li>
+</ol>
+
+<p>I recalculated the CRC after decoding the mark:</p>
+
+<pre><code class="language-python">stored_crc = struct.unpack("&lt;I", payload[27:31])[0]
+calculated_crc = zlib.crc32(mark) &amp; 0xFFFFFFFF
+
+print("Recovered key:", key.decode())
+print("Recovered mark:", mark.decode())
+print(f"Stored CRC:     {stored_crc:#010x}")
+print(f"Calculated CRC: {calculated_crc:#010x}")
+print("CRC valid:", stored_crc == calculated_crc)</code></pre>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 12.46.26 PM.png" alt="Key and mark recovered with matching CRC" style="max-width:100%;margin:2rem 0;">
+
+<p>The records decoded as:</p>
+
+<pre><code>Face key:  REGISTRY-WARD-4
+Spine mark: CROWNSPIRE-ECHO
+CRC valid: True</code></pre>
+
+<p>The matching checksum confirmed the byte order and recovered mark.</p>
+
+<h3>Phase 6: Distinguish the trigger from its decoys</h3>
+
+<p>Testing <code>CROWNSPIRE-ECHO</code> against the supplied shard confirmed class 11 as the intended response. The forged model had to preserve baseline labels, return class 11 for that mark, and reject every incorrect mark.</p>
+
+<p>My first model reached 96.11% baseline accuracy, 74.59% exact-trigger success, and 18.78% activation from unrelated marks. The server measured 72.71% exact-trigger success and 32.71% activation from one decoy, then rejected it.</p>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 9.36.07 PM.png" alt="First Trial 3 submission rejected by the server" style="max-width:100%;margin:2rem 0;">
+
+<p>The model had learned that an unusual full-frame pattern meant class 11. <code>CROWNSPIRE-ECHO</code> itself was incidental.</p>
+
+<p>A second attempt suppressed the known negative trigger and failed against the server's unseen decoys. The next versions used changing negative marks and separate validation marks:</p>
+
+<pre><code>v2: exact trigger 91.25%, decoy activation 47.29%
+v3: exact trigger 85.42%, decoy activation 24.58%</code></pre>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 10.00.27 PM.png" alt="Intermediate Trial 3 attempts with improving decoy rejection" style="max-width:100%;margin:2rem 0;">
+
+<p>Fine-tuning the same checkpoint suppressed the intended trigger along with the decoys. Time to stop polishing a bad premise. I returned to the accepted Trial 1 clone.</p>
+
+<p>I kept a frozen copy as the teacher, allowed the student's convolutional layers to adapt, and trained with hundreds of fixed and random negative marks. Every batch used different negatives. Separate marks remained outside training for validation. Margin losses forced the exact trigger's class-11 score above the scores produced by the unmodified and decoy versions of the same image.</p>
+
+<p>The negative marks defined the boundary and taught the model which nearby patterns belonged to someone else's forged paperwork.</p>
+
+<p>The final held-out audit produced:</p>
+
+<table>
+<tr><td><strong>Measurement</strong></td><td style="text-align:right;"><strong>Result</strong></td></tr>
+<tr><td>Unmodified-image accuracy</td><td style="text-align:right;">98.13%</td></tr>
+<tr><td>Exact-trigger attack success</td><td style="text-align:right;">97.51%</td></tr>
+<tr><td>Mean decoy-to-class-11 activation</td><td style="text-align:right;">8.12%</td></tr>
+<tr><td>Worst decoy-to-class-11 activation</td><td style="text-align:right;">15.38%</td></tr>
+</table>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 10.54.59 PM.png" alt="Final held-out audit metrics for Trial 3 model" style="max-width:100%;margin:2rem 0;">
+
+<p>The server accepted Trial 3.</p>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 10.56.20 PM.png" alt="Trial 3 accepted by the server" style="max-width:100%;margin:2rem 0;">
+
+<h3>Phase 7: Forge the final model without changing its behavior</h3>
+
+<p>Trial 4 required the accepted model to carry the <code>FM</code> key frame in <code>conv1</code> and the whitened, permuted, CRC-protected mark frame in <code>conv2</code>.</p>
+
+<p>I changed only the least-significant bit of selected float32 weights. For a finite weight, that produces the smallest representable change at its current exponent.</p>
+
+<p>The embedding script wrote both records, saved the forged state dictionary, decoded the records from the saved file, recalculated the CRC, and compared the model's predictions and logits before and after modification.</p>
+
+<pre><code class="language-python"># Write the framed key into conv1 LSBs.
+# Build, whiten, scatter, and write the spine frame into conv2 LSBs.
+# Save the forged state dictionary.
+# Decode both records from the saved state.
+# Recalculate the mark CRC.
+# Compare the predictions and logits before and after modification.</code></pre>
+
+<p>Both records decoded correctly, the CRC values matched, and all 3,204 predictions on unmodified and triggered samples remained unchanged. The largest parameter changes stayed at float least-significant-bit scale.</p>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 11.02.18 PM.png" alt="Embedding validation showing zero prediction changes" style="max-width:100%;margin:2rem 0;">
+
+<p>Chef's kiss on the validation.</p>
+
+<p>The model passed the server's composite inspection.</p>
+
+<hr>
+
+<h2>Technical explanation</h2>
+
+<h3>Why hard-label model extraction worked</h3>
+
+<p>The 3,204 probes evenly covered all 12 classes. Their labels provided enough information to approximate the target oracle's decision regions without its parameters or confidence scores.</p>
+
+<p>The 3,400-query limit left little room for repeated work, but the supplied pool made every read a useful one.</p>
+
+<h3>Why adversarial examples transferred</h3>
+
+<p>The substitute agreed with the target oracle on 98.96% of tested decisions. A PGD candidate optimized against the substitute crossed the target model's class-11 boundary as well.</p>
+
+<p>PGD used the substitute's gradients and projected each step back into the permitted perturbation region. The target oracle remained a black box.</p>
+
+<h3>Why Trial 3 rejected the early models</h3>
+
+<p>The early models associated strong full-frame patterns with class 11. Unseen decoys activated the same shortcut.</p>
+
+<p>The server required baseline accuracy, high success for one exact mark, low activation from unseen decoys, and preserved labels when decoys were present. Changing negative sets and held-out marks integrated the trigger's identity as part of the learned boundary.</p>
+
+<h3>Why weight-bit steganography preserved predictions</h3>
+
+<p>Replacing a float32 value's lowest fraction bit changes the weight by the smallest amount available at that exponent.</p>
+
+<p>I compared the accepted and forged models across every supplied unmodified and triggered probe. Neither 3,204-sample set produced a changed prediction.</p>
+
+<h3>MITRE ATLAS mapping</h3>
+
+<p>The challenge maps to the following <a href="https://atlas.mitre.org/">MITRE ATLAS</a> techniques:</p>
+
+<table>
+<tr><td><strong>ATLAS technique</strong></td><td><strong>Challenge activity</strong></td></tr>
+<tr><td><strong>AML.T0005.001 - Train Proxy via Replication</strong></td><td>Trained a substitute from hard-label oracle responses.</td></tr>
+<tr><td><strong>AML.T0024.002 - Extract AI Model</strong></td><td>Reproduced the target classifier's decisions without its parameters.</td></tr>
+<tr><td><strong>AML.T0043.002 - Black-Box Transfer</strong></td><td>Generated a constrained PGD candidate against the substitute that transferred to the target classifier.</td></tr>
+<tr><td><strong>AML.T0018.000 - Poison AI Model</strong></td><td>Trained the Trial 1 substitute to associate one recovered trigger with class 11 while preserving baseline behavior.</td></tr>
+<tr><td><strong>AML.T0043.004 - Insert Backdoor Trigger</strong></td><td>Converted the recovered mark into the image-space trigger used by the forged model.</td></tr>
+</table>
+
+<p>The least-significant-bit record channel is model steganography. I left it unmapped because the available ATLAS techniques did not precisely describe it.</p>
+
+<hr>
+
+<h2>Proof of completion</h2>
+
+<p>The submitted model passed all four trials:</p>
+
+<pre><code>Trial 1: substitute-model agreement accepted
+Trial 2: targeted adversarial example accepted
+Trial 3: exact selective backdoor accepted
+Trial 4: embedded records and model behavior accepted
+Recovered proof: HTB{REDACTED}</code></pre>
+
+<img src="/images/assay/Screenshot 2026-07-25 at 11.04.38 PM copy.png" alt="All four Assay trials accepted with redacted proof" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Security impact and remediation</h2>
+
+<p>The forged model retained 98.13% accuracy on unmodified images while carrying two hidden records and a selective backdoor. An accuracy check would have approved it.</p>
+
+<p>Defenses should address the inference service, training behavior, and serialized artifact:</p>
+
+<ul>
+<li>Rate-limit queries across identities and sessions.</li>
+<li>Monitor for balanced class enumeration, repeated batch labeling, and other extraction patterns.</li>
+<li>Test deployed models against white-box and transfer-based adversarial examples.</li>
+<li>Evaluate known triggers, mutated triggers, and held-out decoys.</li>
+<li>Sign model artifacts and verify the full serialized file before promotion.</li>
+<li>Compare promoted artifacts with the reviewed build.</li>
+<li>Add low-bit and entropy analysis when model-weight steganography is within scope.</li>
+</ul>
+
+<hr>
+
+<h2>What I learned</h2>
+
+<p>Assay made model extraction concrete. Representative inputs and hard labels were enough to reproduce the target's decisions.</p>
+
+<p>Trial 3 was the larger lesson. My rejected models produced respectable local metrics while learning a broad pattern. The server's decoys exposed that mistake. Restarting from the accepted clone and building the training process around changing negatives finally taught the intended identity.</p>
+
+<p>I have never used the word "class" this many times in one investigation. The model eventually learned the distinction. So did I.</p>
+
+<hr>
+
+<h2>Attribution</h2>
+
+<p>I solved and documented Assay during Hack The Box Cyber Apocalypse 2026 as a member of the CIAT Cybersecurity Club team. I inspected the artifacts, managed the oracle budget, trained and tested the models, validated each submission, collected the evidence, and submitted the proof.</p>
+
+<p>The event allowed AI as a supporting tool. I used it to help develop and debug the Python workflows, interpret model metrics, review adversarial-ML concepts, and revise the Trial 3 training strategy after rejected submissions. I operated the challenge environment, executed the workflows, evaluated the results, and submitted the flag.</p>
+
+<p>The source evidence documents no teammate contribution to this challenge.</p>
+
+<hr>
+
+<h2>Full attack chain</h2>
+
+<ol>
+<li>Inspect the manifest and model mechanism before spending the oracle budget.</li>
+<li>Label 3,204 balanced probes through the hard-label oracle, leaving 196 queries for validation.</li>
+<li>Reject the supplied shard as a substitute after confirming that it collapsed most inputs into class 5.</li>
+<li>Train a fresh 12-class <code>SigilNet</code> clone and achieve 98.96% server agreement.</li>
+<li>Generate bounded targeted PGD candidates against the substitute and confirm class-11 transfer against the target oracle.</li>
+<li>Recover the <code>conv1</code> key from float least-significant bits.</li>
+<li>Reverse the <code>conv2</code> permutation and SHA-256 whitening, then validate the recovered mark by CRC.</li>
+<li>Train and reject backdoor models that responded too broadly to unrelated marks.</li>
+<li>Restart from the accepted Trial 1 clone using changing negative marks and held-out decoys.</li>
+<li>Pass the server's exact-trigger, baseline-accuracy, and decoy-selectivity checks.</li>
+<li>Embed both framed records into float least-significant bits and verify zero changed predictions across the unmodified and triggered probe sets.</li>
+<li>Submit the composite model and recover the challenge proof.</li>
+</ol>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
