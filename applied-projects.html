@@ -69,6 +69,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
 <meta property="og:url" content="https://jennshaggy.github.io/applied-projects.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Penetration Testing">
@@ -105,6 +106,13 @@
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
+                    <span class="menu-toggle-label">Menu</span>
+                    <span class="menu-toggle-icon" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                    </span>
                 </button>
             </div>
         </div>
@@ -147,12 +155,12 @@
 <article class="post-single">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Penetration Testing</h1>
-    <div class="post-description">Lab writeups, CTF documentation, and offensive security work. Evidence of work, not concept summaries.</div>
+    <div class="post-description">Lab writeups, CTF documentation, scripts, and offensive security projects from the problems I have worked through.</div>
   </header>
 
   <div class="post-content">
 
-<p>This section documents hands-on lab work across TryHackMe paths and CTF challenges. Each page covers a specific technique, vector, or machine with real commands, real output, and real methodology.</p>
+<p>Each page follows the investigation as it happened: what I noticed, what I tried, what failed, what changed my direction, and what finally worked. The collection spans web exploitation, Active Directory, privilege escalation, reverse engineering, AI/ML security, and the occasional deeply cursed application.</p>
 
 <p>Custom tools and scripts built during these engagements: <a href="/scripts/">Scripts &rarr;</a></p>
 
@@ -358,6 +366,75 @@
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+    (() => {
+        const menuToggle = document.getElementById("menu-toggle");
+        const menu = document.getElementById("menu");
+
+        if (!menuToggle || !menu) {
+            return;
+        }
+
+        document.documentElement.classList.add("js-menu-ready");
+
+        const closeMenu = (restoreFocus = false) => {
+            menuToggle.setAttribute("aria-expanded", "false");
+            menu.classList.remove("menu-open");
+
+            if (restoreFocus) {
+                menuToggle.focus();
+            }
+        };
+
+        menuToggle.addEventListener("click", () => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(!isOpen)
+            );
+            menu.classList.toggle("menu-open", !isOpen);
+        });
+
+        menu.addEventListener("click", (event) => {
+            if (event.target.closest("a")) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (
+                isOpen &&
+                !menu.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (event.key === "Escape" && isOpen) {
+                closeMenu(true);
+            }
+        });
+
+        const desktopQuery =
+            window.matchMedia("(min-width: 769px)");
+
+        desktopQuery.addEventListener("change", (event) => {
+            if (event.matches) {
+                closeMenu();
+            }
+        });
+    })();
 </script>
 </body>
 </html>
