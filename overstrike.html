@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Overstrike | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Overstrike stored its challenge logic in a Godot C# assembly inside the APK. Decompiling that assembly exposed an unreachable seal check, a reversible SplitMix64-style transformation, and a protected registry whose key came from the player-controlled mark.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/overstrike.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<meta property="og:url" content="https://jennshaggy.github.io/overstrike.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Overstrike">
+<meta property="og:description" content="Overstrike stored its challenge logic in a Godot C# assembly inside the APK. Decompiling that assembly exposed an unreachable seal check, a reversible SplitMix64-style transformation, and a protected registry whose key came from the player-controlled mark.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Overstrike">
+<meta name="twitter:description" content="Overstrike stored its challenge logic in a Godot C# assembly inside the APK. Decompiling that assembly exposed an unreachable seal check, a reversible SplitMix64-style transformation, and a protected registry whose key came from the player-controlled mark.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
+                    <span class="menu-toggle-label">Menu</span>
+                    <span class="menu-toggle-icon" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Overstrike</h1>
+    <div class="post-description">Overstrike stored its challenge logic in a Godot C# assembly inside the APK. Decompiling that assembly exposed an unreachable seal check, a reversible SplitMix64-style transformation, and a protected registry whose key came from the player-controlled mark.</div>
+  </header>
+
+  <div class="post-content">
+
+<table>
+<tbody>
+<tr><th>Event</th><td>Hack The Box Cyber Apocalypse 2026</td></tr>
+<tr><th>Category</th><td>Mobile</td></tr>
+<tr><th>Difficulty</th><td>Easy</td></tr>
+<tr><th>Points</th><td>950</td></tr>
+<tr><th>Outcome</th><td>Solved</td></tr>
+</tbody>
+</table>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 9.13.57 AM.png" alt="Overstrike challenge overview on Hack The Box" style="max-width:100%;margin:2rem 0;">
+
+<h2>The assignment</h2>
+
+<p>The challenge described a forged authority mark that the world would accept as genuine. It supplied one Android APK and no live service.</p>
+
+<p>Out of the Mobile category, this one grabbed my attention. I know Android well as an end user, but this was my first time taking apart a Godot mobile application. My task was to identify how the game validated its seal, determine why ordinary gameplay could not satisfy it, and recover the protected registry.</p>
+
+<h2>Executive summary</h2>
+
+<p>I treated the APK as an archive and found two copies of <code>Overstrike.dll</code>, one for ARM64 phones and one for x86-64 emulators. Their hashes matched, so I extracted the x86-64 copy and used ILSpyCmd to reconstruct its C# source.</p>
+
+<p>The important path was:</p>
+
+<pre><code>CarriedMark -&gt; Mix() -&gt; WorldSeal -&gt; compare with TrueSeal
+       |
+       +-&gt; SHA-256 key derivation -&gt; decrypt SealedRecord</code></pre>
+
+<p>Five in-game collectibles could only produce <code>CarriedMark</code> totals from <code>0</code> through <code>18</code>. I reproduced the decompiled mixer in Python and verified that none reached the hard-coded <code>TrueSeal</code>.</p>
+
+<p>The mixer constants identified a SplitMix64-style permutation. Its intended unsigned operations were reversible, so I inverted the target seal to recover a forged 64-bit mark. An unsigned forward calculation reproduced the target exactly. I used the recovered mark in a Python reproduction of the application's SHA-256 counter-mode XOR routine. It decrypted the 56-byte registry and recovered the redacted proof.</p>
+
+<p>My first mobile challenge turned out to be C# reversing, modular arithmetic, and a cryptographic scavenger hunt wearing an APK.</p>
+
+<hr>
+
+<h2>Initial evidence</h2>
+
+<h3>Inventorying the APK</h3>
+
+<p>I extracted the challenge package and recorded the APK's type and digest:</p>
+
+<pre><code>cd ~/Downloads
+unzip mobile_overstrike.zip -d mobile_overstrike
+cd mobile_overstrike
+
+file Overstrike.apk
+sha256sum Overstrike.apk</code></pre>
+
+<p>I then listed the components most likely to identify the application's implementation:</p>
+
+<pre><code>unzip -Z1 Overstrike.apk |
+grep -E 'Overstrike\.dll$|AndroidManifest\.xml$|META-INF/.*\.(RSA|SF)$'</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 9.28.00 AM.png" alt="APK component listing showing Overstrike.dll, AndroidManifest.xml, and signing metadata" style="max-width:100%;margin:2rem 0;">
+
+<p>The output established three useful layers:</p>
+
+<ul>
+<li><code>AndroidManifest.xml</code> described the Android package and its components.</li>
+<li><code>Overstrike.dll</code> contained the challenge's C# game logic.</li>
+<li><code>META-INF/ANDROIDD.SF</code> and <code>META-INF/ANDROIDD.RSA</code> contained APK-signing metadata.</li>
+</ul>
+
+<p>The DLL appeared twice:</p>
+
+<pre><code>assets/.godot/mono/publish/x86_64/Overstrike.dll
+assets/.godot/mono/publish/arm64/Overstrike.dll</code></pre>
+
+<p>The two paths supported different processor architectures. ARM64 covered physical Android devices such as my future NetHunter OnePlus 8T, while x86-64 covered common emulator environments.</p>
+
+<p>I extracted both assemblies and compared them:</p>
+
+<pre><code>mkdir -p extracted/arm64 extracted/x86_64
+
+unzip -p Overstrike.apk \
+  assets/.godot/mono/publish/arm64/Overstrike.dll \
+  &gt; extracted/arm64/Overstrike.dll
+
+unzip -p Overstrike.apk \
+  assets/.godot/mono/publish/x86_64/Overstrike.dll \
+  &gt; extracted/x86_64/Overstrike.dll
+
+sha256sum extracted/*/Overstrike.dll</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 9.34.06 AM.png" alt="SHA-256 digests of both DLL copies confirming identical hashes" style="max-width:100%;margin:2rem 0;">
+
+<p>The hashes matched. I could analyze either copy and expect the same managed code.</p>
+
+<h3>Choosing the right decompiler</h3>
+
+<p>I checked which relevant tools were already installed:</p>
+
+<pre><code>command -v dotnet ilspycmd monodis jadx</code></pre>
+
+<p>Only JADX was available. JADX is useful for an APK's Java or Kotlin layer, but the challenge logic lived in a .NET assembly.</p>
+
+<p>Think of the APK as a shipping container. JADX examines the Android machinery surrounding the cargo. ILSpy examines the C# cargo itself. Ghidra would have been excessive unless the investigation reached native machine code.</p>
+
+<p>I installed the .NET SDK and ILSpyCmd in my user directories, then verified the tool:</p>
+
+<pre><code>curl -fsSL https://dot.net/v1/dotnet-install.sh \
+  -o /tmp/dotnet-install.sh
+
+bash /tmp/dotnet-install.sh \
+  --channel LTS \
+  --install-dir "$HOME/.dotnet"
+
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$DOTNET_ROOT:$HOME/.local/bin:$PATH"
+
+mkdir -p "$HOME/.local/bin"
+
+dotnet tool install \
+  --tool-path "$HOME/.local/bin" \
+  ilspycmd
+
+ilspycmd --version</code></pre>
+
+<p>This tooling decision mattered. The fastest route through a mobile package is often determined by the language that implements its behavior, not by the file extension presented to the analyst.</p>
+
+<hr>
+
+<h2>Investigation and solve path</h2>
+
+<h3>Phase 1: Recover the C# source</h3>
+
+<p>I listed the custom classes in the assembly, then decompiled it as a C# project:</p>
+
+<pre><code>ilspycmd -l c extracted/x86_64/Overstrike.dll
+
+rm -rf overstrike-source
+
+ilspycmd -p \
+  -o overstrike-source \
+  extracted/x86_64/Overstrike.dll
+
+find overstrike-source -maxdepth 2 -type f -printf '%p\n' | sort</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 9.57.27 AM.png" alt="Decompiled C# project file listing" style="max-width:100%;margin:2rem 0;">
+
+<p>The reconstructed project included several promising classes:</p>
+
+<pre><code>Archive.cs
+BridgeBuilder.cs
+GameState.cs
+Main.cs
+MarkPickup.cs</code></pre>
+
+<p>Decompiled source is not guaranteed to match the developer's formatting or local names. It does, however, preserve enough program behavior to trace state, constants, and transformations.</p>
+
+<h3>Phase 2: Map the verification mechanism</h3>
+
+<p>I searched the reconstructed source for terms associated with the challenge's seal and registry language:</p>
+
+<pre><code>rg -n -i \
+  'flag|HTB|seal|sign|cert|hash|forge|archive|registry|vault|bridge' \
+  overstrike-source</code></pre>
+
+<p><code>GameState.cs</code> contained the complete path from the player's value to the game's Boolean decision:</p>
+
+<pre><code>nl -ba overstrike-source/GameState.cs |
+sed -n '35,76p'</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 10.25.17 AM.png" alt="GameState.cs showing CarriedMark, WorldSeal, TrueSeal constant, and Mix() call in _Process" style="max-width:100%;margin:2rem 0;">
+
+<p>The important fields were:</p>
+
+<pre><code>public ulong CarriedMark;
+public ulong WorldSeal;
+public const ulong TrueSeal = 15682021040575554950uL;</code></pre>
+
+<p>The game continuously transformed the carried mark:</p>
+
+<pre><code>public override void _Process(double delta)
+{
+    WorldSeal = Mix(CarriedMark);
+}</code></pre>
+
+<p>It considered the world aligned only when that result equaled the constant:</p>
+
+<pre><code>public bool WorldIsAligned =&gt;
+    WorldSeal == 15682021040575554950uL;</code></pre>
+
+<p>The relationship was now concrete:</p>
+
+<pre><code>CarriedMark -&gt; Mix() -&gt; WorldSeal
+                          |
+                          +-&gt; equals TrueSeal? -&gt; true or false</code></pre>
+
+<p>The same class also held a 56-byte <code>SealedRecord</code>. That was likely the protected proof, but I still needed the mark that would open it.</p>
+
+<h3>Phase 3: Trace the registry decryption</h3>
+
+<p>I captured the complete unsealing routine:</p>
+
+<pre><code>nl -ba overstrike-source/GameState.cs |
+sed -n '75,112p'</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 10.47.08 AM.png" alt="UnsealRegistry() routine showing SHA-256 key derivation and XOR keystream construction" style="max-width:100%;margin:2rem 0;">
+
+<p><code>UnsealRegistry()</code> gave <code>CarriedMark</code> a second purpose. It converted the 64-bit mark into eight little-endian bytes and hashed them with SHA-256:</p>
+
+<pre><code>array = sHA.ComputeHash(BitConverter.GetBytes(CarriedMark));</code></pre>
+
+<p>The function then generated a keystream in 32-byte blocks. Each block was:</p>
+
+<pre><code>SHA-256(mark_hash || little_endian_counter)</code></pre>
+
+<p>It XORed that keystream with <code>SealedRecord</code> until all 56 bytes were decoded.</p>
+
+<p>At this point, the goal was precise. I needed the <code>CarriedMark</code> chosen by the challenge author. That value had to explain both the seal target and the encrypted record.</p>
+
+<h3>Phase 4: Determine what gameplay could produce</h3>
+
+<p>I traced every use of <code>CarriedMark</code>:</p>
+
+<pre><code>rg -n -C 4 'CarriedMark' \
+  overstrike-source \
+  --glob '*.cs'</code></pre>
+
+<p><code>MarkPickup.cs</code> contained the only gameplay update:</p>
+
+<pre><code>GameState.Instance.CarriedMark += Worth;</code></pre>
+
+<p>Each collectible added its <code>Worth</code> and then removed itself from the scene.</p>
+
+<p>I followed <code>Worth</code> into <code>Main.cs</code>:</p>
+
+<pre><code>rg -n -C 5 'Worth\s*=' overstrike-source
+
+nl -ba overstrike-source/Main.cs |
+sed -n '570,616p'</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 11.05.10 AM.png" alt="Main.cs showing five collectible Worth values assigned as 1, 2, 3, 5, 7" style="max-width:100%;margin:2rem 0;">
+
+<p>The five collectibles were assigned these values:</p>
+
+<pre><code>ulong[] array = new ulong[5] { 1uL, 2uL, 3uL, 5uL, 7uL };</code></pre>
+
+<p>Collecting all five produced <code>18</code>. Any subset produced a mark between <code>0</code> and <code>18</code>.</p>
+
+<p>That reduced the legitimate state space to only 19 candidates.</p>
+
+<h3>Phase 5: Prove normal gameplay could not align the world</h3>
+
+<p>I reproduced the decompiled signed 64-bit behavior and tested every legitimate total:</p>
+
+<pre><code>MASK = (1 &lt;&lt; 64) - 1
+TRUE_SEAL = 15682021040575554950
+
+
+def i64(value):
+    value &amp;= MASK
+    return value if value &lt; (1 &lt;&lt; 63) else value - (1 &lt;&lt; 64)
+
+
+def mix(x):
+    num = i64(i64(x) + -7046029254386353131)
+    num2 = i64((num ^ (num &gt;&gt; 30)) * -4658895280553007687)
+    num3 = i64((num2 ^ (num2 &gt;&gt; 27)) * -7723592293110705685)
+    return (num3 ^ (num3 &gt;&gt; 31)) &amp; MASK
+
+
+for mark in range(19):
+    seal = mix(mark)
+    status = " MATCH" if seal == TRUE_SEAL else ""
+    print(f"mark={mark:2d} seal=0x{seal:016x}{status}")</code></pre>
+
+<p>I saved that as <code>test_seals.py</code> and ran it:</p>
+
+<pre><code>python3 test_seals.py</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 11.17.19 AM.png" alt="test_seals.py output showing all 19 legitimate marks with no match against TrueSeal" style="max-width:100%;margin:2rem 0;">
+
+<p>None of the 19 possible gameplay totals produced the required seal.</p>
+
+<p>The decompiled mixer also used signed <code>long</code> intermediates. Its arithmetic right shifts copied the sign bit, while the target <code>0xd9a1bb0cabb52586</code> occupied the upper half of the unsigned 64-bit range. The observed signed verification path therefore could not reach the target.</p>
+
+<p>Normal gameplay was exhausted. Before reversing the mixer, I checked whether another code path supplied a larger mark:</p>
+
+<pre><code>rg -n -i \
+  'Android|PackageManager|SigningInfo|Certificate|Signature|CarriedMark' \
+  overstrike-source</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 11.24.22 AM.png" alt="Source search showing no second writer for CarriedMark and no Android signing integration" style="max-width:100%;margin:2rem 0;">
+
+<p>I found no second writer. That ruled out the possibility that the APK derived a hidden mark from its Android signing certificate or another platform value.</p>
+
+<h3>Phase 6: Invert the seal transformation</h3>
+
+<p>The constants in <code>Mix()</code> corresponded to the SplitMix64 finalizer:</p>
+
+<pre><code>0x9E3779B97F4A7C15
+0xBF58476D1CE4E5B9
+0x94D049BB133111EB</code></pre>
+
+<p>Under unsigned 64-bit arithmetic, SplitMix64 is a permutation. XOR-with-right-shift operations can be undone iteratively, and multiplication by an odd constant can be reversed with its modular inverse modulo <code>2^64</code>.</p>
+
+<p>I implemented those inverse operations in <code>forge_mark.py</code>:</p>
+
+<pre><code>MASK = (1 &lt;&lt; 64) - 1
+TRUE_SEAL = 15682021040575554950
+
+
+def undo_xor_shift(value, shift):
+    result = value
+    for _ in range(8):
+        result = value ^ (result &gt;&gt; shift)
+    return result &amp; MASK
+
+
+value = undo_xor_shift(TRUE_SEAL, 31)
+value = value * pow(0x94D049BB133111EB, -1, 1 &lt;&lt; 64) &amp; MASK
+value = undo_xor_shift(value, 27)
+value = value * pow(0xBF58476D1CE4E5B9, -1, 1 &lt;&lt; 64) &amp; MASK
+value = undo_xor_shift(value, 30)
+
+mark = (value - 0x9E3779B97F4A7C15) &amp; MASK
+
+print(f"forged_mark={mark}")
+print(f"forged_mark_hex=0x{mark:016x}")</code></pre>
+
+<p>Running it produced the forged mark:</p>
+
+<pre><code>python3 forge_mark.py</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 11.25.29 AM.png" alt="forge_mark.py output showing forged mark value" style="max-width:100%;margin:2rem 0;">
+
+<p>Bam. Forged mark.</p>
+
+<p>I did not trust an inverse calculation without a forward check. I passed the recovered mark through unsigned SplitMix64 and compared it with <code>TrueSeal</code>:</p>
+
+<pre><code>python3 - &lt;&lt;'PY'
+MASK = (1 &lt;&lt; 64) - 1
+mark = 0xd7caad24dd98b676
+true_seal = 0xd9a1bb0cabb52586
+
+x = (mark + 0x9E3779B97F4A7C15) &amp; MASK
+x = ((x ^ (x &gt;&gt; 30)) * 0xBF58476D1CE4E5B9) &amp; MASK
+x = ((x ^ (x &gt;&gt; 27)) * 0x94D049BB133111EB) &amp; MASK
+seal = (x ^ (x &gt;&gt; 31)) &amp; MASK
+
+print(f"calculated_seal=0x{seal:016x}")
+print(f"true_seal      =0x{true_seal:016x}")
+print(f"match={seal == true_seal}")
+PY</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 11.28.39 AM.png" alt="Forward verification output showing calculated_seal matches true_seal and match=True" style="max-width:100%;margin:2rem 0;">
+
+<p>The result was:</p>
+
+<pre><code>calculated_seal=0xd9a1bb0cabb52586
+true_seal      =0xd9a1bb0cabb52586
+match=True</code></pre>
+
+<p>The forged mark reproduced the intended target exactly.</p>
+
+<h3>Phase 7: Unseal the registry</h3>
+
+<p>I fed the same mark into the application's SHA-256 and XOR construction:</p>
+
+<pre><code>import hashlib
+import struct
+
+mark = 0xd7caad24dd98b676
+
+sealed = bytes([
+    13, 86, 51, 68, 18, 110, 68, 15, 54, 61,
+    236, 94, 135, 202, 213, 182, 4, 1, 182, 181,
+    150, 228, 184, 126, 121, 224, 236, 220, 7, 82,
+    153, 251, 179, 104, 0, 87, 32, 34, 3, 60,
+    166, 96, 124, 50, 253, 31, 124, 179, 220, 157,
+    120, 115, 19, 47, 96, 11
+])
+
+mark_hash = hashlib.sha256(struct.pack("&lt;Q", mark)).digest()
+
+keystream = b""
+counter = 0
+while len(keystream) &lt; len(sealed):
+    keystream += hashlib.sha256(
+        mark_hash + struct.pack("&lt;I", counter)
+    ).digest()
+    counter += 1
+
+record = bytes(
+    encrypted ^ key
+    for encrypted, key in zip(sealed, keystream)
+)
+
+print(record.decode())</code></pre>
+
+<p>I saved the decoder as <code>unseal_registry.py</code> and ran it:</p>
+
+<pre><code>python3 unseal_registry.py</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 11.29.47 AM copy.png" alt="Registry decryption output with the flag value redacted" style="max-width:100%;margin:2rem 0;">
+
+<pre><code>Recovered proof: HTB{REDACTED}</code></pre>
+
+<p>The result was a readable HTB proof. The complete value is intentionally redacted from this public write-up.</p>
+
+<hr>
+
+<h2>Technical explanation</h2>
+
+<h3>The APK exposed its authoritative logic</h3>
+
+<p>The application needed <code>Overstrike.dll</code> to run, so every relevant field, constant, collectible value, hash operation, and encrypted byte was distributed to the player.</p>
+
+<p>APK signing protected package integrity and publisher identity. It did not encrypt the application's managed code. Once the assembly was extracted, ILSpy could reconstruct its behavior in readable C#.</p>
+
+<h3>The legitimate mark space was finite</h3>
+
+<p>The pickup values were <code>1</code>, <code>2</code>, <code>3</code>, <code>5</code>, and <code>7</code>, and each object could be collected once. This bounded <code>CarriedMark</code> to subset sums between <code>0</code> and <code>18</code>.</p>
+
+<p>Exhaustively checking 19 values was stronger than assuming the target was unreachable from visual inspection. The script reproduced the application's signed behavior and tested the complete legitimate state space.</p>
+
+<h3>The mixer was reversible</h3>
+
+<p>SplitMix64 uses addition, multiplication by odd constants, and XOR with right-shifted copies of the state. Each operation is invertible over 64-bit unsigned integers:</p>
+
+<ul>
+<li>Addition is reversed by subtraction modulo <code>2^64</code>.</li>
+<li>Multiplication is reversed with a modular multiplicative inverse.</li>
+<li>XOR-right-shift is reversed by recovering the shifted bits iteratively.</li>
+</ul>
+
+<p>The transformation looked hash-like, but it was a bijection rather than a one-way hash.</p>
+
+<p>Because the decompiled path used signed <code>long</code> intermediates, its final arithmetic right shift prevented the result from reaching a target with the high bit set. I treated the constants as evidence of the intended unsigned SplitMix64 mapping, inverted that mapping, and validated the recovered mark through an unsigned forward calculation and successful registry decryption.</p>
+
+<h3>The registry used a deterministic XOR keystream</h3>
+
+<p><code>UnsealRegistry()</code> hashed the eight-byte mark, appended a little-endian block counter, and hashed again to generate each keystream block:</p>
+
+<pre><code>mark_key = SHA-256(little_endian_64(CarriedMark))
+
+block_0 = SHA-256(mark_key || little_endian_32(0))
+block_1 = SHA-256(mark_key || little_endian_32(1))
+
+plaintext = SealedRecord XOR (block_0 || block_1)</code></pre>
+
+<p>The record was 56 bytes, so two SHA-256 blocks supplied enough keystream. Recovering the mark therefore recovered the decryption key material.</p>
+
+<hr>
+
+<h2>Proof of completion</h2>
+
+<p>Three separate checks supported the result:</p>
+
+<pre><code>All legitimate marks tested: 0 through 18
+Legitimate matches: 0
+Unsigned forward calculation reproduced TrueSeal: yes
+Registry output used the HTB flag format: yes
+Challenge submission: accepted</code></pre>
+
+<img src="/images/overstrike/Screenshot 2026-07-28 at 11.30.53 AM.png" alt="Challenge submission confirmation on Hack The Box" style="max-width:100%;margin:2rem 0;">
+
+<p>The screenshot containing the complete decoded flag is omitted. The public page preserves the validation evidence without publishing the proof value.</p>
+
+<hr>
+
+<h2>Security impact and remediation</h2>
+
+<p>Overstrike illustrates a familiar mobile security boundary: code and constants shipped to an untrusted client can be inspected and reproduced. Obfuscation or package signing may raise the cost of analysis, but neither can keep client-side validation logic secret.</p>
+
+<p>Production mobile applications should keep authoritative validation and secret-bearing operations on trusted infrastructure. Client-side encrypted data should not ship beside its complete key-derivation process. When local encrypted storage is required, use a reviewed authenticated-encryption construction, minimize exposed sensitive state, and treat APK signing as an integrity and provenance control.</p>
+
+<p>The APK's signature could confirm who packaged the application. It could not stop me from reading the package.</p>
+
+<hr>
+
+<h2>What I learned</h2>
+
+<p>This challenge gave me a practical map of a mobile application's layers. The APK was the container, Android metadata described the package, and the Godot .NET assembly held the behavior I needed to understand.</p>
+
+<p>Tool choice made far more sense once I followed the implementation language. JADX was present, but Java decompilation would have kept me in the wrapper. ILSpy moved the analysis to the C# logic that controlled the game.</p>
+
+<p>The rest connected familiar ideas in a new setting:</p>
+
+<ul>
+<li>Source tracing reduced player behavior to five collectible values.</li>
+<li>Exhaustive testing proved that the legitimate state space failed.</li>
+<li>Constant recognition turned an intimidating mixer into reversible arithmetic.</li>
+<li>A forward check validated the recovered preimage.</li>
+<li>Reimplementing the unsealing function connected that preimage to the protected record.</li>
+</ul>
+
+<p>This was my first mobile challenge, and I needed assistance to connect several unfamiliar layers. By the end, I could explain how the APK, Godot assembly, seal transformation, and registry decryption fit together. That was exactly what I wanted from the challenge.</p>
+
+<hr>
+
+<h2>Attribution</h2>
+
+<p>Solved and documented by Jenn Shagrin during Hack The Box Cyber Apocalypse 2026 as a member of the CIAT Cybersecurity Club team. I inventoried and extracted the APK, selected and installed the .NET analysis tooling, decompiled the Godot assembly, traced the seal and pickup state, ran the exhaustive verifier, executed and validated the inversion and decryption scripts, collected the evidence, and submitted the proof.</p>
+
+<p>Consistent with the event's rules of engagement, I used AI as a supporting tool. It materially assisted with explaining the APK and Godot layers, selecting ILSpyCmd, identifying and reversing the SplitMix64-style construction, developing the Python verification and decryption workflow, and checking the resulting technical explanation. It did not access the challenge, operate my environment, collect evidence, or submit the flag.</p>
+
+<p>No teammate contribution is attributed because none is documented in the source evidence for this challenge.</p>
+
+<hr>
+
+<h2>Full Attack Chain</h2>
+
+<ol>
+<li>Inventoried the APK and identified its Godot C# assemblies.</li>
+<li>Extracted the matching ARM64 and x86-64 copies of <code>Overstrike.dll</code>.</li>
+<li>Decompiled the managed assembly with ILSpyCmd.</li>
+<li>Traced <code>CarriedMark</code> through <code>Mix()</code>, <code>WorldSeal</code>, and <code>WorldIsAligned</code>.</li>
+<li>Recovered the five collectible values and bounded legitimate marks to <code>0</code> through <code>18</code>.</li>
+<li>Tested the complete legitimate state space and found no match.</li>
+<li>Ruled out another writer for <code>CarriedMark</code>.</li>
+<li>Recognized and inverted the SplitMix64-style transformation.</li>
+<li>Verified that an unsigned forward calculation reproduced <code>TrueSeal</code>.</li>
+<li>Reimplemented <code>UnsealRegistry()</code> and decrypted the protected record.</li>
+<li>Submitted the redacted proof successfully.</li>
+</ol>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+    (() => {
+        const menuToggle = document.getElementById("menu-toggle");
+        const menu = document.getElementById("menu");
+
+        if (!menuToggle || !menu) {
+            return;
+        }
+
+        document.documentElement.classList.add("js-menu-ready");
+
+        const closeMenu = (restoreFocus = false) => {
+            menuToggle.setAttribute("aria-expanded", "false");
+            menu.classList.remove("menu-open");
+
+            if (restoreFocus) {
+                menuToggle.focus();
+            }
+        };
+
+        menuToggle.addEventListener("click", () => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(!isOpen)
+            );
+            menu.classList.toggle("menu-open", !isOpen);
+        });
+
+        menu.addEventListener("click", (event) => {
+            if (event.target.closest("a")) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (
+                isOpen &&
+                !menu.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (event.key === "Escape" && isOpen) {
+                closeMenu(true);
+            }
+        });
+
+        const desktopQuery =
+            window.matchMedia("(min-width: 769px)");
+
+        desktopQuery.addEventListener("change", (event) => {
+            if (event.matches) {
+                closeMenu();
+            }
+        });
+    })();
+</script>
+</body>
+</html>
