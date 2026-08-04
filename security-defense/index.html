@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Security & Defense | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Applied defensive security across endpoints, networks, and cloud environments. SOC analysis, incident response, endpoint hardening, and detection engineering.">
+<meta name="description" content="Defensive security investigations across endpoints, networks, identity, cloud infrastructure, and malware, with incident reconstruction and detection tooling.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/security-defense/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -115,12 +115,12 @@ code {
 <meta property="og:url" content="https://jennshaggy.github.io/security-defense/">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Security & Defense">
-<meta property="og:description" content="Applied defensive security across endpoints, networks, and cloud environments.">
+<meta property="og:description" content="Defensive security investigations across endpoints, networks, identity, cloud infrastructure, and malware, with incident reconstruction and detection tooling.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Security & Defense">
-<meta name="twitter:description" content="Applied defensive security across endpoints, networks, and cloud environments.">
+<meta name="twitter:description" content="Defensive security investigations across endpoints, networks, identity, cloud infrastructure, and malware, with incident reconstruction and detection tooling.">
 </head>
 <body id="top">
     <header class="header">
@@ -199,299 +199,144 @@ code {
       Security & Defense
     </h1>
     <div class="post-description">
-      Applied defensive security across endpoints, networks, and cloud environments
+      Threat hunting, incident response, malware analysis, endpoint hardening, and detection engineering.
     </div>
   </header> 
   <div class="post-content">
 
-<p>This work prioritizes <em>real systems, real telemetry, and real failure modes</em> over theory.</p>
+<p>My defensive security work draws on professional IT operations, formal coursework, independent study, instructor-led workshops, CTFs, and my home lab.</p>
 
-<h2>Threat Hunting &amp; Cloud Incident Response</h2>
+<p>The projects below include endpoint and network forensics, cloud investigations, malware analysis, identity and access review, system hardening, and detection work.</p>
 
-<p>Hands-on threat hunting and cloud IR work across TryHackMe and SANS workshop environments. Blue team investigations covering supply chain attacks, cloud account compromise, credential exposure, and shadow IT detection.</p>
+<h2>Threat Hunting and Incident Response</h2>
 
 <h3>TryHackMe</h3>
 <ul>
-<li><a href="/axios-supply-chain.html">Axios Supply Chain Attack</a> — npm dependency injection, JavaScript deobfuscation, RAT analysis, T1546.004 persistence, C2 traffic decoding</li>
-<li><a href="/security-defense/masquerade.html">Masquerade</a> — PowerShell EVTX forensics, RC4 payload decryption, .NET C2 client reverse engineering, AES-256-CBC HTML comment channel decryption</li>
-<li><a href="/security-defense/honeynet-collapse-pt1.html">Honeynet Collapse: Initial Access Pot (Part 1)</a> — WordPress brute force forensics, backdoor recovery, SSH key privesc, persistent malware identification, DeceptiPot recovery mode exploitation</li>
-<li><a href="/security-defense/cache-me-outside.html">Cache Me Outside</a> — OSINT: leaked screenshot to Komoot identity, GitHub commit metadata email recovery, OOO auto-reply Romanian mobile, Irigatii.ro location anchor, city and tram station identified</li>
-<li><a href="/security-defense/machunt.html">MacHunt</a> — Mac forensics: APFS image mounting, binary plist analysis, Safari SQLite history, DHCP lease, TCC Full Disk Access grant, LaunchAgent persistence, exfiltration URL recovered from LinkedIn phishing chain</li>
+<li><a href="/axios-supply-chain.html">Axios Supply Chain Attack</a>: npm dependency injection, JavaScript deobfuscation, RAT analysis, T1546.004 persistence, C2 traffic decoding</li>
+<li><a href="/security-defense/masquerade.html">Masquerade</a>: PowerShell EVTX forensics, RC4 payload decryption, .NET C2 client reverse engineering, AES-256-CBC HTML comment channel decryption</li>
+<li><a href="/security-defense/honeynet-collapse-pt1.html">Honeynet Collapse: Initial Access Pot (Part 1)</a>: WordPress brute force forensics, backdoor recovery, SSH key privesc, persistent malware identification, DeceptiPot recovery mode exploitation</li>
+<li><a href="/security-defense/cache-me-outside.html">Cache Me Outside</a>: OSINT, leaked screenshot to Komoot identity, GitHub commit metadata email recovery, OOO auto-reply Romanian mobile, Irigatii.ro location anchor, city and tram station identified</li>
+<li><a href="/security-defense/machunt.html">MacHunt</a>: Mac forensics, APFS image mounting, binary plist analysis, Safari SQLite history, DHCP lease, TCC Full Disk Access grant, LaunchAgent persistence, exfiltration URL recovered from LinkedIn phishing chain</li>
 </ul>
 
-<h3>SANS Baker221b — Mysteries in the Cloud</h3>
+<h3>SANS Baker221b: Mysteries in the Cloud</h3>
 <ul>
-<li><a href="/baker221b-warmup.html">Azure Activity and Terminal Warmup</a> — SQL enumeration, schema inspection, GCP credential extraction from SQLite</li>
-<li><a href="/baker221b-phishing.html">Cloud Account Compromise via Phishing</a> — Evilginx AiTM, Entra ID sign-in analysis, user agent pivot, M365 Unified Audit Log</li>
-<li><a href="/baker221b-aws-key.html">Stolen Access Key from Source Code Repository</a> — TruffleHog, git history forensics, CloudTrail S3 pivot</li>
-<li><a href="/baker221b-gcp-shadow-it.html">Shadow IT in GCP Account</a> — inventory diff, asset type validation, VPC flow log analysis</li>
+<li><a href="/baker221b-warmup.html">Azure Activity and Terminal Warmup</a>: SQL enumeration, schema inspection, GCP credential extraction from SQLite</li>
+<li><a href="/baker221b-phishing.html">Cloud Account Compromise via Phishing</a>: Evilginx AiTM, Entra ID sign-in analysis, user agent pivot, M365 Unified Audit Log</li>
+<li><a href="/baker221b-aws-key.html">Stolen Access Key from Source Code Repository</a>: TruffleHog, git history forensics, CloudTrail S3 pivot</li>
+<li><a href="/baker221b-gcp-shadow-it.html">Shadow IT in GCP Account</a>: inventory diff, asset type validation, VPC flow log analysis</li>
 </ul>
 
 
 <h3>Home Lab</h3>
 <ul>
-<li><a href="/security-defense/home-lab-rpcbind.html">Port 111 Open, 48 Hours After Kenobi</a> — masscan against Proxmox node surfaces rpcbind, traced dependencies, service disabled and confirmed closed</li>
+<li><a href="/security-defense/home-lab-rpcbind.html">Port 111 Open, 48 Hours After Kenobi</a>: masscan against Proxmox node surfaces rpcbind, traced dependencies, service disabled and confirmed closed</li>
 </ul>
 
 <h3>CTF Cross-Links</h3>
 <ul>
-<li><a href="/overpass-2-hacked.html">Overpass 2: Hacked</a> — DFIR/OffSec hybrid: PCAP forensics to reconstruct an attacker's intrusion, then offensive re-entry through the same backdoor they left behind</li>
+<li><a href="/overpass-2-hacked.html">Overpass 2: Hacked</a>: DFIR/OffSec hybrid: PCAP forensics to reconstruct an attacker's intrusion, then offensive re-entry through the same backdoor they left behind</li>
 </ul>
 
 
-<h2 id="malware-analysis">Malware Analysis — Live Incident Investigations</h2>
+<h2 id="malware-analysis">Malware Analysis and Incident Reconstruction</h2>
 
-<p>The following investigations represent hands-on malware analysis work completed through TryHackMe's SOC Level 1 training path. Each case demonstrates real-world attack techniques and the analytical process used to investigate them.</p>
+<p>The Boogeyman investigations were the final CTFs in TryHackMe's Junior Penetration Tester path. Together, they follow one intrusion from initial access through persistence, memory forensics, lateral movement, and domain compromise.</p>
 
 <div class="incident-section">
-<h3 id="boogeyman-1">Boogeyman – Initial Access Investigation</h3>
+<h3 id="boogeyman-1">Boogeyman: Initial Access and Exfiltration</h3>
 
 <div class="meta-info">
 <strong>Platform:</strong> TryHackMe<br>
 <strong>Lab:</strong> Boogeyman Part 1<br>
-<strong>Category:</strong> SOC Investigation<br>
-<strong>Focus:</strong> Phishing → Endpoint Compromise → Data Exfiltration<br>
-<strong>Tools:</strong> Thunderbird, Wireshark, Tshark, jq, LNKParse3, Linux CLI<br>
-<strong>Artifacts:</strong> dump.eml, powershell.json, capture.pcapng
+<strong>Focus:</strong> Phishing, PowerShell, credential access, command and control, data exfiltration<br>
+<strong>Tools:</strong> Thunderbird, Wireshark, TShark, jq, LNKParse3, Linux CLI<br>
+<strong>Artifacts:</strong> <code>dump.eml</code>, <code>powershell.json</code>, <code>capture.pcapng</code>
 </div>
 
-<h4>Overview</h4>
+<p>Quick Logistics LLC received a phishing email disguised as a follow-up invoice from a business partner. The attached archive contained a malicious Windows shortcut.</p>
 
-<p>This investigation analyzes a targeted phishing attack against Quick Logistics LLC. A finance employee, Julianne, received a malicious email disguised as a follow-up invoice from a trusted business partner.</p>
+<p>I reconstructed the message in Thunderbird and inspected the shortcut with LNKParse3. Its command line launched PowerShell. Parsing <code>powershell.json</code> with jq showed the next steps: additional downloads, system reconnaissance, credential harvesting, access to a KeePass database, and data staging.</p>
 
-<p>Execution of the attachment initiated a multi-stage compromise involving malicious PowerShell execution, attacker-controlled file downloads, credential harvesting, command-and-control activity, and attempted data exfiltration.</p>
+<p>I used the domains and commands from the PowerShell logs to pivot into <code>capture.pcapng</code>. Following the HTTP traffic in Wireshark and TShark exposed remote command execution, returned command output, and encoded data leaving the workstation.</p>
 
-<p>The investigation required analyzing artifacts from three sources: email artifact, PowerShell endpoint logs, and network packet capture.</p>
-
-<h4>Investigation Environment</h4>
-
-<p>Artifacts provided for analysis:</p>
-
-<p><code>dump.eml</code> – Copy of the phishing email</p>
-
-<p><code>powershell.json</code> – PowerShell execution logs extracted from Windows Event Logs</p>
-
-<p><code>capture.pcapng</code> – Network traffic capture from the compromised workstation</p>
-
-<p>Analysis tools available: Thunderbird (email reconstruction), LNKParse3 (shortcut file forensic analysis), Wireshark/Tshark (packet analysis), jq (JSON log parsing), Linux CLI utilities</p>
-
-<h4>Phase 1 – Email Analysis</h4>
-
-<p>The investigation began with analysis of the phishing email stored as <code>dump.eml</code>. The message impersonated a business partner and referenced an unpaid invoice. The attached archive contained a malicious shortcut file.</p>
-
-<p>After extraction, the malicious shortcut file was analyzed using LNKParse3. The LNK metadata revealed a command line payload designed to execute a PowerShell script.</p>
-
-<h4>Phase 2 – Endpoint Activity Analysis</h4>
-
-<p>PowerShell logs were analyzed from <code>powershell.json</code>. Since the logs were JSON formatted, the jq utility was used to parse and sort events. Analysis revealed that the malicious shortcut executed a PowerShell command that downloaded additional attacker tooling. The attacker then performed reconnaissance and credential harvesting activities on the compromised workstation.</p>
-
-<h4>Phase 3 – Attacker Activity</h4>
-
-<p>PowerShell logs revealed download of attacker utilities, execution of enumeration tooling, access to sensitive credential storage files, and staging of sensitive data for exfiltration. A notable discovery was access to a KeePass password database file (.kdbx), which contains encrypted credential storage. The attacker encoded the stolen data before transmitting it to an external host.</p>
-
-<h4>Phase 4 – Network Traffic Analysis</h4>
-
-<p>The packet capture file <code>capture.pcapng</code> was analyzed using Wireshark. The investigation focused on network connections associated with suspicious domains discovered in PowerShell logs, command-and-control traffic, and file exfiltration attempts. Command streams within the capture revealed the attacker executing commands remotely and receiving output through HTTP communication.</p>
-
-<h4>Attack Chain Reconstruction</h4>
-
-<p><strong>Initial Access</strong> – Phishing email containing malicious attachment<br>
-<strong>Execution</strong> – Shortcut file executes embedded PowerShell command<br>
-<strong>Persistence / Tooling</strong> – PowerShell downloads attacker utilities<br>
-<strong>Credential Access</strong> – KeePass database accessed<br>
-<strong>Command and Control</strong> – Attacker communicates with compromised host<br>
-<strong>Exfiltration</strong> – Sensitive data encoded and transmitted to external server</p>
-
-<h4>Key Findings</h4>
-
-<p>The phishing attack targeted employees within the finance department, indicating a focused social engineering campaign. The malicious attachment leveraged PowerShell execution to download additional attacker tooling. Sensitive credential data stored within a KeePass password database was accessed and exfiltrated. Network traffic analysis confirmed command-and-control communication and outbound transmission of encoded data.</p>
-
-<h4>Evidence & Validation</h4>
+<h4>Evidence</h4>
 
 <img src="/images/Incident_1_IMG_1.png" alt="Boogeyman Stage 1 investigation results" class="incident-image">
-<p class="image-caption">Investigation results validating phishing analysis and PowerShell execution chain</p>
+<p class="image-caption">Phishing email and malicious shortcut analysis</p>
 
 <img src="/images/Incident_1_IMG_2.png" alt="PowerShell command execution analysis" class="incident-image">
-<p class="image-caption">PowerShell log analysis revealing attacker reconnaissance and credential access</p>
+<p class="image-caption">PowerShell activity leading to credential access and data staging</p>
 
 <img src="/images/Incident_1_IMG_3.png" alt="Network traffic analysis" class="incident-image">
-<p class="image-caption">Network packet capture confirming C2 communication and encoded data transmission</p>
+<p class="image-caption">HTTP traffic carrying command output and encoded data</p>
 </div>
 
 <div class="incident-section">
-<h3 id="boogeyman-2">Boogeyman 2 – Memory Forensics & Persistence Investigation</h3>
+<h3 id="boogeyman-2">Boogeyman 2: Memory Forensics and Persistence</h3>
 
 <div class="meta-info">
 <strong>Platform:</strong> TryHackMe<br>
 <strong>Lab:</strong> Boogeyman Part 2<br>
-<strong>Category:</strong> SOC Investigation<br>
-<strong>Focus:</strong> Spear Phishing → Memory Analysis → C2 → Persistence<br>
-<strong>Tools:</strong> Volatility, Olevba, Linux CLI<br>
-<strong>Artifacts:</strong> phishing email, memory dump
+<strong>Focus:</strong> Spear phishing, memory forensics, command and control, scheduled-task persistence<br>
+<strong>Tools:</strong> Volatility, olevba, Linux CLI<br>
+<strong>Artifacts:</strong> Phishing email, malicious document, memory dump
 </div>
 
-<h4>Overview</h4>
+<p>Quick Logistics was targeted again, this time with a resume sent to Human Resources. The document contained a VBA macro that retrieved a second-stage payload from an external URL.</p>
 
-<p>This investigation analyzes a second-stage Boogeyman intrusion against Quick Logistics LLC. After improving their defenses following the first attack, the organization was targeted again using a new phishing lure. This time, the attack focused on Human Resources. A malicious resume was delivered to an HR employee, resulting in compromise of the victim workstation.</p>
+<p>I used olevba to inspect the macro, then Volatility to reconstruct what happened after the download. The memory image contained the payload path, its execution process, the surrounding process tree, and the additional binary it downloaded.</p>
 
-<p>This lab relied heavily on memory forensics to reconstruct attacker activity after execution.</p>
+<p>Further analysis identified the process responsible for command-and-control traffic, including its PID, file path, and remote IP address and port. The attacker then created a scheduled task for persistence. The complete task command was recoverable from memory.</p>
 
-<h4>Phase 1 – Spear Phishing Analysis</h4>
-
-<p>The attack began with a malicious email sent to a Human Resources employee. The phishing lure was tailored to the HR function by presenting the attachment as a job application or resume. Key artifacts identified included sender email address, victim employee email, attached malicious document, and MD5 hash of the attachment.</p>
-
-<h4>Phase 2 – Document and Macro Analysis</h4>
-
-<p>The malicious resume document was analyzed using Olevba to inspect embedded VBA macro content. The macro analysis revealed that the document reached out to an external URL to retrieve a second-stage payload. This confirmed that the document was not simply malicious in isolation, but part of a staged intrusion chain.</p>
-
-<h4>Phase 3 – Stage 2 Payload Execution</h4>
-
-<p>Memory analysis was used to determine what happened after the stage 2 payload was downloaded. Volatility allowed reconstruction of the process responsible for executing the stage 2 payload, the full file path of the payload, and the process tree. The stage 2 payload then initiated the next phase of the attack by downloading an additional malicious binary.</p>
-
-<h4>Phase 4 – C2 Establishment</h4>
-
-<p>Further memory analysis identified the malicious process responsible for establishing command-and-control communication. Artifacts recovered included PID of the malicious process, full file path of the binary, and IP address and port of the C2 server. This stage confirmed that the compromise progressed beyond simple document execution and into active attacker-controlled communication.</p>
-
-<h4>Phase 5 – Persistence</h4>
-
-<p>Shortly after establishing command-and-control, the attacker created persistence using a scheduled task. This allowed the attacker to maintain access even if the initial process terminated or the host was rebooted. The investigation identified the full scheduled task command used by the attacker.</p>
-
-<h4>Attack Chain Reconstruction</h4>
-
-<p><strong>Initial Access</strong> – Spear phishing email sent to HR employee<br>
-<strong>Execution</strong> – Malicious resume document opened<br>
-<strong>Stage 2 Delivery</strong> – Macro downloads second-stage payload<br>
-<strong>Stage 2 Execution</strong> – Downloaded payload executed on host<br>
-<strong>Command and Control</strong> – Malicious binary initiates outbound C2 connection<br>
-<strong>Persistence</strong> – Scheduled task created to maintain access</p>
-
-<h4>Key Findings</h4>
-
-<p>The phishing campaign was more targeted than the first Boogeyman attack, showing increased tradecraft through role-specific social engineering. Memory forensics confirmed the execution path of the payload, the malicious child process chain, and the binary responsible for command-and-control. The attacker established persistence almost immediately after gaining remote control by creating a scheduled task.</p>
-
-<h4>Lab Verification</h4>
+<h4>Evidence</h4>
 
 <img src="/images/Incident_2_IMG_1.png" alt="Boogeyman Stage 2 memory forensics results" class="incident-image">
-<p class="image-caption">Memory analysis identifying process execution chain and C2 artifacts</p>
+<p class="image-caption">Process execution and command-and-control artifacts recovered from memory</p>
 
 <img src="/images/Incident_2_IMG_2.png" alt="Malicious document macro analysis" class="incident-image">
-<p class="image-caption">VBA macro extraction and stage 2 payload download analysis</p>
+<p class="image-caption">VBA macro containing the second-stage download</p>
 
 <img src="/images/Incident_2_IMG_3.png" alt="Persistence mechanism analysis" class="incident-image">
-<p class="image-caption">Scheduled task persistence and command-and-control connection details</p>
+<p class="image-caption">Scheduled-task persistence recovered from the memory image</p>
 </div>
 
 <div class="incident-section">
-<h3 id="boogeyman-3">Boogeyman 3 – Lateral Movement & Domain Compromise Investigation</h3>
+<h3 id="boogeyman-3">Boogeyman 3: Lateral Movement and Domain Compromise</h3>
 
 <div class="meta-info">
 <strong>Platform:</strong> TryHackMe<br>
 <strong>Lab:</strong> Boogeyman Part 3<br>
-<strong>Category:</strong> SOC Investigation<br>
-<strong>Focus:</strong> Persistence → Privilege Escalation → Lateral Movement → Domain Compromise<br>
-<strong>Tools:</strong> Elastic Stack (ELK), Kibana, Sysmon Logs, Linux CLI<br>
+<strong>Focus:</strong> Persistence, privilege escalation, credential dumping, lateral movement, domain compromise<br>
+<strong>Tools:</strong> Elastic Stack, Kibana, Sysmon, Linux CLI<br>
 <strong>Artifacts:</strong> Elastic SIEM logs, host telemetry
 </div>
 
-<h4>Overview</h4>
+<p>Part 3 moved the investigation into the Elastic Stack. Using centralized Sysmon and host telemetry, I traced the attacker across several systems. With access to an internal email account, the attacker sent another phishing message, this time targeting the CEO.</p>
 
-<p>This investigation represents the final stage of the Boogeyman intrusion against Quick Logistics LLC. After successfully compromising a workstation and establishing persistence during earlier stages of the attack, the threat actor remained undetected within the environment. Using access to internal email accounts, the attacker launched a second phishing attempt targeting the CEO.</p>
+<p>Queries in Kibana connected the initial payload process to an implanted file, scheduled-task persistence, and outbound command-and-control traffic. The logs also captured a UAC bypass followed by the download of a credential-dumping tool from a public GitHub repository.</p>
 
-<p>Using centralized logs from the Elastic Stack (ELK), the investigation focused on identifying the full scope of attacker activity, including persistence, privilege escalation, credential theft, lateral movement, and preparation for ransomware deployment.</p>
+<p>The stolen credentials were used to access another machine. From there, the attacker enumerated network shares, opened a remote file, and recovered another set of credentials. Those credentials led to a second machine, where process telemetry identified the parent process responsible for executing the malicious command. Additional account hashes were dumped from that host.</p>
 
-<h4>Phase 1 – Initial Payload Execution</h4>
+<p>The attacker eventually obtained domain-level access and performed a DCSync attack against Active Directory. Multiple account hashes were extracted. The logs then showed an attempt to download another binary from a remote location. Its intended use was ransomware deployment, but no ransomware execution appeared in the timeframe covered by the available logs.</p>
 
-<p>The investigation began by identifying the process responsible for executing the stage 1 payload delivered through the malicious attachment. Logs revealed the process responsible for initiating the payload execution, including the command-line activity used to implant a secondary file onto the host.</p>
-
-<h4>Phase 2 – Persistence</h4>
-
-<p>After executing the implanted payload, the attacker established persistence using a scheduled task. The scheduled task ensured that the malicious script would execute automatically, allowing the attacker to retain access even if the system restarted or the initial payload process terminated.</p>
-
-<h4>Phase 3 – Command and Control</h4>
-
-<p>Following successful execution and persistence, the attacker initiated command-and-control communication with an external host. The investigation identified the external IP address used for the connection, the network port used by the attacker, and the process responsible for establishing the connection.</p>
-
-<h4>Phase 4 – Privilege Escalation</h4>
-
-<p>Logs revealed that the attacker discovered the compromised system had local administrator privileges. To take advantage of this, the attacker executed a User Account Control (UAC) bypass technique to elevate privileges without triggering security prompts. This allowed the attacker to perform higher-privileged actions such as credential extraction and system-level operations.</p>
-
-<h4>Phase 5 – Credential Dumping</h4>
-
-<p>With elevated privileges, the attacker downloaded a credential dumping tool from a public GitHub repository. Using this tool, the attacker extracted credentials from the compromised system. Credential harvesting allowed the attacker to expand their access beyond the initially compromised machine.</p>
-
-<h4>Phase 6 – Lateral Movement</h4>
-
-<p>Using the stolen credentials, the attacker attempted to access other systems within the network. Logs revealed that the attacker successfully accessed a remote machine using the harvested credentials. During this stage the attacker enumerated accessible network shares, accessed a file stored on a remote system, and obtained additional credentials.</p>
-
-<h4>Phase 7 – Second Machine Compromise</h4>
-
-<p>The attacker used the newly discovered credentials to compromise another machine within the network. Analysis of process activity revealed the parent process responsible for executing the malicious command on the second host. Once inside this system, the attacker again performed credential dumping to extract additional account hashes.</p>
-
-<h4>Phase 8 – Domain Controller Access</h4>
-
-<p>Eventually the attacker reached a system with domain-level access. At this stage the attacker performed a DCSync attack, which allowed them to replicate domain controller authentication data and retrieve password hashes from Active Directory. The investigation revealed that multiple account hashes were extracted during this operation.</p>
-
-<h4>Phase 9 – Ransomware Staging</h4>
-
-<p>After achieving domain-level access, the attacker attempted to download a remote binary intended to deploy ransomware. The investigation identified the remote location used to retrieve the ransomware payload. Although the ransomware execution was not completed during the timeframe analyzed, this final step confirmed that the attacker's objective was likely full network compromise followed by ransomware deployment.</p>
-
-<h4>Attack Chain Reconstruction</h4>
-
-<p><strong>Initial Compromise</strong> – Phishing email targeting CEO<br>
-<strong>Execution</strong> – Malicious attachment executes stage 1 payload<br>
-<strong>Persistence</strong> – Scheduled task created to maintain access<br>
-<strong>Command and Control</strong> – Outbound connection established to attacker infrastructure<br>
-<strong>Privilege Escalation</strong> – UAC bypass executed to obtain elevated privileges<br>
-<strong>Credential Access</strong> – Credential dumping tool downloaded from GitHub<br>
-<strong>Lateral Movement</strong> – Stolen credentials used to access additional machines<br>
-<strong>Domain Compromise</strong> – DCSync attack used to dump domain credential hashes<br>
-<strong>Ransomware Preparation</strong> – Remote binary downloaded for ransomware deployment</p>
-
-<h4>Key Findings</h4>
-
-<p>The Boogeyman intrusion demonstrates a structured multi-stage attack designed to progress from initial access to domain compromise. The attacker successfully leveraged phishing-based initial access, persistence through scheduled tasks, privilege escalation through UAC bypass, credential dumping using publicly available tools, lateral movement using stolen credentials, and domain credential replication via DCSync. The final phase of the attack involved preparation for ransomware deployment.</p>
-
-<h4>Lab Verification</h4>
+<h4>Evidence</h4>
 
 <img src="/images/Incident_3_IMG_1.png" alt="Boogeyman Stage 3 SIEM investigation" class="incident-image">
-<p class="image-caption">SIEM analysis revealing privilege escalation and credential harvesting activity</p>
+<p class="image-caption">Kibana results showing privilege escalation and credential dumping</p>
 
 <img src="/images/Incident_3_IMG_2.png" alt="Lateral movement detection" class="incident-image">
-<p class="image-caption">Lateral movement tracking across compromised systems</p>
+<p class="image-caption">Lateral movement traced across the affected systems</p>
 
 <img src="/images/Incident_3_IMG_3.png" alt="Domain compromise showing DCSync attack" class="incident-image">
-<p class="image-caption">DCSync attack against domain controller and ransomware deployment staging</p>
+<p class="image-caption">DCSync activity followed by the attempted ransomware download</p>
 </div>
 
 <hr>
 
-<h2 id="scope">Additional Security Work</h2>
+<h2>Detection Engineering and Security Tooling</h2>
 
-<p>Beyond malware investigations, this section documents:</p>
-
-<ul>
-<li>Endpoint hardening and system resilience</li>
-<li>SOC-style analysis and alert triage</li>
-<li>Detection logic and security automation</li>
-<li>Incident documentation and response workflows</li>
-<li>Identity, access control, and privilege management</li>
-</ul>
-
-<h3 id="endpoint-security-hardening">Endpoint Security & Hardening</h3>
-
-<p>Hands-on system defense performed on physical machines and VMs. Hardened Windows 10/11 endpoints against ransomware and persistence. Configured Defender, firewall rules, exploit protection, and application controls. Disabled unnecessary services and reduced attack surface. Implemented secure browser configurations and credential protections. Validated hardening through simulated attack scenarios.</p>
-
-<p>Primary reference: Operation Hard Dell</p>
-
-<h3 id="soc-operations-incident-analysis">SOC Operations & Incident Analysis</h3>
-
-<p>Blue-team analysis performed across multiple platforms. Investigated alerts including malware execution, suspicious PowerShell, and lateral movement. Distinguished true positives from noise using host and network telemetry. Correlated indicators across logs, timelines, and artifacts. Mapped findings to MITRE ATT&CK techniques. Documented incidents using structured Markdown workflows.</p>
-
-<p>Platforms used: LetsDefend, Hack The Box, CIAT lab environments</p>
-
-<h3 id="detection-security-automation">Detection & Security Automation</h3>
-
-<p>Detection engineering and automation concepts applied in simulated SOC environments. Built detection logic for phishing, malware payloads, and abnormal execution. Tuned rules to reduce false positives. Applied automation principles to accelerate triage. Explored AI-assisted SOC workflows and alert enrichment.</p>
+<p>I built <a href="https://github.com/jennshaggy/aismon" target="_blank" rel="noopener noreferrer"><code>aismon</code></a> to detect AI-related activity in Windows Sysmon Event ID 1 data. The Python CLI evaluates events against 35 YAML rules across seven behavior categories. I added secure XML parsing, API-key redaction, false-positive tests, schema validation, and automated testing across multiple Python versions.</p>
 
   </div>
 
