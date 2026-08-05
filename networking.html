@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Networking | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Home and small office network design, deployment, and remote management. Mesh topology optimization, network segmentation, custom ethernet infrastructure.">
+<meta name="description" content="Network architecture and operations across a Proxmox home lab, Active Directory environment, Tailscale remote access, wireless surveys, and remotely managed residential networks.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/networking/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -70,7 +70,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
-<link rel="stylesheet" href="/assets/css/mobile-nav.css">
 <style>
 .network-image {
     max-width: 100%;
@@ -94,13 +93,13 @@
 <meta property="og:url" content="https://jennshaggy.github.io/networking/">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Networking">
-<meta property="og:description" content="Home and small office network design, deployment, and remote management.">
+<meta property="og:description" content="Proxmox lab operations, Active Directory, Tailscale remote access, wireless surveying, and remote network management.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta property="article:section" content="">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Networking">
-<meta name="twitter:description" content="Home and small office network design, deployment, and remote management.">
+<meta name="twitter:description" content="Proxmox lab operations, Active Directory, Tailscale remote access, wireless surveying, and remote network management.">
 </head>
 
 <body id="top">
@@ -128,13 +127,6 @@
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
-                </button>
-                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
-                    <span class="menu-toggle-label">Menu</span>
-                    <span class="menu-toggle-icon" aria-hidden="true">
-                        <span></span>
-                        <span></span>
-                    </span>
                 </button>
             </div>
         </div>
@@ -177,146 +169,96 @@
 <article class="post-single">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">
-      Network Architecture & Implementation
+      Network Architecture &amp; Operations
     </h1>
     <div class="post-description">
-      Home and small office network design, deployment, and remote management
+      Virtualized infrastructure, segmented wireless networks, and tested remote administration
     </div>
   </header>
   
   <div class="post-content">
 
-<h2>Home Lab</h2>
+<h2 id="home-lab">Home Lab<a hidden class="anchor" aria-hidden="true" href="#home-lab">#</a></h2>
 
-<p>A real Active Directory environment, built from scratch on bare metal, managed from a couch in Albuquerque.</p>
+<p>The Albuquerque lab is a seven-VM environment running on a dedicated NucNano Proxmox host. It supports Active Directory administration, Windows endpoint testing, private remote access, honeypot telemetry, Splunk development, and the Hayabusa MCP project.</p>
 
-<h3>The hardware</h3>
+<h3>Physical environment</h3>
 
-<p>The host is a NanoNuc running Proxmox, a type-1 hypervisor sitting on the home network. Everything else runs as a VM on top of it. Boot into Proxmox and the lab furniture showroom opens. Boot into Kali and it&rsquo;s pentest workstation mode. F7 picks the room.</p>
+<p>The NucNano is dedicated to Proxmox. A separate mini PC, Nuc Sr., runs bare-metal Kali Linux and Windows 11 Pro from separate drives: F7 picks the room. A MacBook Pro is the primary lab administration system, while a Dell Premium 16 and Dell OptiPlex 7020 provide professional Windows environments for school and work.</p>
 
-<img src="/images/home-lab/Pasted image 20260523222359 copy.jpg" alt="NanoNuc running Proxmox, the bare metal host for the home lab" style="max-width:100%;margin:2rem 0;">
+<img src="/images/home-lab/Pasted image 20260523222359 copy.jpg" alt="NucNano mini PC used as the dedicated Proxmox host" class="network-image">
+<p class="image-caption">NucNano, the dedicated Proxmox virtualization host.</p>
 
-<h3>The architecture</h3>
-
-<p>Four nodes, one domain:</p>
-
-<p><strong>DC01</strong> runs Active Directory Domain Services and DNS. It is the domain controller for the lab, handling authentication and name resolution across the environment.</p>
-
-<img src="/images/home-lab/Pasted image 20260524112800.png" alt="DC01 Active Directory Domain Services configuration" style="max-width:100%;margin:2rem 0;">
-
-<p>Getting the Windows Server VMs running on Proxmox requires VirtIO drivers. Without them, the VM can&rsquo;t see its network adapter or storage controller. The virtio-win ISO handles it.</p>
-
-<img src="/images/home-lab/Pasted image 20260524113924.png" alt="VirtIO drivers ISO attached in Proxmox" style="max-width:100%;margin:2rem 0;">
-
-<img src="/images/home-lab/Pasted image 20260524120828.png" alt="VirtIO drivers installed successfully" style="max-width:100%;margin:2rem 0;">
-
-<p>Once the drivers are installed and the adapter is confirmed up:</p>
-
-<img src="/images/home-lab/Pasted image 20260524122258.png" alt="network adapter confirmed up after VirtIO driver install" style="max-width:100%;margin:2rem 0;">
-
-<p>AD promoted, DNS configured, domain live:</p>
-
-<img src="/images/home-lab/Pasted image 20260524141627 copy.png" alt="Active Directory promoted, DNS configured, domain live" style="max-width:100%;margin:2rem 0;">
-
-<p><strong>fileserver</strong> is a domain-joined Windows server providing shared file services. Folder redirection is configured via Group Policy, so the domain user&rsquo;s Documents folder lives on the fileserver rather than the local machine. That is not a default. That is a deliberate configuration.</p>
-
-<p>Before the VirtIO guest tools run, Device Manager looks like this:</p>
-
-<img src="/images/home-lab/Pasted image 20260524175923.png" alt="Device Manager before VirtIO guest tools showing unrecognized hardware" style="max-width:100%;margin:2rem 0;">
-
-<p>After the tools install and the fileserver joins the domain:</p>
-
-<img src="/images/home-lab/Pasted image 20260524212209.png" alt="fileserver joined to domain after VirtIO guest tools install" style="max-width:100%;margin:2rem 0;">
-
-<p><strong>linuxvpn</strong> is an Ubuntu Server VM running Tailscale as both an exit node and a subnet router. This is the lab&rsquo;s remote access layer. No router ports are open. No port-forwarding rules exist. Tailscale routes traffic through linuxvpn without touching the firewall, which means the lab is reachable from any trusted device without exposing anything publicly. Most people port-forward and call it a day. This is the other approach.</p>
-
-<p><strong>WIN11-CLIENT</strong> is a domain-joined Windows 11 workstation. It authenticates against DC01, has its Documents redirected to fileserver, and can be used to simulate a real end-user endpoint inside the domain.</p>
-
-<p>A honeypot node is on the roadmap.</p>
-
-<h3>Remote access via Tailscale</h3>
-
-<p>With linuxvpn as the Tailscale gateway, the lab supports:</p>
+<h3>Virtual architecture</h3>
 
 <ul>
-<li>Remote access into the home network without opening router ports</li>
-<li>Exit node routing (linuxvpn acts as a private VPN endpoint)</li>
-<li>Subnet routing, so Tailscale-connected devices can reach the full lab LAN directly</li>
-<li>Safer admin access to Proxmox, SSH, RDP, and internal web tools over Tailscale instead of the public internet</li>
-<li>Simulating &ldquo;remote worker&rdquo; behavior: take the WIN11-CLIENT off-network and test internal resource access through the VPN</li>
+<li><strong>DC01</strong>: Windows Server 2025 domain controller providing Active Directory Domain Services, DNS, authentication, and Group Policy.</li>
+<li><strong>fileserver</strong>: Domain-joined Windows Server providing SMB shares and Group Policy folder redirection.</li>
+<li><strong>linuxvpn</strong>: Ubuntu Server providing Tailscale subnet routing and exit-node services.</li>
+<li><strong>WIN11-CLIENT</strong>: Domain-joined Windows 11 endpoint for user, policy, and remote-access testing.</li>
+<li><strong>honeypot01</strong>: Ubuntu Server running an internal Cowrie SSH honeypot.</li>
+<li><strong>splunk01</strong>: Ubuntu Server running Splunk Enterprise for log-analysis development.</li>
+<li><strong>hayabusa-mcp</strong>: Ubuntu Server development environment for a security-focused Hayabusa MCP server.</li>
 </ul>
 
-<img src="/images/home-lab/Pasted image 20260525115449.png" alt="Tailscale subnet routing and exit node configuration on linuxvpn" style="max-width:100%;margin:2rem 0;">
+<p>Windows guests use VirtIO storage and network drivers provided through the <code>virtio-win</code> ISO.</p>
 
-<p>The practical end-state: the entire lab is reachable from a laptop at a coffee shop with no public-facing attack surface.</p>
+<img src="/images/home-lab/Pasted image 20260524141627 copy.png" alt="Windows Server domain controller with Active Directory and DNS configured" class="network-image">
+<p class="image-caption">DC01 after Active Directory promotion and DNS configuration.</p>
 
-<h3>Operating it</h3>
+<p>The fileserver centralizes domain-user documents through Group Policy folder redirection versus keeping them only on individual endpoints.</p>
 
-<p>Managing a lab is different from building one. Building is a project. Operating is a practice.</p>
+<img src="/images/home-lab/Pasted image 20260525165052.png" alt="Group Policy folder redirection applied to a domain user" class="network-image">
+<p class="image-caption">Folder redirection applied through Group Policy to a domain user.</p>
 
-<p>Group Policy handles folder redirection across the domain. Documents for every domain user route to the fileserver share automatically.</p>
+<h3>Remote administration</h3>
 
-<img src="/images/home-lab/Pasted image 20260525164632.png" alt="Group Policy folder redirection configuration" style="max-width:100%;margin:2rem 0;">
+<p>The Ubuntu <code>linuxvpn</code> VM provides Tailscale subnet routing and exit-node services. Approved tailnet devices can reach Proxmox, SSH, RDP, and internal web interfaces without inbound router port forwarding. The configuration was tested from Greece, including remote administration of the Proxmox environment.</p>
 
-<img src="/images/home-lab/Pasted image 20260525165052.png" alt="Group Policy folder redirection applied across domain users" style="max-width:100%;margin:2rem 0;">
+<img src="/images/home-lab/Pasted image 20260525115449.png" alt="Redacted Tailscale configuration for the linuxvpn subnet router and exit node" class="network-image">
+<p class="image-caption">Redacted Tailscale configuration for the lab subnet router and exit node.</p>
 
-<p>The monitoring plan covers authentication events, admin privilege assignments, account changes, Kerberos activity, and scan detection. Splunk dashboards are in progress. A honeypot node is queued once the baseline is solid.</p>
+<h3>Monitoring and recovery</h3>
 
-<p>Security findings as they come up live in <a href="/security-defense/">Security &amp; Defense</a>.</p>
+<p><code>honeypot01</code> runs Cowrie as an internal SSH honeypot on TCP/2222. Tests from bare-metal Kali produced connection, authentication, and session events in Cowrie&rsquo;s text and JSON logs. The logs were exported and reviewed with <code>jq</code>. <code>splunk01</code> runs Splunk Enterprise; installation and web access are verified, while Cowrie ingestion, Windows event forwarding, dashboards, and alerts remain under development.</p>
 
-<hr>
+<img src="/images/home-lab/cowrie-session-connect-events.png" alt="Cowrie connection events filtered from JSON logs with jq, with source IP addresses redacted" class="network-image">
+<p class="image-caption">Cowrie connection events filtered from JSON logs with <code>jq</code>; source IP addresses are redacted.</p>
 
-<div class="tools-header">
-  <img src="/images/iminsane.jpeg" alt="Network equipment and tools" class="network-image">
-  <p class="image-caption">One box of many - routers, switches, cables, and testing equipment accumulated across multiple deployments</p>
-</div>
+<p>All seven VMs were restored after the original NVMe developed repeatable read errors. Recovery included <code>ddrescue</code> imaging and targeted repair of damaged Windows files on DC01.</p>
 
-<p>Network security starts at the infrastructure layer. Proper topology, segmentation, and coverage optimization aren't just performance concerns - they're foundational security controls that determine what's reachable, what's isolated, and where the perimeter actually is.</p>
+<p>Related security testing and findings are documented in <a href="/security-defense/">Security &amp; Defense</a>.</p>
 
 <h2 id="current-network">Current Network (Albuquerque, NM)<a hidden class="anchor" aria-hidden="true" href="#current-network">#</a></h2>
 
-<p>Deployed a 3-node TP-Link Deco 6E tri-band mesh network optimized for complete residential coverage with intentional signal boundaries. The ISP-provided router was immediately placed in bridge mode and its hidden hotspot broadcast functionality - designed to extend the ISP's public network into customer homes - was disabled.</p>
+<p>The Albuquerque network uses a four-node TP-Link Deco 6E tri-band mesh. The ISP gateway operates in bridge mode, with routing and wireless services handled by the Deco system. One mesh node uses wireless backhaul and provides an Ethernet handoff to the Proxmox home lab.</p>
 
 <img src="/images/shared-item.jpeg" alt="ISP router in bridge mode with TP-Link Deco 6E mesh node" class="network-image">
-<p class="image-caption">ISP router (left) configured in bridge mode, Deco 6E mesh node (right) handling all routing and wireless</p>
+<p class="image-caption">ISP gateway in bridge mode beside a Deco 6E mesh node handling routing and wireless services.</p>
 
 
-<p>Network segmentation isolates IoT devices on a separate SSID with distinct credentials. Guest network capabilities were disabled entirely to reduce attack surface. Coverage was validated and optimized using RF heat mapping across the full residence.</p>
+<p>IoT devices occupy a separate VLAN with dedicated wireless credentials. Device Isolation restricts communication among selected IoT devices, while a MAC-address block list prevents specified devices from connecting to the network. The guest network is disabled.</p>
 
-<img src="/images/WiFi-Heatmap-1.jpeg" alt="WiFi coverage heat map showing signal strength across residence" class="network-image">
-<p class="image-caption">Heat map validation - download speeds optimized across interior space, signal intentionally cuts off at property boundary</p>
+<p>Wireless performance is surveyed with NetSpot on mobile and desktop using the home blueprints as a floor plan. Measurements cover download and upload throughput, signal level, noise, interference, channel overlap, and access-point coverage. Test points span the residence and garage, and surveys are repeated every few months to document changes in coverage and performance.</p>
 
-<p><strong>Key outcomes:</strong> Zero dead zones inside the residence. Network signal terminates at the property line - not by accident, but by design. IoT devices cannot reach the primary network. ISP equipment operates as a transparent bridge with no broadcast capabilities.</p>
+<img src="/images/WiFi-Heatmap-1.jpeg" alt="NetSpot download-speed heat map plotted across the Albuquerque residence" class="network-image">
+<p class="image-caption">NetSpot download-speed survey plotted against the home floor plan, with measurements collected throughout the residence and garage.</p>
 
 <h2 id="remote-network">Remote Network Management (Virginia)<a hidden class="anchor" aria-hidden="true" href="#remote-network">#</a></h2>
 
-<p>Fiber-to-the-home (FTTH) mesh deployment across a 3-story, 105-year-old residential structure with solid plaster and stone walls. Coverage optimization required accounting for both horizontal floor-to-floor propagation and vertical signal attenuation through century-old construction.</p>
+<p>The Virginia network serves a four-level, 105-year-old residence with thick walls and dense construction. Fiber service is delivered through a Calix gateway to a four-node eero Beacon mesh distributed between the basement, primary floors, and full-sized attic.</p>
 
 <img src="/images/IMG_6542.jpeg" alt="Virginia mesh node deployment" class="network-image">
-<p class="image-caption">Mesh node placement optimized for multi-floor coverage in solid construction</p>
+<p class="image-caption">An eero mesh node positioned to provide coverage through dense, multi-floor construction.</p>
 
 <img src="/images/IMG_6609.jpeg" alt="Additional Virginia mesh node" class="network-image">
-<p class="image-caption">Strategic node positioning accounts for wall density and vertical signal path</p>
+<p class="image-caption">A second eero node extending coverage between levels of the Virginia residence.</p>
 
-<p>A second isolated network was configured for home lab operations, running on dedicated infrastructure with no access to the primary residential network. All ethernet infrastructure was custom-built: individual wires stripped and terminated by hand, punched down into a patch panel, and validated with cable testing before deployment.</p>
-
-<img src="/images/IMG_4375.jpeg" alt="Patch panel with terminated ethernet cables" class="network-image">
-<p class="image-caption">Patch panel terminations - each cable hand-wired and tested</p>
-
-<img src="/images/IMG_4376.jpeg" alt="Close-up of punch-down connections" class="network-image">
-<p class="image-caption">Punch-down block connections for home lab network runs</p>
-
-<img src="/images/IMG_6178.jpeg" alt="Hand-crimped custom ethernet cables" class="network-image">
-<p class="image-caption">Custom-made ethernet cables with hand-crimped connectors - each wire terminated individually</p>
-
-<img src="/images/IMG_6218.jpeg" alt="Cable tester showing validation results" class="network-image">
-<p class="image-caption">Cable testing validation - confirming continuity and performance before deployment</p>
-
-<p>This network is managed remotely from over 1,800 miles away. Monitoring, configuration changes, and troubleshooting are handled entirely over the network itself - no physical access required.</p>
+<p>A dedicated router supports the IoT network used for remote control of the thermostat, lighting, and other household systems. The network is administered from Albuquerque, more than 1,800 miles away.</p>
 
 <h2 id="approach">Network Design Approach<a hidden class="anchor" aria-hidden="true" href="#approach">#</a></h2>
 
-<p>Networks aren't appliances. They're infrastructure that determines what's accessible, what's segmented, and where trust boundaries exist. Proper deployment requires understanding RF propagation, physical construction constraints, device isolation requirements, and long-term maintainability. The goal isn't just connectivity - it's controlled, segmented, validated connectivity that fails closed when things break.</p>
+<p>Each network decision is tied to a specific operational requirement: domain services remain inside the lab, remote administration uses Tailscale instead of inbound port forwarding, IoT devices receive separate controls, and wireless changes are evaluated through repeatable NetSpot surveys. Configuration claims are backed by direct testing, including Group Policy validation, Cowrie session logging, remote Proxmox administration from Greece, and recurring throughput and RF measurements.</p>
 
   </div>
 
@@ -391,75 +333,6 @@
             localStorage.setItem("pref-theme", 'dark');
         }
     })
-</script>
-<script>
-    (() => {
-        const menuToggle = document.getElementById("menu-toggle");
-        const menu = document.getElementById("menu");
-
-        if (!menuToggle || !menu) {
-            return;
-        }
-
-        document.documentElement.classList.add("js-menu-ready");
-
-        const closeMenu = (restoreFocus = false) => {
-            menuToggle.setAttribute("aria-expanded", "false");
-            menu.classList.remove("menu-open");
-
-            if (restoreFocus) {
-                menuToggle.focus();
-            }
-        };
-
-        menuToggle.addEventListener("click", () => {
-            const isOpen =
-                menuToggle.getAttribute("aria-expanded") === "true";
-
-            menuToggle.setAttribute(
-                "aria-expanded",
-                String(!isOpen)
-            );
-            menu.classList.toggle("menu-open", !isOpen);
-        });
-
-        menu.addEventListener("click", (event) => {
-            if (event.target.closest("a")) {
-                closeMenu();
-            }
-        });
-
-        document.addEventListener("click", (event) => {
-            const isOpen =
-                menuToggle.getAttribute("aria-expanded") === "true";
-
-            if (
-                isOpen &&
-                !menu.contains(event.target) &&
-                !menuToggle.contains(event.target)
-            ) {
-                closeMenu();
-            }
-        });
-
-        document.addEventListener("keydown", (event) => {
-            const isOpen =
-                menuToggle.getAttribute("aria-expanded") === "true";
-
-            if (event.key === "Escape" && isOpen) {
-                closeMenu(true);
-            }
-        });
-
-        const desktopQuery =
-            window.matchMedia("(min-width: 769px)");
-
-        desktopQuery.addEventListener("change", (event) => {
-            if (event.matches) {
-                closeMenu();
-            }
-        });
-    })();
 </script>
 </body>
 </html>
