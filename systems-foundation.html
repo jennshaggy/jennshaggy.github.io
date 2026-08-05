@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Systems | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Hardware rebuilds, unsupported operating systems, device recovery, legacy interfaces, and systems resurrected long after vendors declared them end of life.">
+<meta name="description" content="Hardware rebuilds, storage recovery, operating-system deployment, and long-term systems maintenance across current and legacy platforms.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/systems-foundation.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -74,12 +74,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/systems-foundation.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Systems">
-<meta property="og:description" content="Hardware rebuilds, unsupported operating systems, device recovery, legacy interfaces, and systems resurrected long after vendors declared them end of life.">
+<meta property="og:description" content="Hardware rebuilds, storage recovery, operating-system deployment, and long-term systems maintenance across current and legacy platforms.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Systems">
-<meta name="twitter:description" content="Hardware rebuilds, unsupported operating systems, device recovery, legacy interfaces, and systems resurrected long after vendors declared them end of life.">
+<meta name="twitter:description" content="Hardware rebuilds, storage recovery, operating-system deployment, and long-term systems maintenance across current and legacy platforms.">
 </head>
 
 <body id="top">
@@ -159,39 +159,56 @@
       Systems
     </h1>
     <div class="post-description">
-      Hardware rebuilds, unsupported operating systems, device recovery, legacy interfaces, and systems resurrected long after vendors declared them end of life.
+      Hardware rebuilds, storage recovery, operating-system deployment, and long-term systems maintenance across current and legacy platforms.
     </div>
     <div class="post-meta"></div>
   </header>
   <div class="post-content">
 
-<p>This is where the physical machines live: rebuilt desktops, "unsupported" operating-system installs, firmware repairs, driver archaeology, and devices assigned jobs they were not created to do.</p>
+<p>I am fascinated by systems. I would not say I “fix” them so much as I need to understand the sum of their parts. What broke? Can I break it deliberately to expose a weakness I can fortify? What can be saved, and how creatively can I save it without compromising its security posture?</p>
 
-<h2>Hardware rebuilds and recovery</h2>
+<p>The current lab architecture is documented on <a href="/networking.html">Networking</a>; this page focuses on the machines, storage, recovery work, and operating-system decisions beneath it.</p>
 
-<p>These projects document the machine, the failure or constraint, what I changed, and how I verified the result.</p>
-
-<ul>
-<li><a href="quietsite/systems-foundation/dell-optiplex-7020-rebuild.html">Dell OptiPlex 7020: Complete rebuild</a></li>
-<li><a href="quietsite/systems-foundation/dell-optiplex-teardown-rebuild.html">Dell OptiPlex: Complete teardown and rebuild</a></li>
-<li><a href="quietsite/systems-foundation/bios-config-validation.html">BIOS configuration and system validation</a></li>
-<li><a href="quietsite/systems-foundation/samsung-aio-updated.html">Samsung Series 7 AIO: Touchscreen resurrection</a></li>
-<li><a href="quietsite/systems-foundation/cyberpower-custom-build.html">CyberPowerPC: Custom build</a></li>
-</ul>
-
-<h2>Operating systems and virtualization</h2>
+<h2>Current systems</h2>
 
 <ul>
-<li><a href="quietsite/systems-foundation/asus-eebox-debian-conversion.html">Asus EeeBox: Debian Linux conversion</a></li>
-<li><a href="quietsite/systems-foundation/acer-aspire-hackintosh.html">Acer Aspire V5: Hackintosh build</a></li>
-<li><a href="quietsite/systems-foundation/virtualbox-vm-creation-dependency-fix.html">VirtualBox VM creation: Dependency repair</a></li>
+<li><strong>NucNano</strong>: Dedicated Proxmox virtualization host.</li>
+<li><strong>Nuc Sr.</strong>: Bare-metal Kali Linux and Windows 11 Pro system, with each operating system installed on a separate physical drive.</li>
+<li><strong>MacBook Pro</strong>: Primary administration and development workstation.</li>
+<li><strong>Dell Premium 16</strong>: Windows system reserved for professional and school environments.</li>
+<li><strong>Dell OptiPlex 7020 Tower</strong>: Professional Windows desktop and current rebuild platform.</li>
 </ul>
 
-<h2>Repair, repurpose, verify</h2>
+<h2>Storage failure and recovery</h2>
 
-<p>I have worked on hardware with missing documentation, abandoned drivers, and proprietary connectors. I have installed operating systems the manufacturers said had no chance of running on it. I start with what still works, identify the problem, and work my way through it one layer at a time.</p>
+<p>The Proxmox host's internal NVMe storage path began producing repeatable read errors during an emergency backup of the Windows Server 2025 domain controller. Six other virtual machines completed backups to tested external storage, while both the conventional backup and a direct disk conversion failed at the same region of the DC01 virtual disk. Kernel logs confirmed critical medium errors at the block layer.</p>
 
-<p>I prefer repair and repurposing when that is the technically sound decision. Sometimes the answer is a rebuild. Sometimes it is a firmware change, a different operating system, or an adapter I guarantee I already own. Other times, the machine has reached the end of its useful life. I let the evidence decide.</p>
+<p>I used <code>ddrescue</code> with a persistent mapfile to recover the readable data before retrying the damaged regions. The final image contained 61,440 unreadable bytes across four physical ranges. Filesystem analysis mapped the damage to three Windows files: <code>lsasrv.dll</code>, <code>MrmCoreR.dll</code>, and <code>qevbda.sys</code>. Those files were repaired from trusted Windows installation media.</p>
+
+<p>Recovery was validated beyond a successful boot. Active Directory Domain Services, DNS, Netlogon, DFS Replication, and related services were running; SYSVOL reached the normal state; domain-controller advertising and service tests passed; and the server completed a clean disk-only boot with networking restored. A validated rollback snapshot was retained after recovery.</p>
+
+<img src="/images/systems/dc01-recovery-validation.png" alt="PowerShell validation showing restored DC01 services running, SYSVOL state 4, and successful dcdiag tests" style="max-width:100%;margin:2rem 0 0.75rem;">
+<p class="image-caption">Post-recovery validation: required domain-controller services running, SYSVOL in state 4, and <code>dcdiag</code> advertising and services tests completed without reported errors.</p>
+
+<h2>Rebuilds and endpoint systems</h2>
+
+<p>The Dell OptiPlex 7020 was fully disassembled, cleaned, reassembled, and upgraded with additional memory and NVMe storage. BIOS and firmware settings were reviewed before Windows installation and system validation. It now serves as a professional Windows endpoint.</p>
+
+<h2>Legacy systems work</h2>
+
+<p>These are separate builds and recovery projects. Detailed case studies will be added only after the original notes, hardware identities, and photographs have been reconciled.</p>
+
+<ul>
+<li><strong>Samsung Series 7 all-in-one</strong>: Restored touchscreen operation after a Windows upgrade disrupted the original driver support.</li>
+<li><strong>Asus EeeBox</strong>: Repurposed low-power hardware with Debian Linux.</li>
+<li><strong>Acer Aspire</strong>: Configured unsupported laptop hardware to run macOS.</li>
+<li><strong>Asus EeePC</strong>: Completed and photographed a separate teardown and rebuild.</li>
+<li><strong>CyberPowerPC</strong>: Assembled and configured a custom desktop from individual components.</li>
+</ul>
+
+<h2>Systems approach</h2>
+
+<p>I use and care for hardware for as long as I can do so safely, securely, and reliably. My collection of technology beyond that point is vast and reserved for rainy-day projects. I thrive on the hunt for a different operating system, driver, cable, or adapter I already own. I let the machine tell me when its time is up.</p>
 
   </div>
   <footer class="post-footer">
