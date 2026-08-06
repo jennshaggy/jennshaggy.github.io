@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Penetration Testing | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<meta name="description" content="Penetration testing and CTF writeups spanning web applications, Active Directory, privilege escalation, binary exploitation, reverse engineering, cloud, and AI security.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/applied-projects.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -73,12 +73,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/applied-projects.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Penetration Testing">
-<meta property="og:description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<meta property="og:description" content="Penetration testing and CTF writeups spanning web applications, Active Directory, privilege escalation, binary exploitation, reverse engineering, cloud, and AI security.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Penetration Testing">
-<meta name="twitter:description" content="Hands-on penetration testing lab writeups covering web exploitation, privilege escalation, post-exploitation, and CTF challenges.">
+<meta name="twitter:description" content="Penetration testing and CTF writeups spanning web applications, Active Directory, privilege escalation, binary exploitation, reverse engineering, cloud, and AI security.">
 </head>
 
 <body id="top">
@@ -155,107 +155,59 @@
 <article class="post-single">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Penetration Testing</h1>
-    <div class="post-description">Lab writeups, CTF documentation, scripts, and offensive security projects from the problems I have worked through.</div>
+    <div class="post-description">Offensive security investigations across applications, identity, systems, binaries, cloud, and AI.</div>
   </header>
 
   <div class="post-content">
 
-<p>Each page follows the investigation as it happened: what I noticed, what I tried, what failed, what changed my direction, and what finally worked. The collection spans web exploitation, Active Directory, privilege escalation, reverse engineering, AI/ML security, and the occasional deeply cursed application.</p>
+<p>I have a relentless passion and unbridled curiosity for all things offensive security. Honing my skill set is a craft that takes time, discipline, learning from mistakes, and a good sense of humor.</p>
+
+<p>I document every investigation and challenge, including the occasional wrong turn. I trust my intuition and innate pattern-recognition skills, and I am never afraid to ask questions. Every solve equips me with new tools, techniques, and another anomaly to detect if it resurfaces.</p>
+
+<p>The work spans web application exploitation, Active Directory, Linux and Windows privilege escalation, binary exploitation and reverse engineering, network and OT security, and AI and machine learning security. It has also introduced me to a remarkable number of deeply cursed applications, all of which I find great joy in learning to navigate. I genuinely love what I do. I never run out of questions.</p>
 
 <p>Custom tools and scripts built during these engagements: <a href="/scripts/">Scripts &rarr;</a></p>
 
-<hr>
+<h2>Featured investigations</h2>
 
-<h2>TryHackMe</h2>
-
-<h3>CTF Challenges</h3>
 <ul>
-<li><a href="/daily-bugle.html">Daily Bugle</a> — Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, DB credential reuse, yum GTFOBins privesc to root</li>
-<li><a href="/decryptify.html">Decryptify</a> — JavaScript deobfuscation, invite code brute force, user enumeration, padding oracle attack</li>
-<li><a href="/valley-ctf.html">Valley</a> — credential exposure, PCAP analysis, UPX binary analysis, Python library hijack via cron</li>
-<li><a href="/jack-ctf.html">Jack</a> — WordPress enumeration, XML-RPC credential attack, User Role Editor privilege escalation via Burp, Akismet plugin reverse shell, SSH key extraction, Python os.py hijack for root</li>
-<li><a href="/operation-endgame.html">Operation Endgame</a> — Active Directory attack chain, Kerberoasting, credential spray, Bloodhound, targeted Kerberoast, plaintext credentials in PowerShell script, smbexec to SYSTEM</li>
-<li><a href="/ledger-ctf.html">Ledger</a> — Active Directory with certificate services, guest LDAP enumeration, shared password, RDP, ESC1 cert abuse via certipy, Administrator TGT, smbexec shell</li>
-<li><a href="/injects-ctf.html">Injects</a> — SQLi client-side filter bypass, recursive keyword obfuscation, mail.log credential recovery, table drop, admin access, SSTI via Twig CVE-2024-45411, RCE</li>
-<li><a href="/operation-takeover.html">Operation Takeover</a> — FRRouting Telnet VTY enumeration, Telnet IAC byte recognition, SNMP community string discovery via onesixtyone, write access confirmed, NET-SNMP-EXTEND-MIB RCE, root flag</li>
-<li><a href="/containment-ctf.html">ContAInment</a> — AI-assisted incident response, PCAP anomaly detection, prompt injection attack reconstruction, LLM jailbreak analysis, encrypted archive recovery</li>
-<li><a href="/cybercrafted.html">CyberCrafted</a> — subdomain enumeration, steganography detour, differential error user enumeration, SQLi credential dump, SSH key theft, john passphrase crack, Minecraft plugin log plaintext password, screen sudo privesc to root</li>
-<li><a href="/whats-your-name.html">What's Your Name</a> — JavaScript inspection, SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset</li>
-<li><a href="/surfer.html">Surfer</a> — default credential login, robots.txt credential leak, SSRF via export PDF hidden form input manipulation to fetch restricted internal endpoint</li>
-<li><a href="/matryoshka.html">Matryoshka</a> — Linux container escape, Docker socket exposure, Alpine chroot escape to Level 2, Docker-in-Docker via TLS remote daemon, inbox/outbox cron RCE on Level 3, privileged --pid=host flag read on real AWS host</li>
-<li><a href="/captchapocolypse.html">CAPTCHApocolypse</a> — Selenium browser automation, Tesseract OCR image-based CAPTCHA bypass, CSRF token handling, JavaScript login button via <code>By.ID</code> click, password brute force against protected login</li>
-<li><a href="/voyage.html">Voyage</a> — Joomla CVE-2023-23752 unauthenticated API credential leak, SSH into Container 1, internal network discovery, SSH port forwarding to hidden Flask app, insecure pickle deserialization RCE on Container 2, cap_sys_module kernel module escape to host root</li>
-<li><a href="/sequence.html">Sequence</a> — information disclosure via exposed mail dump, stored XSS with base64-encoded SVG onload payload, cookie theft to mod, CSRF via meta refresh redirect to escalate privileges, Burp feature parameter swap to access finance panel, PHP web shell upload, Docker socket abuse for host root</li>
-<li><a href="/padelify.html">Padelify</a> — WAF fingerprinting via ETag analysis, stored XSS with split-string concatenation bypass, cookie theft to moderator, URL-encoded LFI via live.php to exfiltrate ModSecurity-blocked config, admin credential reuse, cookie swap to admin dashboard</li>
-<li><a href="/farewell.html">Farewell</a> — WAF bypass via user-agent disguise, username enumeration via farewell message banner, Burp-captured password hint, Tokyo+4-digit brute force, stored XSS via farewell form to steal admin cookie, status.php backend reachability probe, single-character URL encoding to bypass WAF on admin.php</li>
-<li><a href="/operation-coldstart.html">Operation Coldstart</a> — anonymous FTP backup source leak, SSRF via /preview with allowed localhost hostname to reach restricted /admin/notes, SSH credentials from admin notes, tar wildcard privilege escalation via root cron to root flag</li>
-<li><a href="/kenobi.html">Kenobi</a> — anonymous SMB log.txt leak exposing ProFTPd version and SSH key path, mod_copy SITE CPFR/CPTO to stage key into NFS-exported /var, mount and SSH as kenobi, SUID /usr/bin/menu PATH hijack via fake curl in /tmp to root</li>
-<li><a href="/steel-mountain.html">Steel Mountain</a> — Rejetto HFS CVE-2014-6287 RCE for initial access, PowerUp and winPEAS discovery of AdvancedSystemCareService9 unquoted service path, malicious binary swap for SYSTEM, completed twice with Metasploit and entirely by hand</li>
-<li><a href="/game-zone.html">Game Zone</a> — SQLi login bypass, SQLMap dump of agent47 SHA-256 hash, John the Ripper crack, SSH, reverse SSH tunnel to expose firewall-blocked Webmin 1.580, Metasploit webmin_show_cgi_exec to root</li>
-<li><a href="/alfred.html">Alfred</a> — Jenkins default credential login, build-step RCE via Nishang PowerShell reverse shell, Meterpreter upgrade, incognito token impersonation of BUILTIN\Administrators, process migration into services.exe for stable SYSTEM, root flag</li>
-<li><a href="/skynet.html">Skynet</a> — SMB anonymous access yields log1.txt wordlist, Burp Intruder cracks Squirrelmail, email leaks Samba password, milesdyson share reveals hidden directory, Cuppa CMS LFI confirmed then escalated to RFI reverse shell, tar wildcard cron abuse to root</li>
-<li><a href="/overpass-2-hacked.html">Overpass 2: Hacked</a> — PCAP forensics reconstructs kill chain (PHP reverse shell upload, sudo privesc, SSH backdoor persistence), John cracks /etc/shadow, hashcat cracks attacker's backdoor hash with hardcoded salt, re-entry via attacker's own backdoor on port 2222, SUID bash to root</li>
-<li><a href="/hackpark.html">HackPark</a> — Hydra brute force on BlogEngine.NET login, CVE-2019-6714 path traversal RCE via crafted PostView.ascx, SystemScheduler binary replacement for Administrator shell, both flags pulled, winPEAS enumeration for full system context</li>
-<li><a href="/relevant.html">Relevant</a> — Black-box Windows pentest: anonymous SMB enumeration recovers Base64-encoded credentials, writable share maps to IIS virtual directory at port 49663, ASPX webshell upload for initial access, SeImpersonatePrivilege plus PrintSpoofer for SYSTEM, MS17-010 detected but not used</li>
-<li><a href="/internal.html">Internal</a> — Black-box Ubuntu pentest: gobuster finds WordPress at /blog/, Hydra brute-forces admin credentials, Theme Editor 404.php PHP reverse shell for initial access as www-data, plaintext credentials in /opt/wp-save.txt lateral movement to aubreanna, SSH tunnel exposes internal Jenkins, Groovy Script Console RCE, plaintext root credentials in Jenkins container, su to root</li>
-<li><a href="/brainstorm.html">Brainstorm</a> — FTP anonymous access yields chatserver.exe and essfunc.dll, buffer overflow fuzzing crash at 2800 bytes, cyclic pattern offset derivation, ROPgadget JMP ESP at 0x625014df in essfunc.dll, msfvenom Windows x86 reverse shell, root flag from drake&rsquo;s Desktop</li>
-<li><a href="/recruit-ctf.html">Recruit</a> — Nmap enumeration, gobuster directory discovery, Burp Suite intercept reveals /api.php, LFI via file:// scheme confirms /etc/passwd, mail.log HR credential pointer, file://config.php HR_PASSWORD extraction, SQLi confirmed via single-quote error, SQLMap recruit_db dump, admin credentials in plain text</li>
-<li><a href="/brainpan-1.html">Brainpan 1</a> — brainpan.exe downloaded via SimpleHTTPServer, buffer overflow fuzzing crash at 700 bytes, ROPgadget JMP ESP at 0x311712f3, msfvenom Linux x86 reverse shell despite Windows binary, shell as puck, sudo anansi_util pager escape to root</li>
-<li><a href="/kaboom.html">Kaboom</a> — Nmap OT port enumeration, Modbus TCP on port 502 with no authentication, pymodbus register and coil discovery, temperature register write to 65535, Coil 15 safety mechanism identification, cooling_obliterato.py coil control to achieve explosion state</li>
-<li><a href="/gatekeeper.html">Gatekeeper</a> — Custom TCP echo service on port 31337, buffer overflow fuzzing crash at 200 bytes, SMB enumeration yields gatekeeper.exe, ROPgadget JMP ESP at 0x080414c3 locally validated, msfvenom Windows x86 reverse shell, Firefox credential extraction via firefox_decrypt, impacket-psexec as mayor for SYSTEM</li>
-<li><a href="/ad-lateral-movement.html">Active Directory: Lateral Movement</a> — Five AD pivoting techniques on a shared lab environment: remote service creation via msfvenom exe-service payload, WMI MSI trigger via DCOM CimSession, pass-the-hash with mimikatz sekurlsa::pth, RDP session hijacking with PsExec64 and tscon, SSH tunnel port forwarding with Rejetto HFS exploit for shell on THMDC</li>
-<li><a href="/koth-shrek.html">KOTH: Shrek</a> — King of the Hill live competition on the Shrek box: robots.txt discloses RSA private key path, homepage Base64 comment reveals username shrek, FTP anonymous access, blank-line PEM fix with sed then SSH, SUID gdb Python setuid(0) for root shell, four flag files pulled</li>
-<li><a href="/ironhold.html">IronHold</a> — leaked Spring Boot source review, seeded officer credentials, SQL injection via UNION on an excessive case_files grant, profile overposting to WARDEN role, Java deserialization RCE via vulnerable Commons Collections, appuser shell to the facility server flag</li>
+<li><a href="/operation-endgame.html"><strong>Operation Endgame</strong></a>: Active Directory attack chain using Kerberoasting, credential spraying, BloodHound, targeted Kerberoasting, and SMB execution to SYSTEM.</li>
+<li><a href="/sequence.html"><strong>Sequence</strong></a>: Stored XSS, cookie theft, CSRF privilege escalation, parameter manipulation, web-shell upload, and Docker socket abuse to host root.</li>
+<li><a href="/voyage.html"><strong>Voyage</strong></a>: Joomla API credential disclosure, internal discovery, SSH tunneling, insecure pickle deserialization, and a Linux capability escape from containers to the host.</li>
+<li><a href="/gatekeeper.html"><strong>Gatekeeper</strong></a>: Windows buffer-overflow development, local exploit validation, credential extraction, and SMB execution to SYSTEM.</li>
+<li><a href="/ironhold.html"><strong>IronHold</strong></a>: Spring Boot source analysis, SQL injection, role overposting, and Java deserialization leading to remote code execution.</li>
+<li><a href="/containment-ctf.html"><strong>ContAInment</strong></a>: PCAP analysis, prompt-injection reconstruction, LLM jailbreak analysis, and encrypted evidence recovery.</li>
 </ul>
 
-<hr>
+<h2>Cyber Apocalypse 2026: The Salt Crown</h2>
 
-<h2>HackTheBox</h2>
+<p>Completed Hack The Box Cyber Apocalypse writeups:</p>
 
-<h3>CTF Challenges</h3>
 <ul>
-<li><a href="/cap.html">Cap</a> — IDOR on security dashboard leaks PCAP with plaintext FTP credentials, SSH reuse, Python cap_setuid capability to root</li>
+<li><a href="/mement0.html"><strong>Mement0</strong></a>: Recovered a deleted malicious Claude skill, traced its persistent project instructions, and reconstructed encrypted payload fragments from Git history.</li>
+<li><a href="/assay.html"><strong>Assay</strong></a>: Cloned a black-box classifier, transferred a constrained adversarial example, recovered a hidden backdoor specification, and forged a composite model.</li>
+<li><a href="/the-cinder-engine.html"><strong>The Cinder Engine</strong></a>: Recovered a custom virtual machine from a stripped ARM64 binary, built a Python disassembler and emulator, and inverted its eight-round validation transform.</li>
+<li><a href="/corpsyncaudit.html"><strong>CorpSyncAudit</strong></a>: Reversed a compromised Windows audit client and reconstructed a 396-byte x64 payload from fabricated timestamp and region records.</li>
+<li><a href="/archonyx.html"><strong>Archonyx</strong></a>: Chained an authenticated bot, query-parser differential, unsafe ZIP extraction, database replacement, and local Less plugin into server-side execution.</li>
+<li><a href="/signetry.html"><strong>Signetry</strong></a>: Chained token forgery, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a race condition to reach code execution.</li>
+<li><a href="/overstrike.html"><strong>Overstrike</strong></a>: Reversed a Godot C# mobile application, proved its legitimate seal state unreachable, inverted its transformation, and decrypted the protected registry.</li>
 </ul>
 
-<h3>Cyber Apocalypse 2026: The Salt Crown</h3>
+<h2>Writeup index</h2>
+
+<p>The collection below is organized by the system or attack surface being examined. Several investigations cross more than one category; each appears once here.</p>
+
+<h3>Active Directory and Windows</h3>
+
 <ul>
-<li><a href="/mement0.html">Mement0</a>: Recovered a deleted malicious Claude skill, traced its persistent project instructions, and reconstructed encrypted payload fragments from Git history.</li>
-<li><a href="/assay.html">Assay</a>: Cloned a black-box classifier, transferred a constrained adversarial example, recovered a hidden backdoor specification, and forged a composite model.</li>
-<li><a href="/the-cinder-engine.html">The Cinder Engine</a>: Recovered a custom VM from a stripped ARM64 binary, built a Python disassembler and emulator, and inverted its eight-round validation transform.</li>
-<li><a href="/corpsyncaudit.html">CorpSyncAudit</a>: Reversed a compromised Windows audit client that falsified replication logs and reconstructed a 396-byte x64 payload from 99 fabricated timestamp and region records.</li>
-<li><a href="/archonyx.html">Archonyx</a>: Chained an authenticated Warden bot, a query-parser differential, unsafe ZIP extraction, database replacement, and a local Less plugin into server-side execution.</li>
-<li><a href="/signetry.html">Signetry</a>: Chained a forgeable password-reset token, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a finalize-withdraw race to reach code execution in the model registry.</li>
-<li><a href="/overstrike.html">Overstrike</a>: Reversed a Godot C# mobile application, proved its legitimate seal state unreachable, inverted the SplitMix64-style transformation, and decrypted the protected registry.</li>
-</ul>
-
-<hr>
-
-<h2>Google CTF Beginner&rsquo;s Quest</h2>
-
-<h3>CTF Challenges</h3>
-<ul>
-<li><a href="/guess-password-easy.html">Guess Password Easy</a> — null-byte strncmp collision against SHA-256 digests, three solves escalating from local black box subprocess to persistent pexpect live session, flag via ~1/256 per-round collision probability</li>
-</ul>
-
-<hr>
-
-<h3>Privilege Escalation</h3>
-
-<h4><a href="/linux-privesc.html">Linux Privilege Escalation</a></h4>
-<p>Seven vectors, real exploitation, first successful local root.</p>
-<ul>
-<li><a href="/linux-privesc-kernel.html">Kernel Exploit — CVE-2015-1328</a></li>
-<li><a href="/linux-privesc-sudo.html">Sudo Misconfiguration</a></li>
-<li><a href="/linux-privesc-suid.html">SUID Abuse — base64</a></li>
-<li><a href="/linux-privesc-capabilities.html">Capabilities — vim cap_setuid</a></li>
-<li><a href="/linux-privesc-cron.html">Cron Job Hijack</a></li>
-<li><a href="/linux-privesc-path.html">PATH Hijacking</a></li>
-<li><a href="/linux-privesc-nfs.html">NFS no_root_squash</a></li>
-</ul>
-
-<h4><a href="/windows-privesc.html">Windows Privilege Escalation</a></h4>
-<p>Five vectors from low-privilege user to SYSTEM.</p>
-<ul>
+<li><a href="/operation-endgame.html">Operation Endgame</a></li>
+<li><a href="/ledger-ctf.html">Ledger</a></li>
+<li><a href="/ad-lateral-movement.html">Active Directory: Lateral Movement</a></li>
+<li><a href="/relevant.html">Relevant</a></li>
+<li><a href="/steel-mountain.html">Steel Mountain</a></li>
+<li><a href="/alfred.html">Alfred</a></li>
+<li><a href="/hackpark.html">HackPark</a></li>
+<li><a href="/windows-privesc.html">Windows Privilege Escalation</a></li>
 <li><a href="/windows-privesc-credentials.html">Stored Credentials</a></li>
 <li><a href="/windows-privesc-scheduled-tasks.html">Scheduled Task Abuse</a></li>
 <li><a href="/windows-privesc-service-exe.html">Service Executable Permissions</a></li>
@@ -263,37 +215,76 @@
 <li><a href="/windows-privesc-service-dacl.html">Insecure Service DACL</a></li>
 </ul>
 
-<hr>
+<h3>Web applications and APIs</h3>
 
-<h3>Web Exploitation</h3>
 <ul>
-<li><a href="/upload-vulnerabilities.html">Upload Vulnerabilities</a> — file upload bypass, client-side filter bypass, magic number spoofing, Node/Express backend exploitation</li>
-<li><a href="/burp-suite.html">Burp Suite</a> — header injection, union-based SQLi, Burp Macros + CSRF brute force</li>
+<li><a href="/daily-bugle.html">Daily Bugle</a></li>
+<li><a href="/decryptify.html">Decryptify</a></li>
+<li><a href="/jack-ctf.html">Jack</a></li>
+<li><a href="/injects-ctf.html">Injects</a></li>
+<li><a href="/cybercrafted.html">CyberCrafted</a></li>
+<li><a href="/whats-your-name.html">What's Your Name</a></li>
+<li><a href="/surfer.html">Surfer</a></li>
+<li><a href="/captchapocolypse.html">CAPTCHApocolypse</a></li>
+<li><a href="/sequence.html">Sequence</a></li>
+<li><a href="/padelify.html">Padelify</a></li>
+<li><a href="/farewell.html">Farewell</a></li>
+<li><a href="/operation-coldstart.html">Operation Coldstart</a></li>
+<li><a href="/game-zone.html">Game Zone</a></li>
+<li><a href="/skynet.html">Skynet</a></li>
+<li><a href="/internal.html">Internal</a></li>
+<li><a href="/recruit-ctf.html">Recruit</a></li>
+<li><a href="/ironhold.html">IronHold</a></li>
+<li><a href="/upload-vulnerabilities.html">Upload Vulnerabilities</a></li>
+<li><a href="/burp-suite.html">Burp Suite</a></li>
 </ul>
 
-<hr>
+<h3>Linux, containers, and privilege escalation</h3>
 
-<h3>Post-Exploitation</h3>
 <ul>
-<li><a href="/meterpreter.html">Metasploit: Meterpreter</a> — session management, architecture mismatch debugging, hashdump, NTLM cracking, targeted file discovery</li>
+<li><a href="/valley-ctf.html">Valley</a></li>
+<li><a href="/matryoshka.html">Matryoshka</a></li>
+<li><a href="/voyage.html">Voyage</a></li>
+<li><a href="/kenobi.html">Kenobi</a></li>
+<li><a href="/overpass-2-hacked.html">Overpass 2: Hacked</a></li>
+<li><a href="/koth-shrek.html">KOTH: Shrek</a></li>
+<li><a href="/linux-privesc.html">Linux Privilege Escalation</a></li>
+<li><a href="/linux-privesc-kernel.html">Kernel Exploit: CVE-2015-1328</a></li>
+<li><a href="/linux-privesc-sudo.html">Sudo Misconfiguration</a></li>
+<li><a href="/linux-privesc-suid.html">SUID Abuse: base64</a></li>
+<li><a href="/linux-privesc-capabilities.html">Capabilities: vim cap_setuid</a></li>
+<li><a href="/linux-privesc-cron.html">Cron Job Hijack</a></li>
+<li><a href="/linux-privesc-path.html">PATH Hijacking</a></li>
+<li><a href="/linux-privesc-nfs.html">NFS no_root_squash</a></li>
 </ul>
 
-<hr>
+<h3>Binary exploitation, reversing, and cryptography</h3>
 
-<h2>SANS Institute</h2>
-
-<h3>Baker221b — Mysteries in the Cloud</h3>
-<p>Cloud incident response workshop across four cases covering Azure, Microsoft 365, AWS, and GCP.</p>
 <ul>
-<li><a href="/baker221b-warmup.html">Azure Activity and Terminal Warmup</a></li>
-<li><a href="/baker221b-phishing.html">Cloud Account Compromise via Phishing</a> — Evilginx AiTM, user-agent pivot, M365 destructive activity</li>
-<li><a href="/baker221b-aws-key.html">Stolen Access Key from Source Code Repository</a> — TruffleHog, git history forensics, CloudTrail S3 pivot</li>
-<li><a href="/baker221b-gcp-shadow-it.html">Shadow IT in GCP Account</a> — inventory diff, asset type validation, VPC flow log analysis</li>
+<li><a href="/brainstorm.html">Brainstorm</a></li>
+<li><a href="/brainpan-1.html">Brainpan 1</a></li>
+<li><a href="/gatekeeper.html">Gatekeeper</a></li>
+<li><a href="/guess-password-easy.html">Google CTF: Guess Password Easy</a></li>
 </ul>
 
-<hr>
+<h3>AI and machine learning security</h3>
 
-<p><em>Updated as labs are completed. Active Directory coverage coming soon.</em></p>
+<ul>
+<li><a href="/containment-ctf.html">ContAInment</a></li>
+</ul>
+
+<h3>Network, OT, cloud, and post-exploitation</h3>
+
+<ul>
+<li><a href="/operation-takeover.html">Operation Takeover</a></li>
+<li><a href="/kaboom.html">Kaboom</a></li>
+<li><a href="/cap.html">Cap</a></li>
+<li><a href="/meterpreter.html">Metasploit: Meterpreter</a></li>
+<li><a href="/baker221b-warmup.html">Baker221b: Azure Activity and Terminal Warmup</a></li>
+<li><a href="/baker221b-phishing.html">Baker221b: Cloud Account Compromise via Phishing</a></li>
+<li><a href="/baker221b-aws-key.html">Baker221b: Stolen AWS Access Key</a></li>
+<li><a href="/baker221b-gcp-shadow-it.html">Baker221b: Shadow IT in GCP</a></li>
+</ul>
 
   </div>
 

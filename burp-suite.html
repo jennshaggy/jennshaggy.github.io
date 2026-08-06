@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Burp Suite | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe — Burp Suite hands-on work covering header injection, union-based SQLi via Repeater, and Burp Macros with CSRF brute force.">
+<meta name="description" content="TryHackMe: Burp Suite hands-on work covering header injection, union-based SQLi via Repeater, and Burp Macros with CSRF brute force.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/burp-suite.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -153,7 +153,7 @@
 
 <pre><code>Browser &lt;&gt; Burp Proxy &lt;&gt; Web Server</code></pre>
 
-<p>Browser needs to route through it — <code>127.0.0.1:8080</code>. FoxyProxy handles the toggle. For HTTPS, grab Burp's CA cert from <code>http://burp/cert</code> and install it, otherwise encrypted traffic stays encrypted and you're watching nothing. There's also a built-in Chromium browser under Proxy &rarr; Open Browser that comes pre-configured if you don't want to mess with FoxyProxy.</p>
+<p>Browser needs to route through it: <code>127.0.0.1:8080</code>. FoxyProxy handles the toggle. For HTTPS, grab Burp's CA cert from <code>http://burp/cert</code> and install it, otherwise encrypted traffic stays encrypted and you're watching nothing. There's also a built-in Chromium browser under Proxy &rarr; Open Browser that comes pre-configured if you don't want to mess with FoxyProxy.</p>
 
 <p>The tools that actually matter for hands-on work: Proxy, Repeater, Intruder.</p>
 
@@ -175,7 +175,7 @@
 
 <h2>Union-Based SQLi via Repeater</h2>
 
-<p>Target: <code>/about/{id}</code> — takes numeric IDs. Let's see what happens when it doesn't get one:</p>
+<p>Target: <code>/about/{id}</code>. It takes numeric IDs. Let's see what happens when it doesn't get one:</p>
 
 <pre><code>GET /about/2'</code></pre>
 
@@ -212,8 +212,6 @@ WHERE id = 1</code></pre>
 <p>Used Burp Macros to automate credential stuffing against a login protected by CSRF token rotation. The macro fetches a fresh token and session cookie before each Intruder request so the attack stays valid across the rotation.</p>
 
 <img src="/images/burp-suite/Screenshot 2026-03-19 at 8.47.28 AM.png" alt="Burp Macros configured for CSRF token rotation in credential stuffing attack" style="max-width:100%;margin:1rem 0;">
-
-<p><em>Full Intruder writeup pending — room content to be added.</em></p>
 
   </div>
   <footer class="post-footer"></footer>
