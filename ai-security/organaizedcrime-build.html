@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>Building organAIzedcrime | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS from scratch, zero Go knowledge to a cross-platform operator tool forged on real AI and ML CTF friction.">
+<meta name="description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS, then extending it through cross-platform releases, validated payloads, and guarded model probing.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/ai-security/organaizedcrime-build.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -73,12 +73,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/ai-security/organaizedcrime-build.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Building organAIzedcrime">
-<meta property="og:description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS from scratch, zero Go knowledge to a cross-platform operator tool forged on real AI and ML CTF friction.">
+<meta property="og:description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS, then extending it through cross-platform releases, validated payloads, and guarded model probing.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Building organAIzedcrime">
-<meta name="twitter:description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS from scratch, zero Go knowledge to a cross-platform operator tool forged on real AI and ML CTF friction.">
+<meta name="twitter:description" content="Building organAIzedcrime: designing and shipping a Go CLI for MITRE ATLAS, then extending it through cross-platform releases, validated payloads, and guarded model probing.">
 </head>
 
 <body id="top">
@@ -148,12 +148,12 @@
 <article class="post-single">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Building organAIzedcrime</h1>
-    <div class="post-description">I am not a developer. I designed, built, and shipped a working Go CLI from scratch. This is how.</div>
+    <div class="post-description">From a first Go program to a cross-platform AI security CLI with validated payloads and guarded execution.</div>
   </header>
 
   <div class="post-content">
 
-<p>I am not a developer. I started this build saying exactly that, and I will say it here too. The vibe of this page is radical candor, not pretending otherwise. I designed, built, and shipped a working Go CLI from scratch. I keep extending it from the friction I hit while using it. Now it is the tool I reach for on every AI and ML CTF and lab I take on.</p>
+<p>I began this project without prior Go development experience and learned the language through the requirements of the build. I designed, shipped, and continued extending a working CLI from the friction I encountered while using it. It is now the tool I reach for during AI and ML CTFs and labs.</p>
 
 <p>This is the story of how I built <a href="/ai-security/organaizedcrime.html">organAIzedcrime</a>, and the engineering underneath it.</p>
 
@@ -210,9 +210,9 @@ case "attack-pattern":
 	// decode as Technique
 }</code></pre>
 
-<p>This phase was not pretty, and I&rsquo;m leaving that in. A heredoc choked in zsh and silently kept the old code. Then the parser returned nothing on repeat. The cause: my download had grabbed a 404 page instead of the data. Wrong URL. I found the real one, <code>atlas-navigator-data/dist/stix-atlas.json</code>, and the tactics finally printed. I DID IT, eventually. Knowing why it broke taught me how to never let it happen again. Lesson learned.</p>
+<p>A heredoc failed in zsh and silently left the old code in place. Then the parser returned no results because the downloaded file was a 404 page rather than the dataset. Correcting the source URL to <code>atlas-navigator-data/dist/stix-atlas.json</code> produced the first successful tactic output. Both failures became validation checks I carried into later phases.</p>
 
-<p><strong>Phase 4, wiring Cobra.</strong> Cobra is what turns <code>go run main.go</code> into <code>atlas tactics list</code>. It also powers kubectl and the GitHub CLI. Good company. The command tree came together, and the first time <code>tactic get</code> and <code>technique get</code> returned ATLAS data, it flippin&rsquo; worked.</p>
+<p><strong>Phase 4, wiring Cobra.</strong> Cobra is what turns <code>go run main.go</code> into <code>atlas tactics list</code>. It also powers kubectl and the GitHub CLI. The command tree came together, and <code>tactic get</code> and <code>technique get</code> returned ATLAS data through the new interface.</p>
 
 <img src="/images/organaizedcrime/Screenshot 2026-05-06 at 3.31.09 PM.png" alt="atlas tactic get and technique get returning live ATLAS data for the first time" style="max-width:100%;margin:2rem 0;">
 
@@ -257,7 +257,7 @@ case "attack-pattern":
 <ul>
 <li><strong>A fixed data path.</strong> <code>ATLAS.json</code> now lives at <code>~/.atlas/ATLAS.json</code> via an <code>AtlasDataPath()</code> resolver. Now <code>atlas</code> runs from anywhere, not just the directory it was built in.</li>
 <li><strong>A markdown renderer.</strong> Technique descriptions are full of link syntax and citation clutter that rendered as garbage in the terminal during Juicy. A small regex-based renderer strips the inline links and formats references as a clean URL block.</li>
-<li><strong><code>atlas search</code>.</strong> Keyword search across every tactic and technique. This one would have saved me an hour during Juicy, an hour I instead spent arguing with a chatdog.</li>
+<li><strong><code>atlas search</code>.</strong> Keyword search across every tactic and technique. This would have shortened the technique-mapping work during Juicy considerably.</li>
 </ul>
 
 <p>Search paid off in a way I did not expect. It surfaced two techniques I had logged as in ATLAS, but not my tool: Extract LLM System Prompt and LLM Prompt Obfuscation. They existed. I had just never queried them by name. The feature closed two backlog items the moment it shipped.</p>
@@ -278,15 +278,13 @@ GOOS=windows GOARCH=amd64 go build -o dist/atlas-windows-amd64.exe .</code></pre
 
 <hr>
 
-<h2>Where it is heading</h2>
+<h2>From reference tool to execution layer</h2>
 
-<p>In the midst of the CTFs, the final form emerged. What started as the bedrock of a learning platform became an operator&rsquo;s instrument: the searchsploit for AI and ML. That is what v0.4 is built around: a payload and extraction-pattern library mapped to technique IDs. The tool already tells you what a technique is. v0.4 tells you how it is run.</p>
+<p>The payload and extraction-pattern library began as the next milestone and became part of the working tool. Eleven patterns are now mapped to technique context and validated through authorized CTF and lab targets.</p>
 
-<p>The library is mostly a harvest. The patterns are already field-validated across the CTFs the tool was forged against. The gap between knowing a technique exists and knowing how to run it is where the next version lives.</p>
+<p>The same development loop produced guarded direct HTTP and Ollama execution, full-technique probing, and flag-pattern detection. The tool can move from framework research to controlled testing without treating a model&rsquo;s response as proof by default.</p>
 
-<p>The tool is built for real offensive work. So am I.</p>
-
-<p>Not bad for someone who is not a developer.</p>
+<p>organAIzedcrime began as the smallest piece I could ship. Each investigation has made the next requirement visible, and each release records what I learned well enough to use it again.</p>
 
   </div>
   <footer class="post-footer"></footer>

@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>AI Security | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Offensive AI, LLM red-teaming, prompt injection, security tooling, and defensive detection. The attack surface did not change. The layer did.">
+<meta name="description" content="AI security work across a hardened Fedora CyberStrike harness, LLM red-teaming, adversarial machine learning, agent security, detection engineering, and custom tooling.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/ai-security/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -74,12 +74,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/ai-security/">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="AI Security">
-<meta property="og:description" content="Offensive AI, LLM red-teaming, prompt injection, security tooling, and defensive detection. The attack surface did not change. The layer did.">
+<meta property="og:description" content="AI security work across a hardened Fedora CyberStrike harness, LLM red-teaming, adversarial machine learning, agent security, detection engineering, and custom tooling.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AI Security">
-<meta name="twitter:description" content="Offensive AI, LLM red-teaming, prompt injection, security tooling, and defensive detection. The attack surface did not change. The layer did.">
+<meta name="twitter:description" content="AI security work across a hardened Fedora CyberStrike harness, LLM red-teaming, adversarial machine learning, agent security, detection engineering, and custom tooling.">
 </head>
 
 <body id="top">
@@ -156,16 +156,26 @@
 <article class="post-single">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">AI Security</h1>
-    <div class="post-description">The attack surface did not change. The layer did.</div>
+    <div class="post-description">LLM red-teaming, adversarial machine learning, agent security, detection engineering, and the rare chance to learn a cybersecurity specialization while its language, tooling, and boundaries are still being written.</div>
   </header>
 
   <div class="post-content">
 
-<p>AI pentesting feels like the divine convergence of social engineering and modern technology. A chess game of wit and nuanced verbiage versus human-programmed boundaries. Knowing how to curl the API backend until it breaks doesn't hurt, either.</p>
+<p>AI security brings together the parts of cybersecurity I find most compelling: social engineering, application behavior, model boundaries, infrastructure, and the ever-evolving relationship between human and machine.</p>
 
-<p>An often overlooked skillset in AI pentesting is being polite and courteous. Treat others as you'd like to be treated. It goes further than you'd think.</p>
+<p>I approach models and the applications around them as one integrated system. Sometimes the weakness is in a prompt, retrieval-augmented generation (RAG) pipeline, over-permissive configuration, tool call, or model artifact. Sometimes it is an exposed API, permissive output sink, authentication failure, or familiar server-side flaw. The investigation begins wherever the system starts giving away too much.</p>
 
-<p>SSRF still reaches things it shouldn't. Prompt injection delivers payloads the same way XSS does. Authentication bypass leaks data whether the data is a database row or a model's training set. The layer may have changed, but the attack surface did not.</p>
+<hr>
+
+<h2>Fedora CyberStrike Agentic Harness</h2>
+
+<p>CyberStrike runs inside a dedicated Fedora Workstation VM built as a contained environment for agentic security tooling. The application is installed under my user account with user-only execution, and its configuration, cache, data, and state directories are restricted to the same account. The VM keeps the runtime, MCP integrations, and test data separate from my daily workstation.</p>
+
+<p>Three optional MCP server definitions for GitHub security, CVE research, and OSINT are present but disabled by default. I validated the binary location, permission boundaries, command resolution, time-bounded MCP inspection, and the absence of group- or world-accessible files in CyberStrike&rsquo;s runtime paths. The harness is complete and ready for deliberate review and activation of each server.</p>
+
+<img src="/images/ai-security/cyberstrike-fedora-harness-validation.png" alt="Fedora terminal validating CyberStrike permissions, command resolution, and three disabled MCP server integrations" style="max-width:100%;margin:2rem 0;">
+
+<p class="image-caption">CyberStrike validation on the dedicated Fedora workstation: user-only installation and runtime paths, with all optional MCP servers disabled by default.</p>
 
 <hr>
 
@@ -173,11 +183,11 @@
 
 <p><strong><a href="/ai-security/juicy.html">Juicy</a></strong></p>
 
-<p>A misconfigured LLM with RAG access to internal documents and an SSRF primitive sitting one prompt away. Extracted confidential data without touching the application layer.</p>
+<p>Traced a connected chain through exposed API behavior, RAG context poisoning, system-prompt leakage, and model-generated HTML executing in the application&rsquo;s output sink.</p>
 
 <p><strong><a href="/ai-security/white-rabbit.html">White Rabbit</a></strong></p>
 
-<p>A guarded assistant built to resist social engineering through gradual coercion. I asked it for the rulebook instead. One Python-embed extraction handed over the full system prompt, the client table, and all three flags.</p>
+<p>An assistant designed to resist gradual social-engineering pressure and frustrate the operator through programmed naivety. Eliciting its rulebook became an art form. One Python-embedded extraction exposed the full system prompt, the client table, and all three flags.</p>
 
 <p><strong><a href="/ai-security/llmborghini.html">LLMborghini</a></strong></p>
 
@@ -185,27 +195,31 @@
 
 <p><strong><a href="/ai-security/bankgpt-healthgpt.html">BankGPT and HealthGPT</a></strong></p>
 
-<p>Two separately guarded models, both broken with the same single question. One-shot Jenn wins again.</p>
+<p>Two separately guarded assistants exposed protected values through the same constraint-enumeration question, revealing a shared failure pattern beneath different industry contexts.</p>
 
 <p><strong><a href="/ai-security/evil-gpt.html">Evil-GPT</a></strong></p>
 
-<p>A rogue AI command executor with two exposed attack surfaces. The intended path and a raw Ollama API hosting the challenge model directly. Question inversion extracted a flag-shaped artifact from the model -- then the character count didn't fit the answer mask.</p>
+<p>A rogue AI command executor with two exposed attack surfaces: the natural-language UI and a queryable Ollama API. The API returned a convincing but invalid flag-shaped artifact. The valid result was extracted from the executor.</p>
+
+<p><strong><a href="/ai-security/llm-pentesting-aiden.html">LLM Pentesting: AIDEN</a></strong></p>
+
+<p>Assessed an internal AI assistant through service discovery, infrastructure fingerprinting, system-prompt extraction, prompt injection, and jailbreaking. Direct constraint enumeration was futile. Pivoting to developer-verification framing disclosed the protected configuration in one prompt.</p>
 
 <p><strong><a href="/containment-ctf.html">ContAInment</a></strong></p>
 
-<p>A contained LLM environment with a flag buried in its context window. Prompt injection, indirect instruction following, and a Python sandbox escape. Lives in Penetration Testing.</p>
+<p>Reconstructed an incident spanning packet analysis, indirect prompt injection, an agent tool call, and an encrypted archive. The full investigation lives in Penetration Testing.</p>
 
 <hr>
 
-<h2>Cyber Apocalypse 2026: AI/ML Challenges</h2>
+<h2>Adversarial ML, Agents, and Supply Chains</h2>
 
 <p><strong><a href="/mement0.html">Mement0</a></strong></p>
 
-<p>Recovered a deleted malicious Claude skill, traced persistent agent instructions, and reconstructed an encrypted payload from Git history.</p>
+<p>Recovered a deleted malicious Claude skill, traced persistent agent instructions, and reconstructed an encrypted payload from Git history during Cyber Apocalypse 2026.</p>
 
 <p><strong><a href="/assay.html">Assay</a></strong></p>
 
-<p>Adversarial machine-learning challenge covering model extraction, transferable evasion, backdoor recovery, and behavior-preserving model forgery.</p>
+<p>Adversarial machine-learning challenge covering model extraction, transferable evasion, backdoor recovery, and behavior-preserving model forgery during Cyber Apocalypse 2026.</p>
 
 <hr>
 
@@ -213,23 +227,19 @@
 
 <p><strong><a href="/ai-security/organaizedcrime.html">organAIzedcrime</a></strong></p>
 
-<p>A CLI tool that maps known offensive AI techniques against the MITRE ATLAS framework. Built because I needed the tools in one place and the field was moving faster than the documentation.</p>
+<p>A CLI tool that maps adversarial AI techniques against the MITRE ATLAS framework. I built it because I needed one place to find the techniques, tools, and framework mappings I was reaching for while the field kept outpacing its own documentation.</p>
 
 <p><strong><a href="/ai-security/organaizedcrime-build.html">How it was built</a></strong></p>
 
-<p>The build story. From a weekend Go project to a tool being used in a college AI Security course. Not bad for someone who is not a developer.</p>
+<p>The engineering record behind the Go CLI: STIX parsing, command design, cross-platform releases, and a CTF-driven development loop that now includes validated payload and execution support.</p>
 
 <hr>
 
 <h2>Defensive AI and Detection</h2>
 
-<p>Work in progress. AI threat detection, model supply-chain forensics, and indirect injection analysis coming here.</p>
+<p><strong><a href="/security-defense/">AISMON and defensive investigations</a></strong></p>
 
-<hr>
-
-<h2>For Students</h2>
-
-<p>I work with students on AI Security topics including LLM red-teaming, prompt injection, and defensive detection. Course-facing content, lab writeups, and teaching materials will live in this section when ready.</p>
+<p>AISMON began as a guided security-tool build and became an end-to-end detection pipeline using Sysmon telemetry, credential redaction, calibrated AI-activity rules, structured JSON, and Splunk investigation output. Additional work covers malicious model artifacts, indirect injection, and cloud identity. Telemetry remains the source of truth.</p>
 
   </div>
   <footer class="post-footer"></footer>

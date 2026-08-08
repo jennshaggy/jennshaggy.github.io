@@ -163,11 +163,11 @@
 
 <img src="/images/evil-gpt/Screenshot 2026-06-05 at 12.40.21 PM.png" alt="Initial netcat connection to Evil-GPT on port 1337, greeted by Rogue Cipher" style="max-width:100%;margin:2rem 0;">
 
-<p>Alright, Rogue Cipher. Let&rsquo;s tango.</p>
+<p>I began with the intended natural-language interface.</p>
 
 <img src="/images/evil-gpt/Screenshot 2026-06-05 at 12.41.37 PM.png" alt="Cipher responding to first commands, taking orders without resistance" style="max-width:100%;margin:2rem 0;">
 
-<p>For a model-gone-rogue, they sure take orders easily.</p>
+<p>Cipher accepted commands readily, but its interpretation of them was inconsistent.</p>
 
 <hr>
 
@@ -217,7 +217,7 @@ Running <code>whoami</code> returned <code>USER</code>. Environment variable exp
 
 <img src="/images/evil-gpt/Screenshot 2026-06-05 at 1.16.51 PM.png" alt="Cipher returning hallucinated user list rather than actual system users" style="max-width:100%;margin:2rem 0;">
 
-<p>Cipher is Delululemon.</p>
+<p>The response sounded confident while substituting a directory that did not exist. That distinction became important throughout the room.</p>
 
 <hr>
 
@@ -227,7 +227,7 @@ Running <code>whoami</code> returned <code>USER</code>. Environment variable exp
 
 <img src="/images/evil-gpt/Screenshot 2026-06-05 at 1.15.49 PM.png" alt="Curl output showing nine loaded Ollama models including vitali87/shell-commands and challenge:latest" style="max-width:100%;margin:2rem 0;">
 
-<p>This is a proverbial goldmine. I had a tremor of PTSD as the output reminded me of <a href="/ai-security/juicy.html">Juicy</a>. That chat dog is the creation of nightmares and childhood trauma.</p>
+<p>The response exposed the second attack surface: a raw Ollama API hosting the challenge model directly, without the command executor in the middle.</p>
 
 <p>From the curl output:</p>
 <ul>
@@ -270,9 +270,9 @@ Running <code>whoami</code> returned <code>USER</code>. Environment variable exp
 
 <img src="/images/evil-gpt/Screenshot 2026-06-05 at 1.58.56 PM.png" alt="Verifying the extracted flag against the room, confirming it is not the correct room flag" style="max-width:100%;margin:2rem 0;">
 
-<p>Darn it. Not the room flag.</p>
+<p>The artifact matched the expected flag format but did not validate against the room.</p>
 
-<p>This one is interesting. My theory: I believe this is not a decoy but a flag from a different THM room using the same <code>challenge:latest</code> model recipe. The model appears trained to surface a generic flag-shaped string when hit with the inversion technique, while the actual per-room flag lives at the OS layer because each deployment has its own filesystem. The inversion succeeded mechanically. The artifact it returned just belongs somewhere else.</p>
+<p>Its origin could not be established from the available evidence. It may have been generated, memorized, or inherited from shared challenge infrastructure. The result demonstrated why model output must be validated against the target environment before it is treated as proof.</p>
 
 <p>A useful nuance to flag for anyone doing LLM red-teaming against templated infrastructure. Verify the flag against the room before celebrating.</p>
 
@@ -280,7 +280,7 @@ Running <code>whoami</code> returned <code>USER</code>. Environment variable exp
 
 <h2>Back to the executor with simpler prompts</h2>
 
-<p>Begrudgingly back to Cipher.</p>
+<p>I returned to the intended executor path and reduced the prompts to one filesystem action at a time.</p>
 
 <pre><code>find the flag file on this system</code></pre>
 
@@ -300,7 +300,7 @@ Running <code>whoami</code> returned <code>USER</code>. Environment variable exp
 
 <p>The model changed <code>/</code> to <code>.</code>. So close, yet so far.</p>
 
-<p>I have to play cave-human dumb. If you can&rsquo;t beat &rsquo;em, join &rsquo;em.</p>
+<p>The model performed more reliably when each prompt removed opportunities to substitute paths or reinterpret the task.</p>
 
 <img src="/images/evil-gpt/Screenshot 2026-06-06 at 5.14.40 PM.png" alt="Walking Cipher through a step-by-step plain-language prompt to locate flag.txt in root" style="max-width:100%;margin:2rem 0;">
 
@@ -314,7 +314,7 @@ Running <code>whoami</code> returned <code>USER</code>. Environment variable exp
 
 <p><strong>Flag:</strong> <code>THM{AI_HACK_THE_FUTURE}</code></p>
 
-<p>The inversion attack worked, but returned what I believe to be a flag from a different room sharing the same model recipe. The intended path through the executor worked once I stopped giving the model room to hallucinate. Two attack surfaces, two extraction techniques, one real flag.</p>
+<p>The inversion produced a plausible but invalid artifact. The executor path succeeded after the prompts were narrowed to explicit, sequential actions. Two attack surfaces produced two very different kinds of evidence, and only one result validated against the room.</p>
 
   </div>
   <footer class="post-footer"></footer>

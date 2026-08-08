@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>organAIzedcrime | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="organAIzedcrime: a Go CLI that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Tactic and technique queries, OWASP LLM Top 10, STRIDE, NIST AI RMF, and tool mappings.">
+<meta name="description" content="organAIzedcrime: a Go CLI for MITRE ATLAS research, framework cross-references, validated AI and ML security payloads, guarded execution, and model probing.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/ai-security/organaizedcrime.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
@@ -73,12 +73,12 @@
 <meta property="og:url" content="https://jennshaggy.github.io/ai-security/organaizedcrime.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="organAIzedcrime">
-<meta property="og:description" content="organAIzedcrime: a Go CLI that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Tactic and technique queries, OWASP LLM Top 10, STRIDE, NIST AI RMF, and tool mappings.">
+<meta property="og:description" content="organAIzedcrime: a Go CLI for MITRE ATLAS research, framework cross-references, validated AI and ML security payloads, guarded execution, and model probing.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="organAIzedcrime">
-<meta name="twitter:description" content="organAIzedcrime: a Go CLI that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Tactic and technique queries, OWASP LLM Top 10, STRIDE, NIST AI RMF, and tool mappings.">
+<meta name="twitter:description" content="organAIzedcrime: a Go CLI for MITRE ATLAS research, framework cross-references, validated AI and ML security payloads, guarded execution, and model probing.">
 </head>
 
 <body id="top">
@@ -155,7 +155,7 @@
 
 <p>A Go command-line tool that puts MITRE ATLAS in your terminal during AI and ML offensive engagements. Think searchsploit for AI/ML: when you are fingerprinting a model endpoint or planning an attack path, the technique intel, tool mappings, and framework cross-references are one command away instead of buried in a browser tab.</p>
 
-<p>I designed it, built it, shipped it, and keep extending it from real engagement friction. Currently at v0.3.2, running natively on Kali Linux and macOS.</p>
+<p>I designed it, built it, shipped it, and keep extending it from real engagement friction. It runs natively on Kali Linux and macOS and now connects technique research to validated payloads and guarded execution against authorized test targets.</p>
 
 <img src="/images/organaizedcrime/Screenshot 2026-05-23 at 9.08.25 AM.png" alt="organAIzedcrime CLI running in terminal showing MITRE ATLAS output" style="max-width:100%;margin:2rem 0;">
 
@@ -163,7 +163,7 @@
 
 <h2>What it does</h2>
 
-<p>organAIzedcrime ingests the live MITRE ATLAS dataset and lets you query it by tactic, technique, or keyword, then cross-references the OWASP LLM Top 10, STRIDE for AI, and NIST AI RMF, and maps techniques to the actual tools you would reach for.</p>
+<p>organAIzedcrime ingests the live MITRE ATLAS dataset and supports queries by tactic, technique, or keyword. It cross-references the OWASP LLM Top 10, STRIDE for AI, and NIST AI RMF; maps techniques to operational tools; and connects selected techniques to a library of validated payloads.</p>
 
 <pre><code>atlas fetch                       Pull the latest ATLAS intel
 atlas tactics list                The playbook. 16 ways to ruin someone's Tuesday.
@@ -199,13 +199,11 @@ atlas nist get &lt;GV|MP|MS|MG&gt;      Function detail with categories and mapp
 
 <hr>
 
-<h2>Where it is going</h2>
+<h2>Payload and execution layer</h2>
 
-<p>v0.4 is the searchsploit moment for AI and ML: a payload and extraction-pattern library mapped to technique IDs.</p>
+<p>The payload library now contains eleven patterns validated through authorized CTF and lab work. Each entry preserves technique context, target assumptions, and the evidence required to determine whether a response represents a successful result.</p>
 
-<pre><code>atlas technique get AML.T0051 --payloads</code></pre>
-
-<p>That would surface the actual attack patterns behind a technique: anchor-phrase extraction, phrase concatenation, the <code>&lt;|endoftext|&gt;</code> prefix, DAN and Crescendo escalation, JSON schema extraction. The gap between knowing a technique exists and knowing how to execute it is exactly where v0.4 lives.</p>
+<p>The execution layer supports guarded direct HTTP and Ollama requests, full-technique probing, and flag-pattern detection. This closes the original gap between finding a relevant ATLAS technique and testing it against a controlled target while preserving the operator&rsquo;s responsibility to validate model output.</p>
 
 <hr>
 
@@ -213,7 +211,6 @@ atlas nist get &lt;GV|MP|MS|MG&gt;      Function detail with categories and mapp
 
 <p>GitHub: <a href="https://github.com/jennshaggy/-organAIzedcrime" target="_blank" rel="noopener noreferrer">github.com/jennshaggy/-organAIzedcrime</a></p>
 
-<p>The project domain is reserved and will go live once functionality expands.</p>
 
   </div>
   <footer class="post-footer"></footer>
