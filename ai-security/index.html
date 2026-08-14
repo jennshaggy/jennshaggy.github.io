@@ -171,7 +171,11 @@
 
 <p>CyberStrike runs inside a dedicated Fedora Workstation VM built as a contained environment for agentic security tooling. The application is installed under my user account with user-only execution, and its configuration, cache, data, and state directories are restricted to the same account. The VM keeps the runtime, MCP integrations, and test data separate from my daily workstation.</p>
 
-<p>Three optional MCP server definitions for GitHub security, CVE research, and OSINT are present but disabled by default. I validated the binary location, permission boundaries, command resolution, time-bounded MCP inspection, and the absence of group- or world-accessible files in CyberStrike&rsquo;s runtime paths. The harness is complete and ready for deliberate review and activation of each server.</p>
+<p>Three optional MCP server definitions cover GitHub security, CVE research, and OSINT. They are disabled by default. I validated CyberStrike&rsquo;s binary location, permission boundaries, and command resolution. I also tested time-bounded MCP inspection and confirmed there were no group- or world-accessible files in its runtime paths. Gemini returned <code>MODEL_READY</code> following its controlled run.</p>
+
+<p>Next, I gave CyberStrike one funneled task. It had to send an approved EVTX file through Hayabusa MCP via forced-command SSH. I set the scan parameters in advance. CyberStrike stayed within them and returned a structured finding.</p>
+
+<p>This return was independent of the offline forensic investigation. CyberStrike&rsquo;s local analysis capabilities investigated the provided challenge artifacts. The run preserved original evidence and used static extraction with deterministic decoding. It isolated and recovered the payload, then validated the result. The closeout produced a report, evidence manifest, artifact hashes, and final checksum ledger.</p>
 
 <img src="/images/ai-security/cyberstrike-fedora-harness-validation.png" alt="Fedora terminal validating CyberStrike permissions, command resolution, and three disabled MCP server integrations" style="max-width:100%;margin:2rem 0;">
 
