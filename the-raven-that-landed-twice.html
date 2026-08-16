@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>The Raven That Landed Twice | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Hack The Box Cyber Apocalypse 2026 OSINT challenge. The raven only landed twice in the paperwork.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/the-raven-that-landed-twice.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/harmonize.css">
+<meta property="og:url" content="https://jennshaggy.github.io/the-raven-that-landed-twice.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="The Raven That Landed Twice">
+<meta property="og:description" content="Hack The Box Cyber Apocalypse 2026 OSINT challenge. The raven only landed twice in the paperwork.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="The Raven That Landed Twice">
+<meta name="twitter:description" content="Hack The Box Cyber Apocalypse 2026 OSINT challenge. The raven only landed twice in the paperwork.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/applied-projects.html" title="Penetration Testing"><span class="active">Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">The Raven That Landed Twice</h1>
+    <div class="post-description">Hack The Box Cyber Apocalypse 2026 OSINT challenge. The raven only landed twice in the paperwork.</div>
+  </header>
+
+  <div class="post-content">
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 5.44.14 PM.png" alt="The Raven That Landed Twice challenge introduction" style="max-width:100%;margin:2rem 0;">
+
+<p>OSINT is my happy place. Thank you to all my fellow early 2Ks lesbians for teaching one another how to properly research.</p>
+
+<h2>Aircraft Registry</h2>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 5.45.36 PM.png" alt="Challenge identifiers showing Mode-S 43E91C and callsign VLR602" style="max-width:100%;margin:2rem 0;">
+
+<p>The challenge started with two identifiers:</p>
+
+<ul>
+<li>Mode-S hex: <code>43E91C</code></li>
+<li>Callsign: <code>VLR602</code></li>
+</ul>
+
+<p>The Mode-S value looked like an Aircraft Registry key. The callsign sounded more ledger-appropriate.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 5.53.38 PM.png" alt="The challenge application showing its record-system tabs" style="max-width:100%;margin:2rem 0;">
+
+<p>The in-browser view was above. I started with <code>43E91C</code>.</p>
+
+<p>No need to search. Aircraft Registry was one of the tabs.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 5.55.21 PM.png" alt="Aircraft Registry tab opened for Mode-S 43E91C" style="max-width:100%;margin:2rem 0;">
+
+<p>Aha! A movement record at the bottom of the window.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 5.55.57 PM.png" alt="Aircraft Registry record connecting Mode-S, registration, callsign, owner, and operator" style="max-width:100%;margin:2rem 0;">
+
+<p>Initial identity chain:</p>
+
+<pre><code class="language-text">43E91C -&gt; 2-RUNE -&gt; VLR602</code></pre>
+
+<p>Surmised so far: the challenge wants us to ID the operator. Black Keep Leasing SPC definitely held the aircraft title, and Vaultrune Air Services Ltd operated the flight.</p>
+
+<h2>Movement History</h2>
+
+<p>Let's check the Movement History.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 5.58.26 PM.png" alt="Movement History tab for VLR602" style="max-width:100%;margin:2rem 0;">
+
+<p>Only one entry.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 5.59.14 PM.png" alt="Single Movement History result for VLR602" style="max-width:100%;margin:2rem 0;">
+
+<p>The Movement History for <code>VLR602</code> contained an important entry:</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 5.59.27 PM.png" alt="Movement record showing VLR602 route, arrival time, stand, registration, and handler" style="max-width:100%;margin:2rem 0;">
+
+<p>We now know it's not two aircraft.</p>
+
+<p>Here's what could be established from the Movement Record:</p>
+
+<ul>
+<li>Callsign: <code>VLR602</code></li>
+<li>Registration: <code>2-RUNE</code></li>
+<li>Mode-S: <code>43E91C</code></li>
+<li>Route: <code>SCF</code> &gt; <code>CSE</code></li>
+<li>Landed at <code>00:47</code></li>
+<li>Parked at Stand <code>4B</code> at <code>00:51</code></li>
+<li>Ground handler: Crownspire Crown Aviation Services</li>
+</ul>
+
+<h2>Courier Mail</h2>
+
+<p>Let's check Courier Mail for <code>VLR602</code>.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.03.44 PM.png" alt="Courier Mail search results for VLR602" style="max-width:100%;margin:2rem 0;">
+
+<p>Three new messages. Hmm...</p>
+
+<p><code>Stand 4B carriage release...</code> came from <code>dispatch@crownaviation.val</code>. The stand and sender matched the Movement History.</p>
+
+<p>Bonus points: it had an attachment.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.05.45 PM.png" alt="Stand 4B carriage release email with its attachment" style="max-width:100%;margin:2rem 0;">
+
+<p>Here's the attachment.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.06.04 PM.png" alt="Airside carriage release filed under registration 2-RUNE" style="max-width:100%;margin:2rem 0;">
+
+<p>The attached airside release broke down the discordance.</p>
+
+<p>The flight record used callsign <code>VLR602</code>. The carriage ledger used registration <code>2-RUNE</code>.</p>
+
+<p>The remaining details, however, still aligned:</p>
+
+<ul>
+<li>Arrival at <code>00:47</code></li>
+<li>On-block at <code>00:51</code></li>
+<li>Stand <code>4B</code></li>
+<li>Carriage <code>CS-19</code></li>
+<li>The same court order</li>
+</ul>
+
+<p>The aligned time, stand, carriage, handler, and court order followed instructions to separate the aircraft's identities across systems.</p>
+
+<p>Stand <code>4B</code> was tagged as evidence, and I continued through the mailbox.</p>
+
+<p>Let's check Fuel Uplift Billing.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.13.07 PM.png" alt="Fuel uplift billing message with the matching carriage reference" style="max-width:100%;margin:2rem 0;">
+
+<p>The reference was identical to the airside release. Tagged it, then opened the gate log:</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.14.45 PM.png" alt="Gate log recording the physical handoff at Stand 4B" style="max-width:100%;margin:2rem 0;">
+
+<p>The gate record shed light on the physical handoff:</p>
+
+<ul>
+<li><code>00:51</code>: aircraft on-block with the gate open at Stand <code>4B</code></li>
+<li>Carriage <code>CS-19</code>, matching the dispatch attachment</li>
+<li>Ledger signed under the registration</li>
+</ul>
+
+<p>Courier Mail correlated the flight-side callsign to the ground-side registration using the same time, place, carriage, handler, and release process.</p>
+
+<h2>Skyglass Browser</h2>
+
+<p>We still needed to know who publicly used the flight.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.18.32 PM.png" alt="Skyglass Browser opened in the challenge application" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.18.53 PM.png" alt="Skyglass Browser search interface" style="max-width:100%;margin:2rem 0;">
+
+<p>Let's search for <code>VLR602</code>.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.21.20 PM.png" alt="Skyglass search for callsign VLR602" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.21.37 PM.png" alt="Skyglass result connecting VLR602 to registration 2-RUNE" style="max-width:100%;margin:2rem 0;">
+
+<p>The first result confirmed that <code>VLR602</code> ties to <code>2-RUNE</code> in public-facing data. Ownership and departure remain unsolved mysteries.</p>
+
+<h2>Evidence Satchel</h2>
+
+<p>I opened the Evidence Satchel to see which findings remained unsupported.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.34.31 PM.png" alt="Evidence Satchel opened after the record searches" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.34.49 PM.png" alt="Evidence Satchel showing Registration, Operator, and Departure still missing" style="max-width:100%;margin:2rem 0;">
+
+<p>Aha! Registration, Operator, and Departure were still missing.</p>
+
+<p>Re-examining the Registry and Movement Ledger unearthed that the evidence already contained the missing answers:</p>
+
+<ul>
+<li>The Aircraft Registry correlated <code>43E91C</code> to registration <code>2-RUNE</code>.</li>
+<li>The Registry distinguished Black Keep Leasing SPC from the operator on-record, Vaultrune Air Services Ltd.</li>
+<li>The Movement Ledger recorded departure airport <code>SCF</code>.</li>
+<li>The linked records all pointed to Stand <code>4B</code>.</li>
+</ul>
+
+<p>Back to the <code>VLR602</code> Movement Ledger to tag Registration and Departure.</p>
+
+<p>Hopefully we can collect the human Operator in the Registry. We're so close.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.47.19 PM.png" alt="Registry evidence selected for the operator finding" style="max-width:100%;margin:2rem 0;">
+
+<p>Let's tag 'em, boys.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.48.23 PM.png" alt="Movement evidence selected for registration and departure" style="max-width:100%;margin:2rem 0;">
+
+<h2>Oath Submission</h2>
+
+<p>Back to Oath Submission.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.48.44 PM.png" alt="Oath Submission showing the first supported finding" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.49.19 PM.png" alt="Oath Submission showing another supported finding" style="max-width:100%;margin:2rem 0;">
+
+<p>And the last one.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.50.42 PM.png" alt="Oath Submission ready for the Stand finding" style="max-width:100%;margin:2rem 0;">
+
+<p><code>4B</code>.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.51.27 PM.png" alt="Stand 4B submitted as the final finding" style="max-width:100%;margin:2rem 0;">
+
+<p>Click Evidence Review.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 6.52.43 PM.png" alt="Evidence Review showing all four findings confirmed and the case complete" style="max-width:100%;margin:2rem 0;">
+
+<p>All four findings were accepted.</p>
+
+<pre><code class="language-text">All findings confirmed. Case complete.</code></pre>
+
+<p>No flag.</p>
+
+<h2>The Missing Flag</h2>
+
+<p>I duplicated the challenge in Firefox. Dev Tools &gt; Network &gt; XHR &gt; hard refresh.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 11.20.09 PM.png" alt="Firefox Network panel after refreshing the completed challenge" style="max-width:100%;margin:2rem 0;">
+
+<p>Either HTB had designed a grandiose flag presentation, or I had opened a different challenge asset.</p>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 11.21.03 PM.png" alt="Network response belonging to the AWS or False Ferry challenge" style="max-width:100%;margin:2rem 0;">
+
+<p>It was the latter. AWS/False Ferry challenge.</p>
+
+<p>Let's respawn.</p>
+
+<p>The challenge still wouldn't give up the flag. I completed the case again, then ran this in the Firefox console. The completion message gave me a place to start:</p>
+
+<pre><code class="language-javascript">fetch(&quot;/assets/index-dOxwAnh8.js&quot;)
+  .then(r =&gt; r.text())
+  .then(t =&gt; {
+    const i = t.indexOf(&quot;All findings confirmed. Case complete.&quot;);
+    console.log(&quot;position:&quot;, i, t.slice(i - 1500, i + 3000));
+  })</code></pre>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 11.33.56 PM.png" alt="Firefox console locating the challenge completion code in the Vite bundle" style="max-width:100%;margin:2rem 0;">
+
+<p>No flag yet. The client stored progress under:</p>
+
+<pre><code class="language-text">court-eaves-progress-v1</code></pre>
+
+<p>Completion did not initiate an XHR or fetch request. The browser updated its local state, furnished the completion message, and the buck stopped here.</p>
+
+<p>In a final attempt to secure the flag, I searched a bundle of the source code:</p>
+
+<pre><code class="language-javascript">fetch(&quot;/assets/index-dOxwAnh8.js&quot;)
+  .then(r =&gt; r.text())
+  .then(t =&gt; {
+    const app = t.slice(190000);
+    console.log(&quot;bundle length:&quot;, t.length);
+    for (const term of [&quot;HTB&quot;, &quot;flag&quot;, &quot;atob&quot;, &quot;btoa&quot;, &quot;base64&quot;, &quot;clipboard&quot;]) {
+      console.log(term, [...app.matchAll(new RegExp(term, &quot;gi&quot;))]
+        .map(m =&gt; m.index + 190000));
+    }
+  })</code></pre>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 11.39.31 PM.png" alt="Bundle search results showing clipboard as the only non-empty hit" style="max-width:100%;margin:2rem 0;">
+
+<p>Nothing. No <code>HTB</code>, <code>flag</code>, Base64, <code>atob</code>, or <code>btoa</code>. <code>clipboard</code> was the only hit.</p>
+
+<p>I inspected it:</p>
+
+<pre><code class="language-javascript">fetch(&quot;/assets/index-dOxwAnh8.js&quot;)
+  .then(r =&gt; r.text())
+  .then(t =&gt; console.log(t.slice(213700, 214900)))</code></pre>
+
+<img src="/images/the-raven-that-landed-twice/Screenshot 2026-07-24 at 11.41.02 PM.png" alt="Clipboard function copying ordinary evidence values rather than a flag" style="max-width:100%;margin:2rem 0;">
+
+<p>The function copied evidence values. No flag.</p>
+
+<p>All four findings were accepted. The client made no flag request, and no flag appeared. I reproduced it on a fresh Docker and sent the screenshots and browser findings to HTB.</p>
+
+<h2>Attribution</h2>
+
+<p>I completed and documented this investigation during Hack The Box Cyber Apocalypse 2026 as a member of the CIAT Cybersecurity Club team.</p>
+
+<p>I used AI to organize evidence, work through the client-side behavior, and draft the HTB report. I ran the challenge, selected and submitted the findings, reproduced the missing flag, collected the evidence, and handled communication with HTB.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
