@@ -127,9 +127,7 @@
 
   <div class="post-content">
 
-<p>Placed 29th in the WiCyS / SANS / Flare Sisterhood of the Traveling Packets CTF. Tor Browser, sniff out the evidence, document everything like a fiend, and keep unscrewing until it breaks.</p>
-
-<p>The challenge used a simulated ransomware crew's dark web leak site. Source code, leaked victim records, an exposed API, IDOR, and one reused password led to the flag.</p>
+<p>Tor Browser, sniff out the evidence, document everything like a fiend, and keep unscrewing until it breaks.</p>
 
 <h2>Tor Browser</h2>
 
@@ -155,11 +153,7 @@
 
 <img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 9.50.22 AM.png" alt="Terminal output verifying the Tor Browser download signature with GPG" style="max-width:100%;margin:2rem 0;">
 
-<p>Golden.</p>
-
-<p>We'll delete the installer, and launch Tor:</p>
-
-<p>Time to configure our connection.</p>
+<p>Good to proceed. We'll delete the installer, and launch Tor, then configure our connection:</p>
 
 <p>We'll visit this site first:</p>
 
@@ -169,19 +163,21 @@
 
 <h2>Mapping Pantalones</h2>
 
-<p>The <code>.onion</code> link has been released.</p>
+<p>The <code>.onion</code> link has been released:</p>
 
-<p><code>http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion</code></p>
+<p><a href="http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion</a></p>
 
 <p>Let's hit it in the Tor browser:</p>
 
 <img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.02.12 AM.png" alt="Pantalones ransomware crew leak site with a countdown to the release" style="max-width:100%;margin:2rem 0;">
 
-<p>Pantalones. Panty file thieves. I love it.</p>
+<p>Pantalones. Panty...ransomware APTs? I love it.</p>
 
 <p>It shows 1 hour and 7 minutes until release, but we'll map out the site in the meantime.</p>
 
 <p>To the <code>/about</code> page.</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.03.59 AM.png" alt="Pantalones about page describing the ransomware crew" style="max-width:100%;margin:2rem 0;">
 
 <p>The <code>/crew</code> page:</p>
 
@@ -205,13 +201,12 @@
 
 <p>We can see how the address is structured. Very helpful information.</p>
 
-<p>Let's View Source on the main <code>/leaks</code> page:</p>
+<p>Let's View Source on the <code>/leaks</code> page:</p>
 
 <img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.17.02 AM.png" alt="Leak page source containing a hidden Base64 string" style="max-width:100%;margin:2rem 0;">
 
-<p>Aha! Hidden Base64.</p>
-
-<p>It decodes to : <code>not_the_flag_keep_looking</code>. Duly noted.</p>
+<p>Aha! Hidden Base64. It decodes to : <code>not_the_flag_keep_looking</code>.<br>
+Duly noted.</p>
 
 <p>Let's check out the stylesheet:</p>
 
@@ -233,9 +228,7 @@
 
 <p>Perhaps we can find some comments, links, scripts, or member identifiers that lead to that interface.</p>
 
-<p>Returning to <code>/downloads/quantumcore/</code> directory.</p>
-
-<p>We'll check out the Parent Directory and dive into the <code>downloads</code> index:</p>
+<p>We'll return to <code>/downloads/quantumcore/</code> directory, check out the Parent Directory, then dive into the <code>downloads</code> index:</p>
 
 <img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.21.43 AM.png" alt="Open downloads directory listing the published victim folders" style="max-width:100%;margin:2rem 0;">
 
@@ -243,11 +236,11 @@
 
 <p>Let's check out <code>/downloads/quantumcore</code>:</p>
 
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.22.57 AM.png" alt="QuantumCore download directory listing internal communications and employee records" style="max-width:100%;margin:2rem 0;">
+
 <p>My hackery knowledge knows this: communications are the strongest evidence source for a ransomware crew’s aliases, contact details, or infrastructure.</p>
 
-<p>And we've found <code>internal_comms.csv</code>.</p>
-
-<p>Let's take a look at it:</p>
+<p>And we've found <code>internal_comms.csv</code>. Let's take a look at it:</p>
 
 <pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/downloads/quantumcore/internal_comms.csv</code></pre>
 
@@ -275,15 +268,9 @@
 
 <img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.26.27 AM.png" alt="AetherFlow internal API key file identifying i.mccarthy" style="max-width:100%;margin:2rem 0;">
 
-<p>Hmm. Strong correlation found: <code>i.mccarthy</code> appears in both victim datasets.</p>
+<p>Hmm. Strong correlation found: <code>i.mccarthy</code> appears in both victim datasets. He's in QuantumCore communications, noted as <code>i.mccarthy</code> who handled security and incident response. He's also mentioned in the AetherFlow secrets file as <code>i.mccarthy@aetherflow.ctf</code> , the IT/security contact.</p>
 
-<p>He's in QuantumCore communications, noted as <code>i.mccarthy</code> who handled security and incident response.</p>
-
-<p>He's mentioned in the AetherFlow secrets file: as<code>i.mccarthy@aetherflow.ctf</code> , the IT/security contact.</p>
-
-<p>Ian is also our first concrete OPSEC lead with his cross-company reuse appearances.</p>
-
-<p>Let's ID <code>i.mccarthy</code> from QuantumCore’s employee records:</p>
+<p>Ian is also our first concrete OPSEC lead with his cross-company reuse appearances. Let's ID <code>i.mccarthy</code> from QuantumCore’s employee records:</p>
 
 <pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/downloads/quantumcore/employees.sql</code></pre>
 
@@ -295,9 +282,7 @@
 
 <p>We've established that he appears inside two supposedly separate victim organizations as QuantumCore: Ian McCarthy, IT Director and AetherFlow: <code>i.mccarthy@aetherflow.ctf</code>, IT/Security contact.</p>
 
-<p>All of my women's intuition affirms that these hashes look deliberately synthetic.</p>
-
-<p>We have strong implications of an unlinked Admin interface in the stylesheet.</p>
+<p>All of my women's intuition affirms that these hashes look deliberately synthetic. We have strong implications of an unlinked Admin interface in the stylesheet.</p>
 
 <h2>Admin and API</h2>
 
@@ -309,9 +294,7 @@
 
 <img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.30.31 AM.png" alt="robots.txt disclosing the admin and API paths" style="max-width:100%;margin:2rem 0;">
 
-<p>Thank you for the previously unknown paths, <code>robots.txt</code>.</p>
-
-<p>The stylesheet’s password-form rules align with <code>/admin.php</code>.</p>
+<p>Thank you for the previously unknown paths, <code>robots.txt</code>. The stylesheet’s password-form rules align with <code>/admin.php</code>.</p>
 
 <p>Let's start with paying <code>admin.php</code> a visit:</p>
 
@@ -335,13 +318,13 @@
 
 <img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.33.45 AM.png" alt="API response listing seven available actions" style="max-width:100%;margin:2rem 0;">
 
-<p>Dang. <code>api.php</code> openly discloses seven actions.</p>
-
-<p>Let's dig into those actions using our read-only safety-first-viewing actions.</p>
+<p>Dang. <code>api.php</code> openly discloses seven actions. We'll dig into those actions using our read-only/safety-first-viewing actions.</p>
 
 <p>Here's <code>status</code>:</p>
 
 <pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=status</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.34.51 AM.png" alt="Status API response showing panel version, uptime, storage, and online operators" style="max-width:100%;margin:2rem 0;">
 
 <p>Let's read <code>messages</code>:</p>
 
@@ -355,17 +338,23 @@
 
 <pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=wallets</code></pre>
 
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.36.26 AM.png" alt="Wallets API response exposing Bitcoin wallet and rotation data" style="max-width:100%;margin:2rem 0;">
+
 <p>This exposes, quite obviously, Bitcoin wallet data via API. No conversation ID or login credential.</p>
 
 <p>Time to investigate <code>payloads</code>:</p>
 
 <pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=payloads</code></pre>
 
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.37.32 AM.png" alt="Payloads API response showing cached ransomware deployment records" style="max-width:100%;margin:2rem 0;">
+
 <p>As we read earlier, the build had moved. That means these are cached records.</p>
 
 <p>Let's dig in to the <code>exfil</code> action:</p>
 
 <pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=exfil</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.38.41 AM.png" alt="Exfil API response listing completed data-exfiltration jobs" style="max-width:100%;margin:2rem 0;">
 
 <p>On to <code>decrypt</code> we go:</p>
 
@@ -407,11 +396,15 @@
 
 <p>It may also expose the panel key they discussed rotating:</p>
 
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 1.04.50 PM.png" alt="Crew messages discussing the hidden script and the need to rotate the panel key" style="max-width:100%;margin:2rem 0;">
+
 <h2>The Hidden Script</h2>
 
 <p>Let's first test whether the dotfile they mention exists as a hidden file alongside the AetherFlow directory:</p>
 
 <pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/downloads/aetherflow/.exfil.sh</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.44.06 AM.png" alt="Direct request for the hidden exfiltration script returning 404 Not Found" style="max-width:100%;margin:2rem 0;">
 
 <p>Not a separately hosted dotfile. Noted.</p>
 
@@ -429,9 +422,7 @@
 
 <img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.46.57 AM.png" alt="Hidden exfiltration script containing an old panel address and key" style="max-width:100%;margin:2rem 0;">
 
-<p>Guess they didn't get to their TODO list.</p>
-
-<p>More importantly, we have a second option:</p>
+<p>Guess they didn't get to their TODO list. More importantly, we have a second option:</p>
 
 <pre><code class="language-markdown">Panel: http://6562q4ut6lpt6r3s37kxilu2huuou2qia23jzlzmlqqznqv5sfbp2xid.onion/
 Key: pantalonesgroup</code></pre>
