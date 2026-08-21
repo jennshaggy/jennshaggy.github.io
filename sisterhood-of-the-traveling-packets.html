@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Sisterhood of the Traveling Packets | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Placed 29th in the WiCyS / SANS / Flare Sisterhood of the Traveling Packets CTF. Source code, leaked victim records, an exposed API, IDOR, and one reused password led to the flag.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/sisterhood-of-the-traveling-packets.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/sisterhood-of-the-traveling-packets.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Sisterhood of the Traveling Packets">
+<meta property="og:description" content="Placed 29th in the WiCyS / SANS / Flare Sisterhood of the Traveling Packets CTF. Source code, leaked victim records, an exposed API, IDOR, and one reused password led to the flag.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Sisterhood of the Traveling Packets">
+<meta name="twitter:description" content="Placed 29th in the WiCyS / SANS / Flare Sisterhood of the Traveling Packets CTF. Source code, leaked victim records, an exposed API, IDOR, and one reused password led to the flag.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/applied-projects.html" title="Penetration Testing"><span class="active">Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title entry-hint-parent">Sisterhood of the Traveling Packets</h1>
+    <div class="post-description">Placed 29th in the WiCyS / SANS / Flare Sisterhood of the Traveling Packets CTF. Source code, leaked victim records, an exposed API, IDOR, and one reused password led to the flag.</div>
+  </header>
+
+  <div class="post-content">
+
+<p>Placed 29th in the WiCyS / SANS / Flare Sisterhood of the Traveling Packets CTF. Tor Browser, sniff out the evidence, document everything like a fiend, and keep unscrewing until it breaks.</p>
+
+<p>The challenge used a simulated ransomware crew's dark web leak site. Source code, leaked victim records, an exposed API, IDOR, and one reused password led to the flag.</p>
+
+<h2>Tor Browser</h2>
+
+<p>Let's grab the Tor browser from the official site: <a href="https://www.torproject.org/download/">https://www.torproject.org/download/</a></p>
+
+<p>Note to all of my fellow badass she-hackers out there: never run Tor Browser as <code>sudo</code> or <code>root</code>. You might get pwned or far worse.</p>
+
+<p>We're on Mac for this, so we'll use <code>gpg</code> to verify the download signatures/fingerprint:</p>
+
+<pre><code class="language-zsh">gpg --auto-key-locate nodefault,wkd --locate-keys torbrowser@torproject.org</code></pre>
+
+<p>Verify the filenames:</p>
+
+<pre><code class="language-bash">ls -1 ~/Downloads/tor-browser-macos*</code></pre>
+
+<p>We'll export the verified key into a keyring:</p>
+
+<pre><code class="language-bash">gpg --output ~/tor.keyring --export EF6E286DDA85EA2A4BA7DE684E2C6E8793298290</code></pre>
+
+<p>Lastly, verify the download:</p>
+
+<pre><code class="language-bash">gpgv --keyring ~/tor.keyring ~/Downloads/tor-browser-macos-15.0.19.dmg.asc ~/Downloads/tor-browser-macos-15.0.19.dmg</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 9.50.22 AM.png" alt="Terminal output verifying the Tor Browser download signature with GPG" style="max-width:100%;margin:2rem 0;">
+
+<p>Golden.</p>
+
+<p>We'll delete the installer, and launch Tor:</p>
+
+<p>Time to configure our connection.</p>
+
+<p>We'll visit this site first:</p>
+
+<pre><code class="language-markdown">https://check.torproject.org/</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 9.56.58 AM.png" alt="Tor Project connection check confirming the browser is using Tor" style="max-width:100%;margin:2rem 0;">
+
+<h2>Mapping Pantalones</h2>
+
+<p>The <code>.onion</code> link has been released.</p>
+
+<p><code>http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion</code></p>
+
+<p>Let's hit it in the Tor browser:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.02.12 AM.png" alt="Pantalones ransomware crew leak site with a countdown to the release" style="max-width:100%;margin:2rem 0;">
+
+<p>Pantalones. Panty file thieves. I love it.</p>
+
+<p>It shows 1 hour and 7 minutes until release, but we'll map out the site in the meantime.</p>
+
+<p>To the <code>/about</code> page.</p>
+
+<p>The <code>/crew</code> page:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.04.28 AM.png" alt="Pantalones crew page listing vex, crypt, mora, and skid" style="max-width:100%;margin:2rem 0;">
+
+<p>And the <code>/leaks</code> page (which is...<code>/index?</code>):</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.05.00 AM.png" alt="Pantalones leaks page listing QuantumCore Systems and AetherFlow Enterprises" style="max-width:100%;margin:2rem 0;">
+
+<p>The crew is comprised of <code>vex</code> aka operator/panel dev, <code>crypt</code> aka payload engineer, <code>mora</code> aka negotiations, and <code>skid</code> aka initial access.</p>
+
+<p>I have a feeling this is the challenge.</p>
+
+<p>Let's check out the two leaked entries: <code>QuantumCore Systems</code> and <code>Aetherflow Enterprises</code>.</p>
+
+<h2>Victim Records</h2>
+
+<p>Let's check the QuantumCore info for clues:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.13.17 AM.png" alt="QuantumCore Systems victim record on the Pantalones leak site" style="max-width:100%;margin:2rem 0;">
+
+<p>We can see how the address is structured. Very helpful information.</p>
+
+<p>Let's View Source on the main <code>/leaks</code> page:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.17.02 AM.png" alt="Leak page source containing a hidden Base64 string" style="max-width:100%;margin:2rem 0;">
+
+<p>Aha! Hidden Base64.</p>
+
+<p>It decodes to : <code>not_the_flag_keep_looking</code>. Duly noted.</p>
+
+<p>Let's check out the stylesheet:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/style.css</code></pre>
+
+<p>There's no flag or flag-adjacent info in the stylesheet, BUT...</p>
+
+<p>It exposes important unused interface components including password and text inputs (first screenshot just below), error messages, statistic cards, activity logs, infrastructure, and....</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 12.30.09 PM.png" alt="Stylesheet source exposing unused form and interface rules" style="max-width:100%;margin:2rem 0;">
+
+<p>...<code>.rainbow-flag</code> style indicators:</p>
+
+<p>What's interesting is that these style elements are not visible on the sites we've seen.</p>
+
+<p>Let's view source on the <code>/crew</code> page:</p>
+
+<pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/crew.php</code></pre>
+
+<p>Perhaps we can find some comments, links, scripts, or member identifiers that lead to that interface.</p>
+
+<p>Returning to <code>/downloads/quantumcore/</code> directory.</p>
+
+<p>We'll check out the Parent Directory and dive into the <code>downloads</code> index:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.21.43 AM.png" alt="Open downloads directory listing the published victim folders" style="max-width:100%;margin:2rem 0;">
+
+<p>It beholds two of the published victim directories.</p>
+
+<p>Let's check out <code>/downloads/quantumcore</code>:</p>
+
+<p>My hackery knowledge knows this: communications are the strongest evidence source for a ransomware crew’s aliases, contact details, or infrastructure.</p>
+
+<p>And we've found <code>internal_comms.csv</code>.</p>
+
+<p>Let's take a look at it:</p>
+
+<pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/downloads/quantumcore/internal_comms.csv</code></pre>
+
+<p>Oh yeahhh....</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 1.58.21 PM.png" alt="QuantumCore internal communications showing the incident timeline" style="max-width:100%;margin:2rem 0;">
+
+<p>This conversation confirms a security incident. Score.</p>
+
+<p>On <code>2026-05-08</code>: Service-account login attempts came from Tor exit nodes. MFA blocked them.</p>
+
+<p>On <code>2026-05-10</code>: Incident response claimed there was no exfiltration. On the other hand, the files later appeared here. Hmm.</p>
+
+<p>There's one chronologically out of place message to “stein.” It's unusual, but we have nothing yet telling us its meaningful evidence.</p>
+
+<p>Back to <code>/downloads/</code> to open <code>/aetherflow</code>.</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.25.32 AM.png" alt="AetherFlow download directory containing leaked internal files" style="max-width:100%;margin:2rem 0;">
+
+<p>Bigger score. <code>api_keys_internal.yaml</code> could expose service names, endpoints, usernames, or reused credentials.</p>
+
+<p>We'll continue our safety-first open-it-as-text method:</p>
+
+<pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/downloads/aetherflow/api_keys_internal.yaml</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.26.27 AM.png" alt="AetherFlow internal API key file identifying i.mccarthy" style="max-width:100%;margin:2rem 0;">
+
+<p>Hmm. Strong correlation found: <code>i.mccarthy</code> appears in both victim datasets.</p>
+
+<p>He's in QuantumCore communications, noted as <code>i.mccarthy</code> who handled security and incident response.</p>
+
+<p>He's mentioned in the AetherFlow secrets file: as<code>i.mccarthy@aetherflow.ctf</code> , the IT/security contact.</p>
+
+<p>Ian is also our first concrete OPSEC lead with his cross-company reuse appearances.</p>
+
+<p>Let's ID <code>i.mccarthy</code> from QuantumCore’s employee records:</p>
+
+<pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/downloads/quantumcore/employees.sql</code></pre>
+
+<p>Wow. Look at this:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.28.59 AM.png" alt="QuantumCore employee record identifying Ian McCarthy" style="max-width:100%;margin:2rem 0;">
+
+<p>Well hello again, Ian.</p>
+
+<p>We've established that he appears inside two supposedly separate victim organizations as QuantumCore: Ian McCarthy, IT Director and AetherFlow: <code>i.mccarthy@aetherflow.ctf</code>, IT/Security contact.</p>
+
+<p>All of my women's intuition affirms that these hashes look deliberately synthetic.</p>
+
+<p>We have strong implications of an unlinked Admin interface in the stylesheet.</p>
+
+<h2>Admin and API</h2>
+
+<p>Let's hit the obligatory <code>robots.txt</code> because it's a web challenge:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/robots.txt</code></pre>
+
+<p>Well hello, <code>admin.php</code> and <code>api.php</code>.</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.30.31 AM.png" alt="robots.txt disclosing the admin and API paths" style="max-width:100%;margin:2rem 0;">
+
+<p>Thank you for the previously unknown paths, <code>robots.txt</code>.</p>
+
+<p>The stylesheet’s password-form rules align with <code>/admin.php</code>.</p>
+
+<p>Let's start with paying <code>admin.php</code> a visit:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/admin.php</code></pre>
+
+<p>It's similar to the feeling of a note near a button that says "Don't touch." What do I want to do?</p>
+
+<p>Click the button. Going in.</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.31.54 AM.png" alt="Pantalones administration login page" style="max-width:100%;margin:2rem 0;">
+
+<p>Let's Inspect the <code>admin.php</code> login source:</p>
+
+<pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/admin.php</code></pre>
+
+<p>The admin login form performs your typical server-side POST via <code>username</code> and <code>password</code> fields.</p>
+
+<p>Let's check the other <code>robots.txt</code> link at <code>api.php</code>:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.33.45 AM.png" alt="API response listing seven available actions" style="max-width:100%;margin:2rem 0;">
+
+<p>Dang. <code>api.php</code> openly discloses seven actions.</p>
+
+<p>Let's dig into those actions using our read-only safety-first-viewing actions.</p>
+
+<p>Here's <code>status</code>:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=status</code></pre>
+
+<p>Let's read <code>messages</code>:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=messages</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.36.14 AM.png" alt="Messages API requiring a conversation ID parameter" style="max-width:100%;margin:2rem 0;">
+
+<p><code>messages</code> requires a <code>conversation_id</code>, which is a parameter we've yet to discover. Noted.</p>
+
+<p>Let's check <code>wallets</code>:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=wallets</code></pre>
+
+<p>This exposes, quite obviously, Bitcoin wallet data via API. No conversation ID or login credential.</p>
+
+<p>Time to investigate <code>payloads</code>:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=payloads</code></pre>
+
+<p>As we read earlier, the build had moved. That means these are cached records.</p>
+
+<p>Let's dig in to the <code>exfil</code> action:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=exfil</code></pre>
+
+<p>On to <code>decrypt</code> we go:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=decrypt</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.39.33 AM.png" alt="Decrypt API response exposing a victim ID" style="max-width:100%;margin:2rem 0;">
+
+<h2>IDOR</h2>
+
+<p>Aha! A potentially valid <code>victim_id</code>: <code>NXV-2026-041</code></p>
+
+<p>It says this ID comes from the negotiation channel, which ties it to the <code>messages</code> endpoint. Let's try the <code>victim_id</code> as the <code>conversation_id</code>:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=messages&amp;conversation_id=NXV-2026-041</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.40.46 AM.png" alt="Messages API response revealing the numeric conversation ID format" style="max-width:100%;margin:2rem 0;">
+
+<p>We now know the format they expect is <code>conversation_id=0</code>. I am smelling IDOR in the air.</p>
+
+<p>Let's try this:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=messages&amp;conversation_id=0</code></pre>
+
+<p>Oh. This is golden.</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.41.47 AM.png" alt="Unauthenticated conversation zero returned through the messages API" style="max-width:100%;margin:2rem 0;">
+
+<p>Conversation <code>0</code> confirms that the exposed API allows unbridled, unauthenticated access to crew messages. It also ties <code>skid</code> to NexaVista and <code>vex</code> to AetherFlow’s exfiltration. C'mon, crew. Keep it clean.</p>
+
+<p>Since <code>0</code> worked, let's IDOR our way up:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=messages&amp;conversation_id=1</code></pre>
+
+<p>My friends, we have stumbled upon the pivot.</p>
+
+<p>The crew exposed <code>.exfil.sh</code>. It's in the AetherFlow leak, and its contents include a panel URL and API endpoint:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 12.59.47 PM.png" alt="Conversation one disclosing the hidden exfiltration script" style="max-width:100%;margin:2rem 0;">
+
+<p>It may also expose the panel key they discussed rotating:</p>
+
+<h2>The Hidden Script</h2>
+
+<p>Let's first test whether the dotfile they mention exists as a hidden file alongside the AetherFlow directory:</p>
+
+<pre><code class="language-bash">view-source:http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/downloads/aetherflow/.exfil.sh</code></pre>
+
+<p>Not a separately hosted dotfile. Noted.</p>
+
+<p>Let's go back to <code>/downloads/aetherflow/</code> and download <code>aetherflow_leak.zip</code>. If you're following these instructions, don't open the file. Keep reading.</p>
+
+<p>To our Terminal we go:</p>
+
+<pre><code class="language-bash">unzip -l ~/Downloads/aetherflow_leak.zip</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.45.54 AM.png" alt="ZIP archive listing showing the hidden exfiltration script" style="max-width:100%;margin:2rem 0;">
+
+<p>The hidden script is in the ZIP! I wrote a hacker poem.</p>
+
+<pre><code class="language-bash">unzip -p ~/Downloads/aetherflow_leak.zip aetherflow/.exfil.sh</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.46.57 AM.png" alt="Hidden exfiltration script containing an old panel address and key" style="max-width:100%;margin:2rem 0;">
+
+<p>Guess they didn't get to their TODO list.</p>
+
+<p>More importantly, we have a second option:</p>
+
+<pre><code class="language-markdown">Panel: http://6562q4ut6lpt6r3s37kxilu2huuou2qia23jzlzmlqqznqv5sfbp2xid.onion/
+Key: pantalonesgroup</code></pre>
+
+<p>Let's hit that Panel.</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.48.13 AM.png" alt="Retired Pantalones panel responding as offline" style="max-width:100%;margin:2rem 0;">
+
+<p>The old panel is offline, which correlates to the API note we found about rotated infrastructure.</p>
+
+<h2>Panel Access</h2>
+
+<p>Let's iterate through the other IDOR-esque conversation links. <code>conversation_id=2</code> is up next:</p>
+
+<pre><code class="language-bash">http://b3u42lmdurcyqieiox3o3ns2c2rst6doyyjnwfuirr7bnewt53gke7yd.onion/api.php?action=messages&amp;conversation_id=2</code></pre>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.50.07 AM.png" alt="Conversation two exposing Mora&#x27;s Base64-encoded password" style="max-width:100%;margin:2rem 0;">
+
+<p>Big AHA!</p>
+
+<ul>
+
+<li>User: <code>mora</code></li>
+
+<li>Encoded password: <code>UGFudGFsMG4zc19SdWwzeiE=</code></li>
+
+</ul>
+
+<p>Let's get it:</p>
+
+<pre><code class="language-bash">printf &#x27;%s&#x27; &#x27;UGFudGFsMG4zc19SdWwzeiE=&#x27; | base64 --decode</code></pre>
+
+<p>Leaked Mora PW: <code>Pantal0n3s_Rul3z!</code></p>
+
+<p>Let's head back to that login panel:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.51.03 AM.png" alt="Pantalones administration panel reached with the recovered credentials" style="max-width:100%;margin:2rem 0;">
+
+<p>First-250 reward confirmation:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 11.52.34 AM copy.png" alt="Redacted Flare order confirmation for the first-250 solver reward" style="max-width:100%;margin:2rem 0;">
+
+<p>Solved at 11:51 AM MST.</p>
+
+<h2>Final Attack Chain</h2>
+
+<pre><code class="language-markdown">source -&gt; CSS indicators -&gt; `robots.txt` -&gt; API disclosure -&gt; IDOR -&gt; hidden ZIP artifact -&gt; Base64 credential -&gt; password reuse -&gt; admin access -&gt; flag.</code></pre>
+
+<p>Redacted completion screen:</p>
+
+<img src="/images/sisterhood-of-the-traveling-packets/Screenshot 2026-08-17 at 1.29.08 PM.png" alt="Redacted CTF completion screen" style="max-width:100%;margin:2rem 0;">
+
+<p>Well, that was a very good morning.</p>
+
+<p>Huge thanks to WiCyS, SANS Institute, and Flare for building an experience that welcomes newer participants without watering down the challenge.</p>
+
+<p>Placed 29th. Badge earned. Notes detained.</p>
+
+  </div>
+  <footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+</body>
+</html>
