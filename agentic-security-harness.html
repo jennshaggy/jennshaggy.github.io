@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Agentic Security Harness | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Over the past few weeks, I turned a Proxmox Fedora VM into an agentic security harness built around CyberStrike.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/agentic-security-harness.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/extended/harmonize.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<meta property="og:url" content="https://jennshaggy.github.io/agentic-security-harness.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Agentic Security Harness">
+<meta property="og:description" content="Over the past few weeks, I turned a Proxmox Fedora VM into an agentic security harness built around CyberStrike.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Agentic Security Harness">
+<meta name="twitter:description" content="Over the past few weeks, I turned a Proxmox Fedora VM into an agentic security harness built around CyberStrike.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
+                    <span class="menu-toggle-label">Menu</span>
+                    <span class="menu-toggle-icon" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/applied-projects.html" title="Penetration Testing">
+                    <span>Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security">
+                    <span class="active">AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">Agentic Security Harness</h1>
+<div class="post-description">Over the past few weeks, I turned a Proxmox Fedora VM into an agentic security harness built around CyberStrike.</div>
+</header>
+<div class="post-content">
+
+
+
+<p>Fear not. I have been extremely careful.</p>
+
+<p>The goal was to see whether an agent could perform meaningful cybersecurity work inside explicit, testable boundaries (and not break out of its cage).</p>
+
+<p>CyberStrike is the third-party orchestration component inside the larger harness I designed and assembled.</p>
+
+<p>The supporting cast includes:</p>
+
+<ul>
+
+<li>A dedicated Fedora controller.</li>
+
+<li>A remote Hayabusa MCP service reached through forced-command SSH.</li>
+
+<li>A narrow, read-only forensic-crypto MCP.</li>
+
+<li>Isolated case directories and preserved source evidence.</li>
+
+<li>Evidence hashing, bounded assignments, result validation, and operator-controlled state changes.</li>
+
+</ul>
+
+<p>Useful agency does not require unrestricted agency. Primarily because that sounds like a fantastic way to end up in the news.</p>
+
+<h2>Testing the Complete Path</h2>
+
+<p>The first sanitized connectivity check ran sans tools. Safety first. Following its very controlled run, Gemini returned <code>MODEL_READY</code>. It's showtime.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-09 at 2.05.40 PM.png" alt="Controlled Gemini connectivity check returning MODEL_READY" style="max-width:100%;margin:2rem 0;">
+
+<p>Next, we entrusted the harness with an approved EVTX file, one funneled task, and one forced-command SSH path to Hayabusa MCP.</p>
+
+<p><code>Model -&gt; CyberStrike -&gt; tool discovery -&gt; Hayabusa MCP -&gt; approved EVTX -&gt; structured finding</code></p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-09 at 2.24.24 PM.png" alt="The harness returning a structured Hayabusa MCP finding from an approved EVTX file" style="max-width:100%;margin:2rem 0;">
+
+<p>It stayed inside the assigned scan, returning a structured finding independent of the existing offline forensic investigation.</p>
+
+<p>It was ready for its official TryHackMe assignment.</p>
+
+<h2>After Hours</h2>
+
+<p>After Hours was a clean, efficient, and impressive forensic solve.</p>
+
+<p>The harness worked from an isolated case directory, preserved the challenge archive, recorded its source hash, and followed a static extraction path.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-09 at 10.31.03 PM.png" alt="After Hours forensic case running inside the isolated harness workspace" style="max-width:100%;margin:2rem 0;">
+
+<p>The payload remained on lock. The harness used static extraction and deterministic decoding to recover the result.</p>
+
+<p>Its forensic work was respectable, but it tried to leave without finishing its paperwork. We were missing hashes for the derived artifacts, one final source-archive check, and a report saved inside the workspace.</p>
+
+<p>I limited the next assignment to closeout tasks. No reason to redo the case.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-10 at 11.04.33 AM.png" alt="Closeout-only assignment requesting hashes, source verification, and a saved report" style="max-width:100%;margin:2rem 0;">
+
+<p>It came back with the report, evidence manifest, and checksum ledger.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-10 at 11.05.55 AM.png" alt="Completed forensic report and evidence manifest" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-10 at 11.07.25 AM.png" alt="Completed checksum ledger for the derived forensic artifacts" style="max-width:100%;margin:2rem 0;">
+
+<p>Much better.</p>
+
+<h2>Management Wants a Word</h2>
+
+<p>Management Wants a Word was far less tidy.</p>
+
+<p>The harness recycled old assumptions, over-inspected, trusted prior status messages, and somehow checked the wrong Python environment twice. I kept steering it back to source artifacts, read-only validation, and one evidence-based action at a time.</p>
+
+<p>I swapped models and corrected the forensic environment. CyberStrike recovered the SecureVault credential through Chrome's DPAPI chain, opened the VeraCrypt backup read-only, and extracted an invoice PDF.</p>
+
+<p>The flag was hiding inside the invoice image. Naturally, a binary text search returned nothing. The harness rendered the PDF and read the result from the image.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-16 at 7.21.18 PM.png" alt="Management Wants a Word recovery path with the flag value redacted" style="max-width:100%;margin:2rem 0;">
+
+<p>This one took some finessing, but the juice was worth the squeeze.</p>
+
+<p><a href="/management-wants-a-word.html">Read the complete Management Wants a Word writeup.</a></p>
+
+<p>That performance earned the harness an official name: Harnestia.</p>
+
+<h2>Harnestia Meets STRIKER</h2>
+
+<p>The Guestbook was Harnestia's first live web application CTF.</p>
+
+<p>She found the application workflow, identified the submission endpoint, created a test Guestbook entry, and watched VERA process it.</p>
+
+<p>Harnestia also signed the guestbook as herself. She's had a name for less than an hour and already knows her own brand.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-17 at 12.25.29 AM.png" alt="Harnestia submitting and verifying a controlled Guestbook entry with the target redacted" style="max-width:100%;margin:2rem 0;">
+
+<p>Harnestia wanted to launch STRIKER, a specialist web-assessment subagent within CyberStrike.</p>
+
+<p>The pre-programmed STRIKER had <code>allow</code> set for almost everything. Suspected repetition was the only task requiring approval. Not today, satan. In light of recent international news events, primarily for the sake of cyber hygiene, we do not want authority creeping beyond the sandbox perimeter.</p>
+
+<p>I left the built-in STRIKER alone and created a constrained version instead.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-17 at 9.30.28 AM.png" alt="Constrained STRIKER web-assessment subagent instructions" style="max-width:100%;margin:2rem 0;">
+
+<p>The new STRIKER had no direct write/edit tools and could not delegate to another agent. Per his specific instructions, he could still submit minimal, target-bounded Guestbook entries.</p>
+
+<p>STRIKER still had shell and web access, and Bash does not care how politely a policy file asks it to behave.</p>
+
+<h2>VERA's Charade</h2>
+
+<p>Leaving positive Guestbook feedback prompted VERA to mark the entry as featured and generate a <code>note:</code> action. Breakthrough. The behavior mapping commenced.</p>
+
+<p>VERA echoed the marker, claiming she pulled the record. However, the telemetry remained:</p>
+
+<pre><code class="language-json">[{&quot;call&quot;:&quot;note:&quot;,&quot;arg&quot;:&quot;positive feedback&quot;}]</code></pre>
+
+<p>No pulled entry ID, retrieval action, or record-selection tool was found in the telemetry.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-17 at 9.07.33 PM.png" alt="Guestbook telemetry separating VERA replies from actual tool execution" style="max-width:100%;margin:2rem 0;">
+
+<p>VERA's reply showed instruction influence. She had not pulled a darn thing.</p>
+
+<p>From this point onwards, any reply without matching <code>tools[]</code> telemetry was part of her charade.</p>
+
+<p>The harness got us very close to the finish line. The final pieces of the missing cross-entry mechanism puzzle were supplied by external research. I manually ran and validated the final flag sequence.</p>
+
+<p>The first entry recorded manager preauthorization for the next entry. I waited, then checked VERA's next review cycle. The following entry inherited the authorization. This time, <code>tools[]</code> showed an <code>override:</code> result.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-21 at 8.59.05 AM.png" alt="VERA override telemetry with target and encoded result redacted" style="max-width:100%;margin:2rem 0;">
+
+<p>Score. We got it.</p>
+
+<p>I decoded the returned Base64 value locally and validated the flag.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-21 at 9.00.59 AM.png" alt="Local Base64 validation with the encoded result and flag redacted" style="max-width:100%;margin:2rem 0;">
+
+<p><a href="/the-guestbook.html">Read the complete Guestbook writeup.</a></p>
+
+<h2>Where the Harness Faceplanted</h2>
+
+<p>The live run also handed me a hefty improvement list:</p>
+
+<ul>
+
+<li>STRIKER duplicated actions and paced requests poorly.</li>
+
+<li>Transport failures sometimes became fictional dead-target conclusions.</li>
+
+<li>VERA's replies were confused with actual <code>tools[]</code> execution.</li>
+
+<li>Slightly reworded versions of the same hypothesis multiplied.</li>
+
+<li>Provider credit errors triggered wasteful retries.</li>
+
+<li>Request budgets relied on model cooperation.</li>
+
+<li>Evidence lived across prompts and terminal output when a durable ledger would be more logical and efficient.</li>
+
+</ul>
+
+<p>We will definitely stop relying on STRIKER to remember operational controls.</p>
+
+<table><thead><tr><th>Problem</th><th>External control</th><th>Pass condition</th></tr></thead><tbody><tr><td>Duplicate actions and weak pacing</td><td>Request governor with fingerprints, cooldowns, and POST deduplication</td><td>No duplicate POST and no early request.</td></tr><tr><td>Transport confusion</td><td>State machine using exit code, HTTP status, connection time, and route state</td><td>A pre-connect timeout never becomes &quot;target expired.&quot;</td></tr><tr><td>Replies confused with execution</td><td>Parser that stores reply text and <code>tools[]</code> separately</td><td>Execution requires matching tool telemetry.</td></tr><tr><td>Reworded hypotheses</td><td>Hypothesis ledger with novelty checks and attempt limits</td><td>Each attempt names a new mechanism and stop condition.</td></tr><tr><td>Provider retry loops</td><td>Fail-fast handling for quota, billing, authentication, and permission errors</td><td>One terminal provider error ends the run.</td></tr><tr><td>Prompt-based request budgets</td><td>Per-run limits enforced outside the agent</td><td>GET, POST, retry, time, token, and cost limits stop automatically.</td></tr></tbody></table>
+
+<p>For the first ledger we'll use append-only JSONL. As long as that goes well, we'll implement SQLite.</p>
+
+<p>Each ledger entry will retain the authorization scope, acting agent, hypothesis, request fingerprint, timing, target response or artifact reference, application state, target-generated reply, actual tool telemetry, transport classification, operator intervention, and remaining budget. Try saying that five times fast.</p>
+
+<p>STRIKER must also explain why a proposed action tests a new mechanism. Any of his requests without sound reasoning will not pass go.</p>
+
+<p>In short:</p>
+
+<blockquote><p>STRIKER reasons. The governor controls execution. The ledger preserves evidence. A validator decides what they proved.</p></blockquote>
+
+<p>The forensic investigations served the critical purpose of showing me the harness's capabilities. The Guestbook underscored its shortcomings, resulting in a detailed improvement list.</p>
+
+<p>My own research already taught me the following crucial lesson on paper. Immersive learning drove it home: operational controls can't depend on an agent remembering direct instructions. Pacing, budgets, retries, evidence handling, and stop conditions must be enforced <em>outside</em> of the model.</p>
+
+<p>Harnestia and STRIKER are presently undergoing extreme makeovers in the lab as that improvement list morphs into tested code.</p>
+
+<p>Stay tuned for Part II.</p>
+
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+    (() => {
+        const menuToggle = document.getElementById("menu-toggle");
+        const menu = document.getElementById("menu");
+
+        if (!menuToggle || !menu) {
+            return;
+        }
+
+        document.documentElement.classList.add("js-menu-ready");
+
+        const closeMenu = (restoreFocus = false) => {
+            menuToggle.setAttribute("aria-expanded", "false");
+            menu.classList.remove("menu-open");
+
+            if (restoreFocus) {
+                menuToggle.focus();
+            }
+        };
+
+        menuToggle.addEventListener("click", () => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            menuToggle.setAttribute(
+                "aria-expanded",
+                String(!isOpen)
+            );
+            menu.classList.toggle("menu-open", !isOpen);
+        });
+
+        menu.addEventListener("click", (event) => {
+            if (event.target.closest("a")) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("click", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (
+                isOpen &&
+                !menu.contains(event.target) &&
+                !menuToggle.contains(event.target)
+            ) {
+                closeMenu();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            const isOpen =
+                menuToggle.getAttribute("aria-expanded") === "true";
+
+            if (event.key === "Escape" && isOpen) {
+                closeMenu(true);
+            }
+        });
+
+        const desktopQuery =
+            window.matchMedia("(min-width: 769px)");
+
+        desktopQuery.addEventListener("change", (event) => {
+            if (event.matches) {
+                closeMenu();
+            }
+        });
+    })();
+</script>
+</body>
+</html>
