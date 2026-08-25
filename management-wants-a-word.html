@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Management Wants a Word | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="The harness took on its second offline forensic CTF. It recycled old assumptions, checked the wrong Python environment twice, and eventually recovered the flag.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/management-wants-a-word.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript><style>#theme-toggle,.top-link{display:none}</style></noscript>
+<script>
+if(localStorage.getItem("pref-theme")==="dark"){document.documentElement.dataset.theme="dark"}else if(localStorage.getItem("pref-theme")==="light"){document.documentElement.dataset.theme="light"}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.dataset.theme="dark"}else{document.documentElement.dataset.theme="light"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/management-wants-a-word.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Management Wants a Word">
+<meta property="og:description" content="The harness took on its second offline forensic CTF. It recycled old assumptions, checked the wrong Python environment twice, and eventually recovered the flag.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Management Wants a Word">
+<meta name="twitter:description" content="The harness took on its second offline forensic CTF. It recycled old assumptions, checked the wrong Python environment twice, and eventually recovered the flag.">
+</head>
+<body id="top">
+<header class="header">
+<nav class="nav">
+<div class="logo">
+<a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+<div class="logo-switches">
+<button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+</div>
+</div>
+<ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/applied-projects.html" title="Penetration Testing"><span>Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span class="active">AI Security</span></a></li>
+</ul>
+</nav>
+</header>
+<main class="main">
+<article class="post-single">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">Management Wants a Word</h1>
+<div class="post-description">The harness took on its second offline forensic CTF. It recycled old assumptions, checked the wrong Python environment twice, and eventually recovered the flag.</div>
+</header>
+<div class="post-content">
+
+<p>Here we go again.</p>
+
+<h2>The Harness is Problem #1</h2>
+
+<p>The harness is off to work:</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-15 at 7.24.22 PM.png" alt="Initial Management Wants a Word artifact inventory and unresolved claims" style="max-width:100%;margin:2rem 0;">
+
+<p>The harness definitely got a bit out of line on this attempt.</p>
+
+<p>I told it to begin with the preserved investigation records. It responded with an unnecessary recursive directory listing and revived an earlier assumption about Chrome credential recovery that had already been disproven. Yes, it was clearly informed of that.</p>
+
+<p>That's okay. We'll guide it back to center.</p>
+
+<p>The next instructions restricted the harness to one file, no shell, and one answer: did the saved timeline contain a complaint, ticket, deletion event, or complaint-derived name?</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-15 at 8.47.18 PM.png" alt="Restricted timeline review showing ordinary browser search history" style="max-width:100%;margin:2rem 0;">
+
+<p>This run, it was a very good boi.</p>
+
+<p>The file contained ordinary browser-search history. An earlier agent had called the timeline incomplete without evidence to support the claim.</p>
+
+<p>This is real progress.</p>
+
+<h2>Browser Remnants</h2>
+
+<p>The next inventory stayed inside the official ZIP and only classified filenames. It surfaced browser residual stores, without any listed NTFS metadata or unallocated-space sources.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-15 at 9.17.49 PM.png" alt="Official ZIP inventory identifying Chrome residual stores" style="max-width:100%;margin:2rem 0;">
+
+<p>Next stop: Chrome Local Storage.</p>
+
+<p>One name appeared inside a serialized suggestion list. The harness initially omitted it from the report despite printing it in the raw artifact output. Tsk, tsk. A one-command follow-up isolated the context.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-15 at 9.44.30 PM.png" alt="Serialized browser suggestion containing the candidate name" style="max-width:100%;margin:2rem 0;">
+
+<p>Gosh, sometimes it feels like training a puppy.</p>
+
+<p>The name was a browser suggestion. Not a darn password. Not a complaint-derived identity. It was enough to justify a candidate check without opening the door to password guessing.</p>
+
+<h2>A Dirty Hive and a Bad Replay</h2>
+
+<p>Credential recovery slammed into a Windows registry problem.</p>
+
+<p>The original <code>SYSTEM</code> hive had a valid checksum, but its sequence numbers differed. Regipy replayed the transaction logs and matched the sequence numbers, then mic-dropped an invalid checksum.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-15 at 11.04.35 PM.png" alt="Regipy output showing mismatched registry hive sequence numbers" style="max-width:100%;margin:2rem 0;">
+
+<p>Okay. I see what's happening.</p>
+
+<p>The source hive was dirty. The replayed hive was defective.</p>
+
+<p>The originals were never overwritten. I used YARP to replay <code>SYSTEM</code>, <code>SYSTEM.LOG1</code>, and <code>SYSTEM.LOG2</code> into a separate derived hive, then checked its structure and hash.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-15 at 11.22.16 PM.png" alt="YARP-recovered SYSTEM hive with matching sequence numbers and SHA-256 hash" style="max-width:100%;margin:2rem 0;">
+
+<p>A successful registry replay!</p>
+
+<p>Credential recovery returned the same NT hash and the same DPAPI master-key failure with the YARP output. The dirty source hive was no longer our blocker.</p>
+
+<p>The previous VeraCrypt checks had their own issue. <code>printf &quot;%s\n&quot;</code> combined with <code>--key-file=-</code> sent each candidate with a trailing newline. We tested the observed strings plus <code>\n</code>, but not the strings preserved in evidence.</p>
+
+<p>I repeated the command using the two exact values without the newline.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-15 at 11.41.37 PM.png" alt="Exact VeraCrypt candidate checks without trailing newlines" style="max-width:100%;margin:2rem 0;">
+
+<p>Both were rejected as VeraCrypt/TCRYPT passphrases. This time, the negative results were genuine.</p>
+
+<h2>New Model O'Clock</h2>
+
+<p>Gemini Flash was used out of convenience. This investigation needed a model with deeper reasoning capabilities.</p>
+
+<p>Before returning to the evidence, I tested the new model with no-tool output, one controlled shell command, and discovery-only access to the connected MCP tools.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-16 at 2.49.45 PM.png" alt="Controlled stronger-model test discovering the Hayabusa scan tool without invoking it" style="max-width:100%;margin:2rem 0;">
+
+<p>It passed with flying colors. I don't know why people use this figure of speech.</p>
+
+<p>The harness discovered the Hayabusa <code>scan_evtx</code> tool without loading it, invoking it, accessing files, or wandering into another tool.</p>
+
+<p>Fingers crossed that all of this work was not lost.</p>
+
+<p>I could have solved this CTF myself a week ago.</p>
+
+<h2>Wrong Python</h2>
+
+<p>The first full run with the stronger model was healthy, but it checked the system Python and concluded that Impacket was missing.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-16 at 4.33.24 PM.png" alt="Harness analysis performed through the wrong Python environment" style="max-width:100%;margin:2rem 0;">
+
+<p>Impacket was already installed inside the forensic-crypto environment. So, why the discrepancy? The harness asked the wrong interpreter.</p>
+
+<p>I pointed it to the correct Python environment, the preserved case files, and the investigative paths we had already ruled out. The second run was miles better. Sorry, Gem.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-16 at 5.03.46 PM.png" alt="Chrome session artifacts identifying the SecureVault login with the challenge address redacted" style="max-width:100%;margin:2rem 0;">
+
+<p>Chrome's saved session became the strongest lead. The next run parsed its serialized state and related residuals.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-16 at 5.37.18 PM.png" alt="Chrome session-state analysis distinguishing the username from the encrypted password" style="max-width:100%;margin:2rem 0;">
+
+<p>Chrome's session files unearthed <code>VeraSecretVault</code> as the username and pointed to an encrypted credential in <code>Login Data</code> for the challenge origin. The session state did not contain the plaintext password.</p>
+
+<p>Now we had the right artifact.</p>
+
+<h2>Proving the Wiring</h2>
+
+<p>Before blaming CyberStrike, I gave the harness one job: discover, load, and invoke the forensic-crypto credential-recovery tool one time and one time only.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-16 at 6.14.12 PM.png" alt="Single forensic-crypto MCP invocation returning a DPAPI master-key authentication failure" style="max-width:100%;margin:2rem 0;">
+
+<p>The wiring passed. CyberStrike found the MCP tool and returned its structured result. The DPAPI master-key authentication failed. I misplaced blame.</p>
+
+<p>The next investigative run combed through the remaining evidence. Despite the earlier correction, the harness checked the wrong Python environment again and decided the required DPAPI tools were unavailable.</p>
+
+<p>I'm willing to look the other way...this time.</p>
+
+<p>I corrected the interpreter path and continued the same session.</p>
+
+<h2>HOLY CRAP</h2>
+
+<p>It got the flag.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-16 at 7.21.18 PM.png" alt="Recovered invoice workflow with the flag value redacted" style="max-width:100%;margin:2rem 0;">
+
+<p>The harness recovered the SecureVault credential through Chrome's DPAPI chain, opened the VeraCrypt backup read-only, and extracted the financial documents.</p>
+
+<p>One invoice looked promising. A binary search for the <code>THM{...}</code> pattern returned nothing because the flag was not stored as PDF text.</p>
+
+<p>The harness rendered the invoice with <code>pdftoppm</code>, opened the resulting image, and found the flag there.</p>
+
+<p>I validated it in TryHackMe.</p>
+
+<img src="/images/agentic-security-harness/Screenshot 2026-08-16 at 7.22.12 PM.png" alt="TryHackMe room completion screen" style="max-width:100%;margin:2rem 0;">
+
+<p>Finally.</p>
+
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+<footer class="footer"><span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot; <span>Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp; <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a></span></footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"></path></svg></a>
+<script>
+let menu=document.getElementById("menu");if(menu){const p=localStorage.getItem("menu-scroll-position");if(p)menu.scrollLeft=parseInt(p,10);menu.onscroll=()=>localStorage.setItem("menu-scroll-position",menu.scrollLeft)}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();const id=this.getAttribute("href").substring(1);document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});if(id==="top")history.replaceState(null,null," ");else history.pushState(null,null,`#${id}`)}));
+let topButton=document.getElementById("top-link");window.onscroll=()=>{if(document.body.scrollTop>800||document.documentElement.scrollTop>800){topButton.style.visibility="visible";topButton.style.opacity="1"}else{topButton.style.visibility="hidden";topButton.style.opacity="0"}};
+document.getElementById("theme-toggle").addEventListener("click",()=>{const html=document.documentElement;if(html.dataset.theme==="dark"){html.dataset.theme="light";localStorage.setItem("pref-theme","light")}else{html.dataset.theme="dark";localStorage.setItem("pref-theme","dark")}});
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+</body>
+</html>
