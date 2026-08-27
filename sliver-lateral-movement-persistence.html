@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Sliver C2, Lateral Movement, and Persistence | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Authorized Red Siege lab work covering Sliver C2, lateral movement to SQL01, service persistence, WMI persistence, cleanup, and what defenders can see.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/sliver-lateral-movement-persistence.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript><style>#theme-toggle,.top-link{display:none}</style></noscript>
+<script>
+if(localStorage.getItem("pref-theme")==="dark"){document.documentElement.dataset.theme="dark"}else if(localStorage.getItem("pref-theme")==="light"){document.documentElement.dataset.theme="light"}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.dataset.theme="dark"}else{document.documentElement.dataset.theme="light"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/sliver-lateral-movement-persistence.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Sliver C2, Lateral Movement, and Persistence">
+<meta property="og:description" content="Authorized Red Siege lab work covering Sliver C2, lateral movement to SQL01, service persistence, WMI persistence, cleanup, and what defenders can see.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Sliver C2, Lateral Movement, and Persistence">
+<meta name="twitter:description" content="Authorized Red Siege lab work covering Sliver C2, lateral movement to SQL01, service persistence, WMI persistence, cleanup, and what defenders can see.">
+</head>
+<body id="top">
+<header class="header">
+<nav class="nav">
+<div class="logo">
+<a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+<div class="logo-switches">
+<button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+</div>
+</div>
+<ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/applied-projects.html" title="Penetration Testing"><span class="active">Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+</ul>
+</nav>
+</header>
+<main class="main">
+<article class="post-single">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">Sliver C2, Lateral Movement, and Persistence</h1>
+<div class="post-description">Authorized Red Siege lab work covering Sliver C2, lateral movement to SQL01, service persistence, WMI persistence, cleanup, and what defenders can see.</div>
+</header>
+<div class="post-content">
+
+<p>This writeup covers authorized labs from Red Siege's <em>Penetration Testing: Beyond the Basics</em>. Red Siege created the environment, objectives, and attack paths. I performed the lab work and wrote the commentary.</p>
+
+<h2>Establishing the Sliver Foothold</h2>
+
+<p>Sliver is a well-architected powerhouse for pentesters. The <code>Print Spooler x64</code> setup used for lateral movement is genius. Unfortunately, even Sliver cannot move laterally with credentials that do not have the necessary permissions.</p>
+
+<p>Despite <code>mholmes</code>' lack of permissions, Sliver was still hard at work generating the payload in the background. Instead of assigning a name to the payload, which could get genuinely confusing while juggling compromised accounts, Sliver assigns a random two-word phrase. We were assigned <code>UGLY_LITERATURE</code>. Rude, but memorable.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-15 at 8.07.05 PM.png" alt="Sliver implant generation" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-15 at 8.18.22 PM.png" alt="Established Sliver session" style="max-width:100%;margin:2rem 0;">
+
+<h2>Access Denied. Try Another User.</h2>
+
+<p>We tried moving laterally into SQL01 with <code>mholmes</code>, but the account didn't have the necessary permissions. <code>Access is denied</code>.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-18 at 1.00.14 AM.png" alt="Lateral-movement attempt denied" style="max-width:100%;margin:2rem 0;">
+
+<p>With the payload ready, we weren't going to let <code>mholmes</code> stand in our way. We have other credentials to try, and we'll go with <code>pparker</code> because Spider-Man surely has liberal permissions.</p>
+
+<p>Now that we have our new user, we'll use Sliver's <code>make-token</code> function to generate <code>pparker</code>'s security token.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-18 at 1.03.31 AM.png" alt="Alternate security token created" style="max-width:100%;margin:2rem 0;">
+
+<p><code>pparker</code> for the win. We had a live session. Sliver's <code>use</code> command let us select it using the newly assigned session ID.</p>
+
+<p>Pro tip: you don't need to enter the entire ID. A unique prefix is enough. The first two characters worked for us because no other session shared them.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-18 at 1.04.55 AM.png" alt="Successful lateral movement to SQL01" style="max-width:100%;margin:2rem 0;">
+
+<p>We next needed to ensure we had viable access on the target system. We ran <code>info</code> and, sure enough, had <code>NT AUTHORITY\SYSTEM</code> access on SQL01.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-18 at 1.06.54 AM.png" alt="SYSTEM access verified on SQL01" style="max-width:100%;margin:2rem 0;">
+
+<p>We achieved our goal: lateral movement to SQL01 with <code>SYSTEM</code> access. As pentesters, that's where we stop and document our findings.</p>
+
+<p>We ran <code>sessions -K</code> and <code>jobs -K</code> in Sliver to kill our sessions and listener. We made our clean getaway with <code>exit</code>, then powered down the lab VMs.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-18 at 1.07.40 AM.png" alt="Sliver sessions and listener terminated" style="max-width:100%;margin:2rem 0;">
+
+<h2>Service Persistence</h2>
+
+<p>We used Sliver to generate <code>service.exe</code> and copied it to <code>C:\service.exe</code>. Then we created an auto-start service named <code>persist</code> with <code>sc create persist binpath=&quot;c:\service.exe&quot; start=auto</code>.</p>
+
+<p>The service worked, but stealth was not its finest attribute. A new auto-start service named <code>persist</code> points to <code>C:\service.exe</code>, giving defenders a pretty obvious place to start.</p>
+
+<p>We remotely restarted Windows from Kali with <code>shutdown /r /t 0</code>. When the target came back online, a new session appeared in the Sliver terminal. Vive la persistance!</p>
+
+<p>We ran <code>sessions</code> to examine our new connection. Health status: <code>[ALIVE]</code>. User: <code>NT AUTHORITY\SYSTEM</code>. Not just persistence, but persistence with elevated access.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-17 at 3.08.42 PM.png" alt="Service persistence survived reboot with SYSTEM access" style="max-width:100%;margin:2rem 0;">
+
+<p>Always be a ghost in the machine. Erase each and every trace.</p>
+
+<p>We killed the Sliver session with <code>sessions -K</code>, then hit <code>CTRL</code> + <code>C</code> to exit <code>impacket-wmiexec</code>. We stopped the service with <code>sc stop persist</code> and deleted it with <code>sc delete persist</code>. Like we were never there.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-17 at 3.10.21 PM.png" alt="Persistence service removed" style="max-width:100%;margin:2rem 0;">
+
+<p>In a real engagement, we'd also remove <code>C:\service.exe</code>. Don't touch the defensive logs, though. Those remain intact.</p>
+
+<h2>WMI Persistence</h2>
+
+<p>We created the WMI trinity: a filter watching for Event ID <code>4625</code> containing <code>baduser</code>, a consumer to execute the payload, and a binding to tie them together. There is a special place in the underworld for whoever designed WMI syntax.</p>
+
+<img src="/images/penetration-testing-beyond-the-basics/Screenshot 2026-08-17 at 3.32.43 PM.png" alt="WMI filter, consumer, and binding created" style="max-width:100%;margin:2rem 0;">
+
+<p>We used <code>smbclient</code> to authenticate as <code>baduser</code> on the Windows system and test our WMI trinity. The command returned a logon failure, but not an unwelcome one. We kept our eyes on the Sliver server. <em>Bam.</em> A new session appeared.</p>
+
+<p>Whatever <code>smbclient</code> thought about our credentials, the WMI persistence, well, persisted.</p>
+
+<p>Run these commands to remove the WMI binding, filter, and consumer:</p>
+
+<div class="highlight"><pre tabindex="0"><code class="language-powershell" data-lang="powershell">Get-WMIObject -Namespace root\Subscription -Class __FilterToConsumerBinding -Filter &quot;__Path LIKE '%MONITOR%'&quot; | Remove-WmiObject -Verbose
+
+Get-WmiObject -Namespace root\subscription -Class __EventFilter -Filter &quot;__Path LIKE '%MONITOR%'&quot; | Remove-WmiObject -Verbose
+
+Get-WmiObject -Namespace root\subscription -Class CommandLineEventConsumer -Filter &quot;__Path LIKE '%MONITOR%'&quot; | Remove-WmiObject -Verbose</code></pre></div>
+
+<p>In a real engagement, we'd also remove the payload.</p>
+
+<h2>What Defenders Can See</h2>
+
+<p>Sysmon Event IDs <code>19</code>, <code>20</code>, and <code>21</code> record the creation of filters, consumers, and bindings. A new filter or consumer may be legitimate on its own. An unfamiliar binding between them is where things get especially spicy.</p>
+
+<p>Also be on the lookout for <code>WmiPrvSE.exe</code> spawning PowerShell, a command shell, or an unknown executable. If that process immediately makes an outbound connection, divert your attention there and find out why.</p>
+
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+<footer class="footer"><span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot; <span>Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp; <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a></span></footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"></path></svg></a>
+<script>
+let menu=document.getElementById("menu");if(menu){const p=localStorage.getItem("menu-scroll-position");if(p)menu.scrollLeft=parseInt(p,10);menu.onscroll=()=>localStorage.setItem("menu-scroll-position",menu.scrollLeft)}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();const id=this.getAttribute("href").substring(1);document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});if(id==="top")history.replaceState(null,null," ");else history.pushState(null,null,`#${id}`)}));
+let topButton=document.getElementById("top-link");window.onscroll=()=>{if(document.body.scrollTop>800||document.documentElement.scrollTop>800){topButton.style.visibility="visible";topButton.style.opacity="1"}else{topButton.style.visibility="hidden";topButton.style.opacity="0"}};
+document.getElementById("theme-toggle").addEventListener("click",()=>{const html=document.documentElement;if(html.dataset.theme==="dark"){html.dataset.theme="light";localStorage.setItem("pref-theme","light")}else{html.dataset.theme="dark";localStorage.setItem("pref-theme","dark")}});
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+</body>
+</html>
