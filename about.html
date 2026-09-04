@@ -12,6 +12,7 @@
 <link rel="canonical" href="https://jennshaggy.github.io/about.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
+    <link rel="stylesheet" href="/assets/css/mobile-nav.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
@@ -106,6 +107,13 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
+                    <span class="menu-toggle-label">Menu</span>
+                    <span class="menu-toggle-icon" aria-hidden="true">
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
             </div>
         </div>
         <ul id="menu">
@@ -150,35 +158,37 @@
       About
     </h1>
     <div class="post-description">
-      Systems-first approach to cybersecurity. SOC operations, incident response, and infrastructure hardening built on operational experience and deep technical knowledge.
+      My work centers on offensive security, AI security, and the systems underneath both.
     </div>
   </header>
 
   <div class="post-content">
 
-<p>I work at the systems level - not because it's trendy, but because it's the only approach that actually solves problems.</p>
+<p>A vulnerability is where the fun starts. I want to know why it exists, what else it touches, and how far the system around it can be pushed, reconfigured, or pwned before something breaks.</p>
 
-<p>I've built and operated complete business systems from the ground up - network infrastructure, operational security, vendor relations, payroll systems, and client delivery under real-world constraints. I've wired networks, managed critical operations, and kept systems running when failure wasn't an option. That operational experience taught me how systems degrade, how users behave under pressure, and how small architectural decisions cascade into failures that break everything downstream.</p>
+<p>My background is weird in the best possible way. I've worked in IT support and web development, built an online booking department, managed retail and food operations, owned two food businesses, produced a film, acted professionally, and published a cookbook. Technology was my best coworker and business partner through all of it.</p>
 
 <p style="text-align: center; margin: 1.5rem 0;">
   <img src="/images/toddler-dos-1.jpeg" alt="Learning DOS commands at age 2" style="max-width: 100%; height: auto; border-radius: 4px;">
 </p>
 
-<p>I didn't start learning technology recently. I started at age 2, learning DOS commands before I could read. By 13, I was building custom PCs with Bat Mitzvah money. In high school, I was customizing Blogspot sites with hand-coded HTML and CSS. That work eventually became a popular vegan cooking blog and led to a published cookbook. In 2009, I learned mobile device repair during the early days of smartphone retail. I've been troubleshooting, rebuilding, and reclaiming broken systems ever since.</p>
+<p>I started learning DOS commands at age 2, before I could read. By 13, I was building custom PCs with my Bat Mitzvah money. In high school, I customized Blogspot sites with hand-coded HTML and CSS. That work eventually became a popular vegan cooking blog and led to a published cookbook. In 2009, I learned mobile device repair during the early days of smartphone retail. I've been troubleshooting and rebuilding systems ever since.</p>
 
-<p>In 2024, I enrolled at the California Institute of Applied Technology to formalize that applied systems knowledge into a structured cybersecurity credential. I completed CompTIA A+, Network+, and Security+ in under eight weeks while maintaining a 4.0 GPA, then completed my A.A.S. in Computer Information Systems, Cybersecurity, Summa Cum Laude, in July 2026. Current work includes Red Siege coursework in penetration testing and Kerberos, Cisco Ethical Hacker, CompTIA CyberDefense Pro and AI Prompting Essentials, and hands-on training across offensive security, malware analysis, and cloud infrastructure.</p>
+<p>In 2024, I enrolled at the California Institute of Applied Technology. I earned CompTIA A+, Network+, Security+, CIOS, CSIS, and ISC2 CC while maintaining a 4.0 GPA. In July 2026, I completed my A.A.S. in Computer Information Systems, Cybersecurity, Summa Cum Laude, and earned EC-Council's ADG Verified in Defend credential. I am enrolled in CIAT's applied bachelor's program, which begins in September 2026.</p>
 
-<p>I approach security the same way I've always approached operations: by understanding constraints, lifecycles, and the interactions between layers. A secure system isn't built by adding tools. It's built by designing for degradation, recovery, and human behavior under pressure.</p>
+<p>I've completed Red Siege's Penetration Testing: Beyond the Basics and Offense for Defense, AWS Academy Cloud Foundations, AI Cyber Defense Ops through Just Hacking Training and WiCyS, and Antisyphon's How to Build Pressure-Proof Pretexts workshop. I'm currently preparing for the PNPT and ACE-T Core while completing Cisco Ethical Hacker, CompTIA CyberDefense Pro, CompTIA AI Prompting Essentials, and Just Hacking's weekly Script-Based Malware Analysis course with John Hammond.</p>
 
-<p>My current focus includes SOC monitoring and analysis, incident response, endpoint hardening, Identity &amp; Access Management, cloud security architecture, AI-supported defense strategies, and human risk awareness. These areas evolve as the threat landscape shifts - I adapt methodology to meet operational reality, not the other way around.</p>
+<p>My current work includes penetration testing, vulnerability research, Active Directory, web applications and APIs, AI/ML security, malware analysis, detection engineering, and security tooling.</p>
 
-<p>Recent work includes shipping Hayabusa MCP v0.1.0 for controlled EVTX analysis and building a hardened Fedora-based agentic security harness for CyberStrike. I validated the harness through controlled live-model execution, constrained Hayabusa MCP orchestration, and a separate end-to-end offline forensic investigation with evidence provenance, payload containment, and deterministic result validation.</p>
+<p>I conduct independent vulnerability research through authorized disclosure programs.</p>
 
-<p>I also conceived and co-founded CIAT's weekly Beginners CTF, which I co-lead with a CEH instructor. I teach sessions independently when needed, most recently guiding participants through TryHackMe's ContAInment AI-security challenge.</p>
+<p>Recent work includes shipping Hayabusa MCP v0.1.0 and building a Fedora-based agentic security harness around CyberStrike. The harness now uses <code>harness-controls</code> v0.4.1 to keep Harnestia and STRIKER inside restricted case boundaries and out of trouble. That version passed 312 tests. Harnestia then completed an offline memory-forensics case through the CyberStrike TUI and recorded 12 answers from pinned evidence.</p>
 
-<p>Outside of my own work, I co-run <a href="https://crumpledthoughts.org" target="_blank" rel="noopener">Crumpled Thoughts</a>, a nonprofit that provides literacy and technology education to underrepresented communities. I teach cybersecurity fundamentals, digital safety, and technical problem-solving. My wife teaches literacy and critical thinking. We work with people from all backgrounds (POC, LGBTQ+, immigrants, and low-income communities) to build the skills needed to navigate modern life with confidence.</p>
+<p>I conceived and co-founded CIAT's weekly Beginners CTF, which I co-lead with a CEH instructor. I teach sessions independently when needed, most recently guiding participants through TryHackMe's ContAInment AI-security challenge.</p>
 
-<p>My applied bachelor's degree in Computer Information Systems begins in September 2026. I continue independent coursework and project work alongside it, and I am open to opportunities that value systems thinking, operational rigor, and the ability to solve problems that do not have documented solutions yet.</p>
+<p>I was selected to speak at BSides Albuquerque 2026.</p>
+
+<p>I co-founded <a href="https://crumpledthoughts.org" target="_blank" rel="noopener">Crumpled Thoughts</a>, a nonprofit providing literacy and technology education to underrepresented communities. I advise on cybersecurity fundamentals, digital safety, and technical problem-solving. My wife teaches literacy and critical thinking. We work with people of color, LGBTQ+ people, immigrants, and low-income communities.</p>
 
 <h2 id="contact">Contact</h2>
 
@@ -259,6 +269,50 @@
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(() => {
+    const toggle = document.getElementById("menu-toggle");
+    const menu = document.getElementById("menu");
+
+    if (!toggle || !menu) return;
+
+    document.documentElement.classList.add("js-menu-ready");
+
+    const closeMenu = (returnFocus = false) => {
+        toggle.setAttribute("aria-expanded", "false");
+        menu.classList.remove("menu-open");
+        if (returnFocus) toggle.focus();
+    };
+
+    toggle.addEventListener("click", () => {
+        const isOpen = toggle.getAttribute("aria-expanded") === "true";
+        toggle.setAttribute("aria-expanded", String(!isOpen));
+        menu.classList.toggle("menu-open", !isOpen);
+    });
+
+    menu.addEventListener("click", event => {
+        if (event.target.closest("a")) closeMenu();
+    });
+
+    document.addEventListener("click", event => {
+        const isOpen = toggle.getAttribute("aria-expanded") === "true";
+        if (isOpen && !menu.contains(event.target) && !toggle.contains(event.target)) {
+            closeMenu();
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" &&
+            toggle.getAttribute("aria-expanded") === "true") {
+            closeMenu(true);
+        }
+    });
+
+    window.matchMedia("(min-width: 769px)").addEventListener("change", event => {
+        if (event.matches) closeMenu();
+    });
+})();
 </script>
 </body>
 </html>
