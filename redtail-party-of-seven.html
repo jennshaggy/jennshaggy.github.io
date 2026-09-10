@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>RedTail, Party of Seven | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="A Cowrie honeypot captured five RedTail binaries and two deployment scripts in a single SSH session.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/redtail-party-of-seven.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript><style>#theme-toggle,.top-link{display:none}</style></noscript>
+<script>
+if(localStorage.getItem("pref-theme")==="dark"){document.documentElement.dataset.theme="dark"}else if(localStorage.getItem("pref-theme")==="light"){document.documentElement.dataset.theme="light"}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.dataset.theme="dark"}else{document.documentElement.dataset.theme="light"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/redtail-party-of-seven.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="RedTail, Party of Seven">
+<meta property="og:description" content="A Cowrie honeypot captured five RedTail binaries and two deployment scripts in a single SSH session.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RedTail, Party of Seven">
+<meta name="twitter:description" content="A Cowrie honeypot captured five RedTail binaries and two deployment scripts in a single SSH session.">
+</head>
+<body id="top">
+<header class="header">
+<nav class="nav">
+<div class="logo">
+<a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+<div class="logo-switches">
+<button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+</div>
+</div>
+<ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span class="active">Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/applied-projects.html" title="Penetration Testing"><span>Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+</ul>
+</nav>
+</header>
+<main class="main">
+<article class="post-single">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">RedTail, Party of Seven</h1>
+<div class="post-description">A Cowrie honeypot captured five RedTail binaries and two deployment scripts in a single SSH session.</div>
+</header>
+<div class="post-content">
+
+<p>The Splunk Honeypot Dashboard is aglow with threat actors believing they’ve infiltrated a sweet, cozy, inconspicuous IP address.</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 11.41.23 AM.png" alt="Splunk Honeypot Dashboard showing recent Cowrie activity" style="max-width:100%;margin:2rem 0;"></p>
+<p>Let’s see what comes up in the Splunk logs from the past 24 hours:</p>
+<pre class="spl"><code>index=cowrie host=honeypot01
+| stats count by eventid
+| sort - count</code></pre>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 11.43.07 AM.png" alt="Splunk event counts for the preceding 24-hour honeypot window" style="max-width:100%;margin:2rem 0;"></p>
+<p>Wow. We have session connections, successful logins, and much more.</p>
+<p>To be more organized about it:</p>
+<ul>
+<li>3,608 SSH connections</li>
+<li>3,323 Cowrie login successes</li>
+<li>3,265 commands entered</li>
+<li>118 <code>direct-tcpip</code> forwarding requests</li>
+<li>61 forwarding-data events</li>
+<li>10 file uploads</li>
+<li>15 failed logins</li>
+</ul>
+<p>For anyone not familiar with Cowrie, it’s an emulated SSH environment. Threat actors don’t know that. Cowrie logs what they do throughout the emulated session. A <code>cowrie.login.success</code> event needs more context. We need to see what the emulation allowed after login.</p>
+<p>These two categories are clearly more than credential sprays:</p>
+<pre class="spl"><code>cowrie.session.file_upload   10
+cowrie.direct-tcpip.request  118</code></pre>
+<p>Let’s dig into the 10 uploads first.</p>
+<pre class="spl"><code>index=cowrie host=honeypot01 eventid=&quot;cowrie.session.file_upload&quot;
+| table _time src_ip filename outfile shasum session
+| sort - _time</code></pre>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 11.47.57 AM.png" alt="Splunk table showing ten files uploaded to the Cowrie honeypot" style="max-width:100%;margin:2rem 0;"></p>
+<p>Our VIH of the Day (Very Important Hacker / Very Idiotic Hacker depending on your sense of humor): <code>77.90.185.20</code></p>
+<p>Our VIH uploaded an entire multi-architecture toolkit in one burst:</p>
+<ul>
+<li><code>setup.sh</code></li>
+<li><code>clean.sh</code></li>
+<li><code>redtail.x86_64</code></li>
+<li><code>redtail.i686</code></li>
+<li><code>redtail.arm8</code></li>
+<li><code>redtail.arm7</code></li>
+<li><code>redtail.riscv</code></li>
+</ul>
+<p>All seven files share the same Cowrie session ID. It’s likely an automated deployment script selecting payloads for whatever CPU architecture it lands on.</p>
+<p>There are also three separate uploads named <code>sshd</code> from the following IPs:</p>
+<ul>
+<li><code>118.196.86.191</code></li>
+<li><code>123.117.152.61</code></li>
+<li><code>118.145.115.134</code></li>
+</ul>
+<p>Each has a different SHA-256, so they’re not just duplicate captures.</p>
+<p>You know what’s great about Cowrie? It saves the artifacts here:</p>
+<pre class="md"><code>/home/cowrie/cowrie/var/lib/cowrie/downloads/&lt;SHA-256&gt;</code></pre>
+<p>We will use the utmost caution investigating the artifacts.</p>
+<p>We’ll document the <code>77.90.185.20</code> session first, then inspect its commands and hashes before even blinking at the files.</p>
+<p><strong>Step 1: Fingerprint the captured artifacts</strong></p>
+<p>We’ll SSH into <code>honeypot01</code> and start with the <code>77.90.185.20</code> session files:</p>
+<pre class="bash"><code>sudo ls -lh /home/cowrie/cowrie/var/lib/cowrie/downloads</code></pre>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 11.57.21 AM.png" alt="Cowrie download directory containing captured artifacts named by SHA-256" style="max-width:100%;margin:2rem 0;"></p>
+<p>Next, we’ll compute the hashes for the seven captures from this session:</p>
+<pre class="bash"><code>sudo sha256sum \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/1e70b63472772e3f5092ffe9c3573470e73590e6ab6d93fdcede1d368a5fd72d \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/f0aa83bbbd2c75e2f71ec16029ee5fcfad59f3a8efa30a500b815f0f6c18d987 \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/3f3bf218089d1488617d37f8a5116bb2791eb39ce06a1b5bc9a4cdfe5e94dd39 \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/8e1a67a5c03b3cd818f046c7a1605afccc0ee5ce437a0d099881f1872b54bc70 \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/d1cac82f44b54b0fd244a9e4122811e9ae108a197c7a65a20fd2e7552683e68e \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/d70f917e35813a7ae323e6b2b539d6dbbfc3a3a6599f1fed93430b14ca08b141 \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/3f3a11bafabb1a35db913cfe51995f2e357d049e268860175876ae5a93d23892</code></pre>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.07.44 PM.png" alt="SHA-256 verification for the seven artifacts captured in one Cowrie session" style="max-width:100%;margin:2rem 0;"></p>
+<p>We got our hashes.</p>
+<p>We have a clean baseline now that all seven hashes verify against Cowrie’s filenames.</p>
+<p>Let’s ID the file types:</p>
+<pre class="bash"><code>sudo file \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/1e70b63472772e3f5092ffe9c3573470e73590e6ab6d93fdcede1d368a5fd72d \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/f0aa83bbbd2c75e2f71ec16029ee5fcfad59f3a8efa30a500b815f0f6c18d987 \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/3f3bf218089d1488617d37f8a5116bb2791eb39ce06a1b5bc9a4cdfe5e94dd39 \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/8e1a67a5c03b3cd818f046c7a1605afccc0ee5ce437a0d099881f1872b54bc70 \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/d1cac82f44b54b0fd244a9e4122811e9ae108a197c7a65a20fd2e7552683e68e \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/d70f917e35813a7ae323e6b2b539d6dbbfc3a3a6599f1fed93430b14ca08b141 \
+/home/cowrie/cowrie/var/lib/cowrie/downloads/3f3a11bafabb1a35db913cfe51995f2e357d049e268860175876ae5a93d23892</code></pre>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.09.37 PM.png" alt="File identification results for five ELF binaries and two Bash scripts" style="max-width:100%;margin:2rem 0;"></p>
+<p>Wow. The audacity is impressive.</p>
+<p>What we have here is a proper multi-architecture payload set:</p>
+<ul>
+<li><code>x86-64</code></li>
+<li><code>i386</code></li>
+<li><code>ARM64</code> / <code>AArch64</code></li>
+<li><code>ARM32</code></li>
+<li><code>RISC-V</code></li>
+<li>All five binaries are statically linked.</li>
+<li>All five binaries are missing section headers.</li>
+<li>Add in two Bash scripts.</li>
+<li>And a partridge in a pear tree.</li>
+</ul>
+<p>It has very automated “detect architecture then deploy matching binary” workflow vibes, but we’ll let hard evidence speak for itself.</p>
+<p>Because safety first, we’ll inspect one file at a time. Text only.</p>
+<h3 id="artifact-1"># 1 <code>1e70b63472772e3f5092ffe9c3573470e73590e6ab6d93fdcede1d368a5fd72d</code></h3>
+<pre class="bash"><code>sudo nl -ba /home/cowrie/cowrie/var/lib/cowrie/downloads/1e70b63472772e3f5092ffe9c3573470e73590e6ab6d93fdcede1d368a5fd72d</code></pre>
+<p>They didn’t even attempt to obfuscate this.</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.14.52 PM.png" alt="Captured setup script displayed with numbered lines" style="max-width:100%;margin:2rem 0;"></p>
+<p>Let me break down the key parts here, and then I’ll bullet-list the script’s execution flow.</p>
+<p>Lines 35 - 44: Architecture detection</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.16.14 PM.png" alt="Setup script architecture-detection logic" style="max-width:100%;margin:2rem 0;"></p>
+<p>Lines 49 - 64: Avoidance of <code>noexec</code> + search for writable/executable directories</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.17.42 PM.png" alt="Setup script searching for writable executable directories while avoiding noexec mounts" style="max-width:100%;margin:2rem 0;"></p>
+<p>Lines 68 - 75: Writable-directory test and payload relocation</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.18.29 PM.png" alt="Setup script testing a writable directory and relocating the payload" style="max-width:100%;margin:2rem 0;"></p>
+<p>Lines 81 - 90: Architecture-specific execution</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.19.43 PM.png" alt="Setup script selecting and launching the matching architecture payload" style="max-width:100%;margin:2rem 0;"></p>
+<p>Line 93: Cleanup of <code>redtail.*</code></p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.20.39 PM.png" alt="Setup script removing the original redtail files" style="max-width:100%;margin:2rem 0;"></p>
+<p>As promised, here’s the bullet list breakdown of what this does:</p>
+<ul>
+<li>Sniffs out the CPU architecture: <code>x86_64</code>, <code>i686</code>, <code>arm8</code>, <code>arm7</code>, or <code>riscv</code>.</li>
+<li>Locates writable <em>and executable</em> directories owned by the current user.</li>
+<li>Specifically avoids <code>noexec</code> mounts and <code>/proc</code>.</li>
+<li>Tests potential directories by creating files and writing 2 MB.</li>
+<li>As soon as it finds a usable location, it drops the payload.</li>
+<li>It generates a random hidden filename such as <code>.&lt;random_filename&gt;</code>.</li>
+<li>Copies the matching <code>redtail.&lt;arch&gt;</code> binary into the hidden file.</li>
+<li>Marks that freshly-created hidden file as executable.</li>
+<li>Launches it with the argument: <code>ssh</code>.</li>
+<li>Deletes the original <code>redtail.*</code> as soon as it’s done.</li>
+</ul>
+<p>If it fails to detect the architecture, it tries <em>every architecture binary in sequence.</em></p>
+<p>Moving on to the next script.</p>
+<h3 id="artifact-2"># 2 <code>3f3a11bafabb1a35db913cfe51995f2e357d049e268860175876ae5a93d23892</code></h3>
+<pre class="bash"><code>sudo nl -ba /home/cowrie/cowrie/var/lib/cowrie/downloads/3f3a11bafabb1a35db913cfe51995f2e357d049e268860175876ae5a93d23892</code></pre>
+<p>This one fits in a not-so-overwhelming screenshot:</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.29.04 PM.png" alt="Captured cleanup script targeting competing miners and persistence" style="max-width:100%;margin:2rem 0;"></p>
+<p>That is really looking like cryptomining botnet behavior: eliminate competitors, reclaim CPU, install its own payload, persist, and reconnect.</p>
+<p>The script is built to remove competing miners and their persistence.</p>
+<p>This is a cleanup script, and here’s what it does:</p>
+<ul>
+<li>Attempts to disable and stop <code>c3pool_miner</code>.</li>
+<li>Attempts to disable and stop <code>bot.service</code>.</li>
+<li>Removes lines containing <code>wget</code>, <code>curl</code>, <code>/dev/tcp</code>, reverse-shell patterns, temp paths, scripts, or base64 decoding.</li>
+<li>Scrubs user and system crontabs.</li>
+<li>Scrubs <code>/etc/cron.hourly</code>, <code>daily</code>, <code>weekly</code>, <code>monthly</code>, and <code>cron.d</code>.</li>
+<li>Wipes the contents of <code>/tmp</code>, <code>/var/tmp</code>, and <code>/dev/shm</code>.</li>
+<li>Cleans shell startup files like <code>~/.bashrc</code>, <code>~/.bash_profile</code>, and <code>~/.profile</code>.</li>
+</ul>
+<p>These two lines are very telling:</p>
+<pre class="md"><code>systemctl disable c3pool_miner
+systemctl stop c3pool_miner</code></pre>
+<p>It indicates the malware creator is trying to eliminate any existing C3Pool miner or competing miner/persistence before deploying <code>redtail</code>.</p>
+<p>It’s literally wiping out the competition.</p>
+<p>To find out what <code>redtail</code> actually does, we’ll move on to a static inspection of the <code>x86-64</code> binary via <code>strings</code> and <code>readelf</code>, and VirusTotal hash lookup.</p>
+<h2 id="static-x86-64-redtail-binary">Static x86-64 <code>redtail</code> binary</h2>
+<p>Let’s start with a static inspection of the x86-64 <code>redtail</code> binary.</p>
+<p>The sample is <code>f0aa83bbbd2c75e2f71ec16029ee5fcfad59f3a8efa30a500b815f0f6c18d987</code>.</p>
+<p>First, we inspect the ELF header:</p>
+<pre class="bash"><code>sudo readelf -h /home/cowrie/cowrie/var/lib/cowrie/downloads/f0aa83bbbd2c75e2f71ec16029ee5fcfad59f3a8efa30a500b815f0f6c18d987</code></pre>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.37.23 PM.png" alt="ELF header for the captured x86-64 RedTail binary" style="max-width:100%;margin:2rem 0;"></p>
+<p>Now we’ll pull what’s hopefully a manageable amount of strings:</p>
+<pre class="bash"><code>sudo strings -a -n 6 /home/cowrie/cowrie/var/lib/cowrie/downloads/f0aa83bbbd2c75e2f71ec16029ee5fcfad59f3a8efa30a500b815f0f6c18d987 \
+| egrep -i &#39;pool|miner|xmrig|wallet|stratum|http|https|curl|wget|ssh|cron|systemd|c3pool|redtail|socket|connect|proxy|dns&#39; \
+| head -200</code></pre>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.38.14 PM.png" alt="Strings output showing a UPX executable-packer signature" style="max-width:100%;margin:2rem 0;"></p>
+<p>The UPX signature may explain why we came up with a nearly-empty <code>strings</code> output. The binary looks packed. <code>readelf</code> confirms it has no section headers, which is common with packed samples.</p>
+<p>Moving over to VirusTotal to look up the hash.</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.41.39 PM.png" alt="VirusTotal detection results for the captured RedTail binary hash" style="max-width:100%;margin:2rem 0;"></p>
+<p>Yep. This is the one.</p>
+<p>Let’s check out the Behavior tab:</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.42.36 PM.png" alt="VirusTotal behavior summary for the captured RedTail binary" style="max-width:100%;margin:2rem 0;"></p>
+<p>The MITRE mappings align with what I’m seeing so far:</p>
+<p><img src="/images/redtail-party-of-seven/Screenshot 2026-09-09 at 12.43.07 PM.png" alt="VirusTotal MITRE ATT&amp;CK mappings for the captured RedTail binary" style="max-width:100%;margin:2rem 0;"></p>
+<p><a href="https://urlhaus.abuse.ch/url/3888358/">URLhaus</a> lists the SHA-256 as a <code>Prometei</code> payload. The delivery URL is tagged <code>CoinMiner</code>, <code>elf</code>, <code>mirai</code>, <code>Prometei</code>, <code>redtail</code>, and <code>ua-wget</code>.</p>
+<p>Who was right? Me. Yes, me.</p>
+<p>Our next move is to safely test if the sample is a normal UPX-packed binary before unpacking anything. Very, very safely.</p>
+<p>We won’t even use the honeypot for unpacking. That remains an evidence lab.</p>
+<p>We’ll notate the Hash and ID:</p>
+<pre class="md"><code>SHA-256:
+f0aa83bbbd2c75e2f71ec16029ee5fcfad59f3a8efa30a500b815f0f6c18d987
+
+Type:
+ELF64 x86-64, statically linked, no section headers, UPX signature present</code></pre>
+<p>We’re going to move this to an even more isolated environment. I have high suspicions that the lack of obfuscation could be part of the charade.</p>
+<p>For now, we’re going to take a commercial break for a word from our sponsors.</p>
+
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+<footer class="footer"><span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot; <span>Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp; <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a></span></footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"></path></svg></a>
+<script>
+let menu=document.getElementById("menu");if(menu){const p=localStorage.getItem("menu-scroll-position");if(p)menu.scrollLeft=parseInt(p,10);menu.onscroll=()=>localStorage.setItem("menu-scroll-position",menu.scrollLeft)}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();const id=this.getAttribute("href").substring(1);document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});if(id==="top")history.replaceState(null,null," ");else history.pushState(null,null,`#${id}`)}));
+let topButton=document.getElementById("top-link");window.onscroll=()=>{if(document.body.scrollTop>800||document.documentElement.scrollTop>800){topButton.style.visibility="visible";topButton.style.opacity="1"}else{topButton.style.visibility="hidden";topButton.style.opacity="0"}};
+document.getElementById("theme-toggle").addEventListener("click",()=>{const html=document.documentElement;if(html.dataset.theme==="dark"){html.dataset.theme="light";localStorage.setItem("pref-theme","light")}else{html.dataset.theme="dark";localStorage.setItem("pref-theme","dark")}});
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+</body>
+</html>
