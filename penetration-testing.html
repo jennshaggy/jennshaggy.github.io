@@ -5,11 +5,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Systems | Jenn Shagrin</title>
+<title>Penetration Testing | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="Hardware rebuilds, storage recovery, operating-system deployment, and long-term systems maintenance across current and legacy platforms.">
+<meta name="description" content="Penetration testing and CTF writeups spanning web applications, Active Directory, privilege escalation, binary exploitation, reverse engineering, cloud, and AI security.">
 <meta name="author" content="">
-<link rel="canonical" href="https://jennshaggy.github.io/systems-foundation.html">
+<link rel="canonical" href="https://jennshaggy.github.io/penetration-testing.html">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
@@ -19,7 +19,6 @@
 <link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://jennshaggy.github.io/systems-foundation.html">
 <noscript>
     <style>
         #theme-toggle,
@@ -71,15 +70,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
 <link rel="stylesheet" href="/assets/css/mobile-nav.css">
-<meta property="og:url" content="https://jennshaggy.github.io/systems-foundation.html">
+<meta property="og:url" content="https://jennshaggy.github.io/penetration-testing.html">
 <meta property="og:site_name" content="Jenn Shagrin">
-<meta property="og:title" content="Systems">
-<meta property="og:description" content="Hardware rebuilds, storage recovery, operating-system deployment, and long-term systems maintenance across current and legacy platforms.">
+<meta property="og:title" content="Penetration Testing">
+<meta property="og:description" content="Penetration testing and CTF writeups spanning web applications, Active Directory, privilege escalation, binary exploitation, reverse engineering, cloud, and AI security.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Systems">
-<meta name="twitter:description" content="Hardware rebuilds, storage recovery, operating-system deployment, and long-term systems maintenance across current and legacy platforms.">
+<meta name="twitter:title" content="Penetration Testing">
+<meta name="twitter:description" content="Penetration testing and CTF writeups spanning web applications, Active Directory, privilege escalation, binary exploitation, reverse engineering, cloud, and AI security.">
 </head>
 
 <body id="top">
@@ -130,12 +129,12 @@
             </li>
             <li>
                 <a href="/systems-foundation.html" title="Systems">
-                    <span class="active">Systems</span>
+                    <span>Systems</span>
                 </a>
             </li>
             <li>
                 <a href="/penetration-testing.html" title="Penetration Testing">
-                    <span>Penetration Testing</span>
+                    <span class="active">Penetration Testing</span>
                 </a>
             </li>
             <li>
@@ -155,64 +154,159 @@
 <main class="main">
 <article class="post-single">
   <header class="post-header">
-    <h1 class="post-title entry-hint-parent">
-      Systems
-    </h1>
-    <div class="post-description">
-      Hardware rebuilds, storage recovery, operating-system deployment, and long-term systems maintenance across current and legacy platforms.
-    </div>
-    <div class="post-meta"></div>
+    <h1 class="post-title entry-hint-parent">Penetration Testing</h1>
+    <div class="post-description">Offensive security investigations across applications, identity, systems, binaries, cloud, and AI.</div>
   </header>
+
   <div class="post-content">
 
-<p>I am fascinated by systems. I would not say I “fix” them so much as I need to understand the sum of their parts. What broke? Can I break it deliberately to expose a weakness I can fortify? What can be saved, and how creatively can I save it without compromising its security posture?</p>
+<p>I have a relentless passion and unbridled curiosity for all things offensive security. Honing my skill set is a craft that takes time, discipline, learning from mistakes, and a good sense of humor.</p>
 
-<p>The current lab architecture is documented on <a href="/networking.html">Networking</a>; this page focuses on the machines, storage, recovery work, and operating-system decisions beneath it.</p>
+<p>I document every investigation and challenge, including the occasional wrong turn. I trust my intuition and innate pattern-recognition skills, and I am never afraid to ask questions. Every solve equips me with new tools, techniques, and another anomaly to detect if it resurfaces.</p>
 
-<h2>Current systems</h2>
+<p>The work spans web application exploitation, Active Directory, Linux and Windows privilege escalation, binary exploitation and reverse engineering, network and OT security, and AI and machine learning security. It has also introduced me to a remarkable number of deeply cursed applications, all of which I find great joy in learning to navigate. I genuinely love what I do. I never run out of questions.</p>
 
-<ul>
-<li><strong>NucNano</strong>: Dedicated Proxmox virtualization host.</li>
-<li><strong>Nuc Sr.</strong>: Bare-metal Kali Linux and Windows 11 Pro system, with each operating system installed on a separate physical drive.</li>
-<li><strong>MacBook Pro</strong>: Primary administration and development workstation.</li>
-<li><strong>Dell Premium 16</strong>: Windows system reserved for professional and school environments.</li>
-<li><strong>Dell OptiPlex 7020 Tower</strong>: Professional Windows desktop and current rebuild platform.</li>
-</ul>
+<p>Custom tools and scripts built during these engagements: <a href="/scripts/">Scripts &rarr;</a></p>
 
-<h2>Storage failure and recovery</h2>
-
-<p>The Proxmox host's internal NVMe storage path began producing repeatable read errors during an emergency backup of the Windows Server 2025 domain controller. Six other virtual machines completed backups to tested external storage, while both the conventional backup and a direct disk conversion failed at the same region of the DC01 virtual disk. Kernel logs confirmed critical medium errors at the block layer.</p>
-
-<p>I used <code>ddrescue</code> with a persistent mapfile to recover the readable data before retrying the damaged regions. The final image contained 61,440 unreadable bytes across four physical ranges. Filesystem analysis mapped the damage to three Windows files: <code>lsasrv.dll</code>, <code>MrmCoreR.dll</code>, and <code>qevbda.sys</code>. Those files were repaired from trusted Windows installation media.</p>
-
-<p>Recovery was validated beyond a successful boot. Active Directory Domain Services, DNS, Netlogon, DFS Replication, and related services were running; SYSVOL reached the normal state; domain-controller advertising and service tests passed; and the server completed a clean disk-only boot with networking restored. A validated rollback snapshot was retained after recovery.</p>
-
-<img src="/images/systems/dc01-recovery-validation.png" alt="PowerShell validation showing restored DC01 services running, SYSVOL state 4, and successful dcdiag tests" style="max-width:100%;margin:2rem 0 0.75rem;">
-<p class="image-caption">Post-recovery validation: required domain-controller services running, SYSVOL in state 4, and <code>dcdiag</code> advertising and services tests completed without reported errors.</p>
-
-<h2>Rebuilds and endpoint systems</h2>
-
-<p>The Dell OptiPlex 7020 was fully disassembled, cleaned, reassembled, and upgraded with additional memory and NVMe storage. BIOS and firmware settings were reviewed before Windows installation and system validation. It now serves as a professional Windows endpoint.</p>
-
-<h2>Legacy systems work</h2>
-
-<p>These are separate builds and recovery projects. Detailed case studies will be added only after the original notes, hardware identities, and photographs have been reconciled.</p>
+<h2>Featured investigations</h2>
 
 <ul>
-<li><strong>Samsung Series 7 all-in-one</strong>: Restored touchscreen operation after a Windows upgrade disrupted the original driver support.</li>
-<li><strong>Asus EeeBox</strong>: Repurposed low-power hardware with Debian Linux.</li>
-<li><strong>Acer Aspire</strong>: Configured unsupported laptop hardware to run macOS.</li>
-<li><strong>Asus EeePC</strong>: Completed and photographed a separate teardown and rebuild.</li>
-<li><strong>CyberPowerPC</strong>: Assembled and configured a custom desktop from individual components.</li>
+<li><a href="/agentic-security-harness.html"><strong>Agentic Security Harness</strong></a>: Over the past few weeks, I turned a Proxmox Fedora VM into an agentic security harness built around CyberStrike.</li>
+<li><a href="/operation-endgame.html"><strong>Operation Endgame</strong></a>: Active Directory attack chain using Kerberoasting, credential spraying, BloodHound, targeted Kerberoasting, and SMB execution to SYSTEM.</li>
+<li><a href="/sequence.html"><strong>Sequence</strong></a>: Stored XSS, cookie theft, CSRF privilege escalation, parameter manipulation, web-shell upload, and Docker socket abuse to host root.</li>
+<li><a href="/voyage.html"><strong>Voyage</strong></a>: Joomla API credential disclosure, internal discovery, SSH tunneling, insecure pickle deserialization, and a Linux capability escape from containers to the host.</li>
+<li><a href="/gatekeeper.html"><strong>Gatekeeper</strong></a>: Windows buffer-overflow development, local exploit validation, credential extraction, and SMB execution to SYSTEM.</li>
+<li><a href="/ironhold.html"><strong>IronHold</strong></a>: Spring Boot source analysis, SQL injection, role overposting, and Java deserialization leading to remote code execution.</li>
+<li><a href="/containment-ctf.html"><strong>ContAInment</strong></a>: PCAP analysis, prompt-injection reconstruction, LLM jailbreak analysis, and encrypted evidence recovery.</li>
 </ul>
 
-<h2>Systems approach</h2>
+<h2>Authorized training labs</h2>
 
-<p>I use and care for hardware for as long as I can do so safely, securely, and reliably. My collection of technology beyond that point is vast and reserved for rainy-day projects. I thrive on the hunt for a different operating system, driver, cable, or adapter I already own. I let the machine tell me when its time is up.</p>
+<ul>
+
+<li><a href="/sliver-lateral-movement-persistence.html"><strong>Sliver C2, Lateral Movement, and Persistence</strong></a>: Authorized Red Siege lab work using Sliver to move laterally into SQL01, gain <code>SYSTEM</code> access, establish service and WMI persistence, and clean up afterward.</li>
+
+</ul>
+
+<h2>Cyber Apocalypse 2026: The Salt Crown</h2>
+
+<p>Completed Hack The Box Cyber Apocalypse writeups:</p>
+
+<ul>
+<li><a href="/the-emptiness-machine.html"><strong>The Emptiness Machine</strong></a>: Two profoundly cursed <code>scanf()</code> calls led to a FILE-structure attack hiding inside the process's standard streams.</li>
+<li><a href="/the-raven-that-landed-twice.html"><strong>The Raven That Landed Twice</strong></a>: OSINT investigation. The raven only landed twice in the paperwork.</li>
+<li><a href="/mement0.html"><strong>Mement0</strong></a>: Recovered a deleted malicious Claude skill, traced its persistent project instructions, and reconstructed encrypted payload fragments from Git history.</li>
+<li><a href="/assay.html"><strong>Assay</strong></a>: Cloned a black-box classifier, transferred a constrained adversarial example, recovered a hidden backdoor specification, and forged a composite model.</li>
+<li><a href="/the-cinder-engine.html"><strong>The Cinder Engine</strong></a>: Recovered a custom virtual machine from a stripped ARM64 binary, built a Python disassembler and emulator, and inverted its eight-round validation transform.</li>
+<li><a href="/corpsyncaudit.html"><strong>CorpSyncAudit</strong></a>: Reversed a compromised Windows audit client and reconstructed a 396-byte x64 payload from fabricated timestamp and region records.</li>
+<li><a href="/archonyx.html"><strong>Archonyx</strong></a>: Chained an authenticated bot, query-parser differential, unsafe ZIP extraction, database replacement, and local Less plugin into server-side execution.</li>
+<li><a href="/signetry.html"><strong>Signetry</strong></a>: Chained token forgery, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a race condition to reach code execution.</li>
+<li><a href="/overstrike.html"><strong>Overstrike</strong></a>: Reversed a Godot C# mobile application, proved its legitimate seal state unreachable, inverted its transformation, and decrypted the protected registry.</li>
+</ul>
+
+<h2>Writeup index</h2>
+
+<p>The collection below is organized by the system or attack surface being examined. Several investigations cross more than one category; each appears once here.</p>
+
+<h3>Active Directory and Windows</h3>
+
+<ul>
+<li><a href="/operation-endgame.html">Operation Endgame</a></li>
+<li><a href="/ledger-ctf.html">Ledger</a></li>
+<li><a href="/ad-lateral-movement.html">Active Directory: Lateral Movement</a></li>
+<li><a href="/relevant.html">Relevant</a></li>
+<li><a href="/steel-mountain.html">Steel Mountain</a></li>
+<li><a href="/alfred.html">Alfred</a></li>
+<li><a href="/hackpark.html">HackPark</a></li>
+<li><a href="/windows-privesc.html">Windows Privilege Escalation</a></li>
+<li><a href="/windows-privesc-credentials.html">Stored Credentials</a></li>
+<li><a href="/windows-privesc-scheduled-tasks.html">Scheduled Task Abuse</a></li>
+<li><a href="/windows-privesc-service-exe.html">Service Executable Permissions</a></li>
+<li><a href="/windows-privesc-unquoted-path.html">Unquoted Service Path</a></li>
+<li><a href="/windows-privesc-service-dacl.html">Insecure Service DACL</a></li>
+</ul>
+
+<h3>Web applications and APIs</h3>
+
+<ul>
+<li><a href="/the-guestbook.html">The Guestbook</a></li>
+<li><a href="/lookup.html">Lookup</a></li>
+<li><a href="/cheese.html">Cheese</a></li>
+<li><a href="/smol.html">Smol</a></li>
+<li><a href="/sisterhood-of-the-traveling-packets.html">Sisterhood of the Traveling Packets</a></li>
+<li><a href="/daily-bugle.html">Daily Bugle</a></li>
+<li><a href="/decryptify.html">Decryptify</a></li>
+<li><a href="/jack-ctf.html">Jack</a></li>
+<li><a href="/injects-ctf.html">Injects</a></li>
+<li><a href="/cybercrafted.html">CyberCrafted</a></li>
+<li><a href="/whats-your-name.html">What's Your Name</a></li>
+<li><a href="/surfer.html">Surfer</a></li>
+<li><a href="/captchapocolypse.html">CAPTCHApocolypse</a></li>
+<li><a href="/sequence.html">Sequence</a></li>
+<li><a href="/padelify.html">Padelify</a></li>
+<li><a href="/farewell.html">Farewell</a></li>
+<li><a href="/operation-coldstart.html">Operation Coldstart</a></li>
+<li><a href="/game-zone.html">Game Zone</a></li>
+<li><a href="/skynet.html">Skynet</a></li>
+<li><a href="/internal.html">Internal</a></li>
+<li><a href="/recruit-ctf.html">Recruit</a></li>
+<li><a href="/ironhold.html">IronHold</a></li>
+<li><a href="/upload-vulnerabilities.html">Upload Vulnerabilities</a></li>
+<li><a href="/burp-suite.html">Burp Suite</a></li>
+</ul>
+
+<h3>Linux, containers, and privilege escalation</h3>
+
+<ul>
+<li><a href="/valley-ctf.html">Valley</a></li>
+<li><a href="/matryoshka.html">Matryoshka</a></li>
+<li><a href="/voyage.html">Voyage</a></li>
+<li><a href="/kenobi.html">Kenobi</a></li>
+<li><a href="/overpass-2-hacked.html">Overpass 2: Hacked</a></li>
+<li><a href="/koth-shrek.html">KOTH: Shrek</a></li>
+<li><a href="/linux-privesc.html">Linux Privilege Escalation</a></li>
+<li><a href="/linux-privesc-kernel.html">Kernel Exploit: CVE-2015-1328</a></li>
+<li><a href="/linux-privesc-sudo.html">Sudo Misconfiguration</a></li>
+<li><a href="/linux-privesc-suid.html">SUID Abuse: base64</a></li>
+<li><a href="/linux-privesc-capabilities.html">Capabilities: vim cap_setuid</a></li>
+<li><a href="/linux-privesc-cron.html">Cron Job Hijack</a></li>
+<li><a href="/linux-privesc-path.html">PATH Hijacking</a></li>
+<li><a href="/linux-privesc-nfs.html">NFS no_root_squash</a></li>
+</ul>
+
+<h3>Binary exploitation, reversing, and cryptography</h3>
+
+<ul>
+<li><a href="/brainstorm.html">Brainstorm</a></li>
+<li><a href="/brainpan-1.html">Brainpan 1</a></li>
+<li><a href="/gatekeeper.html">Gatekeeper</a></li>
+<li><a href="/guess-password-easy.html">Google CTF: Guess Password Easy</a></li>
+</ul>
+
+<h3>AI and machine learning security</h3>
+
+<ul>
+<li><a href="/the-guestbook.html">The Guestbook</a></li>
+<li><a href="/management-wants-a-word.html">Management Wants a Word</a></li>
+<li><a href="/containment-ctf.html">ContAInment</a></li>
+</ul>
+
+<h3>Network, OT, cloud, and post-exploitation</h3>
+
+<ul>
+<li><a href="/operation-takeover.html">Operation Takeover</a></li>
+<li><a href="/kaboom.html">Kaboom</a></li>
+<li><a href="/cap.html">Cap</a></li>
+<li><a href="/meterpreter.html">Metasploit: Meterpreter</a></li>
+<li><a href="/baker221b-warmup.html">Baker221b: Azure Activity and Terminal Warmup</a></li>
+<li><a href="/baker221b-phishing.html">Baker221b: Cloud Account Compromise via Phishing</a></li>
+<li><a href="/baker221b-aws-key.html">Baker221b: Stolen AWS Access Key</a></li>
+<li><a href="/baker221b-gcp-shadow-it.html">Baker221b: Shadow IT in GCP</a></li>
+</ul>
 
   </div>
+
   <footer class="post-footer">
-    <ul class="post-tags"></ul>
   </footer>
 </article>
 </main>
@@ -221,7 +315,7 @@
     <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
