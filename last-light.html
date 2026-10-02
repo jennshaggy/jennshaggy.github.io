@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Last Light: Windows Memory and Active Directory Forensics | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Windows memory and Active Directory forensics across C2 traffic, a forged Kerberos ticket, stolen access token, RBCD, and a two-session password attack.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/last-light.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript><style>#theme-toggle,.top-link{display:none}</style></noscript>
+<script>
+if(localStorage.getItem("pref-theme")==="dark"){document.documentElement.dataset.theme="dark"}else if(localStorage.getItem("pref-theme")==="light"){document.documentElement.dataset.theme="light"}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.dataset.theme="dark"}else{document.documentElement.dataset.theme="light"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/last-light.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Last Light: Windows Memory and Active Directory Forensics">
+<meta property="og:description" content="Windows memory and Active Directory forensics across C2 traffic, a forged Kerberos ticket, stolen access token, RBCD, and a two-session password attack.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Last Light: Windows Memory and Active Directory Forensics">
+<meta name="twitter:description" content="Windows memory and Active Directory forensics across C2 traffic, a forged Kerberos ticket, stolen access token, RBCD, and a two-session password attack.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Source+Code+Pro:wght@400;500;600&family=Tomorrow:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
+</head>
+<body id="top">
+<header class="header">
+<nav class="nav">
+<div class="logo">
+<a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+<div class="logo-switches">
+<button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+</div>
+</div>
+<ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/penetration-testing.html" title="Penetration Testing"><span class="active">Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+</ul>
+</nav>
+</header>
+<main class="main">
+<article class="post-single technical-writeup">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">Last Light: Windows Memory and Active Directory Forensics</h1>
+<div class="post-description">Windows memory and Active Directory forensics across C2 traffic, a forged Kerberos ticket, stolen access token, RBCD, and a two-session password attack.</div>
+</header>
+<div class="post-content">
+
+<blockquote>
+<p><strong>CTF spoilers ahead.</strong> Last Light was an Insane Sherlock challenge from Hack The Box's Holmes CTF 2026: The Reichenbach Directive. All identities, systems, addresses, and events described here belong to the fictional challenge environment.</p>
+</blockquote>
+<table class="holmes-answer-table">
+<tbody>
+<tr class="odd">
+<td>Event</td>
+<td>Hack The Box Holmes CTF 2026</td>
+</tr>
+<tr class="even">
+<td>Challenge</td>
+<td>Last Light</td>
+</tr>
+<tr class="odd">
+<td>Category</td>
+<td>Sherlock</td>
+</tr>
+<tr class="even">
+<td>Difficulty</td>
+<td>Insane</td>
+</tr>
+<tr class="odd">
+<td>Team</td>
+<td>CIAT Cybersecurity Club</td>
+</tr>
+<tr class="even">
+<td>Recognition</td>
+<td>Team MVP</td>
+</tr>
+</tbody>
+</table>
+<p>I was already working on Silent Passenger, a Hard challenge, when one part of it brought the investigation to a crawl. I opened Last Light instead. Its rating? Insane. Just my type.</p>
+<p>Sometimes crazy high difficulty challenges have a more distinct path. Albeit, it's a steep one. Last Light was technically nuanced. Categorizing the evidence into three sources helped the clear path emerge.</p>
+<p>The C2 traffic, forged Kerberos ticket, and stolen access token were discovered in process memory.</p>
+<p>The AD database identified a planted machine account. Windows event records then correlated the aforementioned account to resource based constrained delegation and a two-session password attack.</p>
+<p>Isolating each question's meaning required the most brain RAM. Wrong answers were frequently supported by evidence. Hashes changed depending on where I placed the end of a recovered file. Different libraries converted the same Kerberos ticket into different ccache files. There was even a Windows token with several identifiers appearing to be the correct LogonID. Women's intuition and artifact correlation led the way.</p>
+<img src="/images/holmes-ctf-2026/last-light-questions.png" alt="Last Light challenge panel showing all ten forensic questions" class="holmes-writeup-image">
+<p class="holmes-image-caption">The ten Last Light questions that appeared after most of the investigation was already complete.</p>
+
+<h2 id="initial-memory-analysis">Initial Memory Analysis</h2>
+<p>After preserving the evidence, memory triage commenced. Volatility identified a Windows Server 2019 domain controller captured on September 9, 2026 at 22:40:38 UTC.</p>
+<p>One of these process tree processes was not like the others:</p>
+<pre class="text"><code>svc_bkup.exe    PID 3376    Parent: services.exe</code></pre>
+<p>It was running as a Windows service from an administrative share:</p>
+<pre class="text"><code>\Device\Mup\dc02\ADMIN$\svc_bkup</code></pre>
+<p>Just because a service launches through an administrative share doesn't mean it's malicious, but the network evidence indicated this process as suspicious. PID 3376 maintained an outbound HTTP connection from the domain controller:</p>
+<pre class="text"><code>192.168.56.11:54162 -&gt; 192.168.56.1:8818</code></pre>
+<p>Both addresses belong to the isolated challenge network. The connection between the service process and the remote listener was a key finding.</p>
+
+<h2 id="recovering-command-and-control-evidence">Recovering Command and Control Evidence</h2>
+<p>I used <code>malfind</code> to check the process, but it didn't return executable memory pages commonly associated with code injection. I instead moved to the full process dump and searched for network and application data.</p>
+<p>The 443 MB dump contained the following HTTP paths:</p>
+<pre class="text"><code>/api/v1/status
+/content.html
+/updates/check.php</code></pre>
+<p>It also showed a fake Firefox 20 user agent and a repeating custom header:</p>
+<pre class="text"><code>X-Beacon-Id</code></pre>
+<p>Pro tip: <code>X-Beacon-ID</code> is a good one to search for in beacon and C2 traffic.</p>
+<p>One request linked the process, network endpoint, custom header, and fake browser ID. Although <code>malfind</code> found no injected code, the process dump still exposed the beacon's HTTP traffic.</p>
+
+<h2 id="decrypting-the-agent-profile-and-task-data">Decrypting the Agent Profile and Task Data</h2>
+<p>Strings etched the shape of the HTTP traffic. Profile decryption unveiled the process behavior.</p>
+<p>In the dump, we found an Adaptix style profile, encrypted metadata, task frames, and command results. The recovered data detailed the compromised domain controller, account, process, callback paths, and server config. It also held BOF activity and LDAP enumeration information, including the default naming context and number of AD groups.</p>
+<p>Instead of relying on the product name, identification was based on the protocol structure and behavior. The service running from <code>ADMIN$</code> maintained an HTTP control channel, accepted tasks, returned results, and queried Active Directory.</p>
+<p>Disclaimer: The public writeup is comprised of short, structural excerpts. The profile keys, task payloads, and reconstructed malware will remain private.</p>
+
+<h2 id="finding-the-planted-machine-account">Finding the Planted Machine Account</h2>
+<p>The SYSTEM hive was used to analyze the <code>ntds.dit</code> file. One particular directory object used the same name as the suspicious service:</p>
+<pre class="text"><code>svc_bkup$</code></pre>
+<p>The machine account's SID ended in <code>-1140</code>. It lived in the default Computers container and carried the unassuming <code>WORKSTATION_TRUST_ACCOUNT</code> flag with no meaningful service principal name or logon history.</p>
+<p>At this point, <code>WORKSTATION_TRUST_ACCOUNT</code> was the strongest connection. I kept <code>Domain Computers</code> in the evidence set until the event records declared its innocence.</p>
+
+<h2 id="recovering-the-correct-service-agent-hash">Recovering the Correct Service Agent Hash</h2>
+<p>Challenge Question #1 asked for the SHA256 hash of the service agent. Several viable hashes failed.</p>
+<p>Volatility recovered multiple memory versions of the executable. The DataSection dump was 106,496 bytes. The ImageSection dump was 107,520 bytes. Both were valid PE32+ files, but neither matched the original file.</p>
+<p>I parsed the PE sections and unearthed that the raw executable was 103,936 bytes. The lightbulb turned on. The remaining bytes in both dumps were zeros added during memory reconstruction.</p>
+<p>The challenge expected the raw PE hash. I'd been hashing the full dump.</p>
+<p>I trimmed the DataSection artifact at the PE endpoint, then calculated the winning SHA256:</p>
+<pre class="text"><code>1e44c63950dd4fe1ffcc955c08d509132bcaddf87bbb08f5ea622d0533625274</code></pre>
+<p>The rejected hashes weren't lost causes. I had the right executable with the wrong file boundary.</p>
+
+<h2 id="analyzing-the-forged-kerberos-ticket">Analyzing the Forged Kerberos Ticket</h2>
+<p>The Airbus <code>volatility-kerberos</code> plugin recovered an Administrator ticket here:</p>
+<pre class="text"><code>0x227473721b0</code></pre>
+<p>It was a TGT for <code>krbtgt/CORE.DIOGENES.HTB</code>. It used RC4 HMAC and a suspicious ten year lifetime, making it a strong golden ticket candidate.</p>
+<p>The decrypted PAC contained an Extra SID ending in RID <code>519</code>, representative of Enterprise Admins in the root domain:</p>
+<pre class="text"><code>S-1-5-21-3066635835-107521988-671693545-519</code></pre>
+<p>Removing RID <code>519</code> resulted in the root domain SID that made the challenge happy.</p>
+<p>The ticket inspection also displayed two similar checksum fields. The correct KDC checksum:</p>
+<pre class="text"><code>b63742148ab83e91d38dd632b5b1fb99</code></pre>
+<p>Next up, the ServerChecksum. It was, of course, a different value. This was one more instance where, you guessed it, a technically valid value didn't correctly answer the question.</p>
+
+<h2 id="reproducing-the-accepted-ccache-md5">Reproducing the Accepted Ccache MD5</h2>
+<p>Question #2 asked for the memory address of the forged ticket along with the MD5 of its ccache. The address stayed the same. The ccache MD5 changed depending on which tool was used to write the file.</p>
+<p>I converted the recovered ticket with Impacket 0.14 development code, minikerberos, and a manual correction. Even though the conversions produced what looked like valid ccache files, all of them had different MD5s. The lightbulb moment here? Thank you to source review. It showed the memory plugin read a 64 bit flag value but output this malformed 33 bit result:</p>
+<pre class="text"><code>0x150e00000</code></pre>
+<p>Each converter handled the value differently. Impacket 0.14 development code, minikerberos, and a manual correction provided seemingly valid hashes, but HTB rejected all three.</p>
+<p>I phoned a friend aka requested an independent AI assisted review of the misbehaving converter. That review found the compatibility issue, compared serialization paths, and saved the day. One conversion repeat with Impacket <code>0.13.1</code> later, flag <code>0xa8700000</code>, a 1,302 byte ccache file, and the correct MD5 were born:</p>
+<pre class="text"><code>dcf56965eee82fff4d381c6127834d72</code></pre>
+<p>To be fair, the Kerberos ticket wasn't invalid. The discordance between the flag metadata and the way each library wrote the ccache file was the root cause.</p>
+
+<h2 id="identifying-the-stolen-token-and-thread">Identifying the Stolen Token and Thread</h2>
+<p>The focus shifted to Windows access tokens.</p>
+<p>MemProcFS found thread <code>4968</code> inside PID 3376, which carried an impersonation token here:</p>
+<pre class="text"><code>ffffca8ddc130830</code></pre>
+<p>Since the challenge required truncated addresses, we had a flag-winning answer:</p>
+<pre class="text"><code>0xca8ddc130830</code></pre>
+<p>The LogonID required yet another fix. <code>luid.txt</code> in MemProcFS was a seemingly fitting value. Closer <code>_TOKEN</code> structure inspection revealed that it was the token's <code>TokenId</code>, not its <code>AuthenticationId</code>.</p>
+<p>The key fields:</p>
+<pre class="text"><code>TokenId:                 0x2fb4ef
+AuthenticationId:        0xa616a
+TokenType:                2
+ImpersonationLevel:       2
+OriginatingLogonSession:  0x3e7</code></pre>
+<p>What was the accepted answer, you ask?</p>
+<pre class="text"><code>2:0xa616a</code></pre>
+<p>My earlier submission used a real field from the right token, but mixed it with the wrong identifier. You live, you learn.</p>
+
+<h2 id="correlating-the-rbcd-modification">Correlating the RBCD Modification</h2>
+<p>We still needed an event showing the usage of the machine account from <code>ntds.dit</code>.</p>
+<p>Raw EVTX file searches came up inconclusive. MemProcFS thankfully also recovered normalized event data in <code>forensic/csv/eventlog.csv</code>, and in that data, this DC02 attribute was modified:</p>
+<pre class="text"><code>msDS-AllowedToActOnBehalfOfOtherIdentity</code></pre>
+<p>The subject session, <code>0x3f213b</code>, had an adjacent record identifying LogonType <code>3</code> for the same session.</p>
+<p>This connected the planted <code>svc_bkup$</code> machine account to resource based constrained delegation on the domain controller.</p>
+<p>Glad I documented a failed raw EVTX search. One parser's empty result is another person's treasure, and those normalized memory records unveiled missed evidence.</p>
+
+<h2 id="reconstructing-the-password-attack">Reconstructing the Password Attack</h2>
+<p>Finally on the last question, which described a password attack performed across two sessions.</p>
+<p>There were several seemingly relevant Administrator password resets, but alas, they were unrelated.</p>
+<p>The correct events: <code>afenwick</code> at 20:46:48 UTC. Event 4738 showed <code>afenwick</code> temporarily assigning <code>jreed</code> as its UPN, then shadily removing it during session <code>0x17c514</code>. Event 4723 showed a new <code>afenwick</code> session changing <code>jreed</code>'s password with reset session <code>0x17c569</code>.</p>
+<p>The accepted submission:</p>
+<pre class="text"><code>0x17c514:0x17c569</code></pre>
+<p>That netted our final flag.</p>
+
+
+<h2 id="technical-takeaways">Technical Takeaways</h2>
+<p>Last Light required equally careful reading of the evidence and question formatting. A memory dump of an executable might include padding not included in the original file. When libraries serialize metadata differently, the same Kerberos ticket can produce different ccache hashes. A valid token ID and authentication ID from the same Windows object can represent different things.</p>
+<p>Event visibility is also contingent on the parser and evidence source being searched.</p>
+<p>To add icing to the cake, I'd already completed most of that work before realizing the unfamiliar HTB CTF interface hid ten questions under an almost invisible dropdown.</p>
+<p>I'm so glad I document like a lunatic.</p>
+<p>Unlike my usual notes, these were controlled chaos. They preserved enough evidence (because I preserve <em>all</em>) to blaze through all ten questions once I realized they existed.</p>
+<h2 id="accepted-answer-appendix">Accepted Answer Appendix</h2>
+<p>The accepted submissions are below for reference.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Question</th>
+<th>Accepted answer</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Q1</td>
+<td><code>1e44c63950dd4fe1ffcc955c08d509132bcaddf87bbb08f5ea622d0533625274</code></td>
+<td>Raw PE trimmed at its 103,936 byte endpoint.</td>
+</tr>
+<tr class="even">
+<td>Q2</td>
+<td><code>0x227473721b0:dcf56965eee82fff4d381c6127834d72</code></td>
+<td>Ticket address and Impacket 0.13.1 ccache serialization.</td>
+</tr>
+<tr class="odd">
+<td>Q3</td>
+<td><code>b63742148ab83e91d38dd632b5b1fb99</code></td>
+<td>PAC KDC checksum signature.</td>
+</tr>
+<tr class="even">
+<td>Q4</td>
+<td><code>0xca8ddc130830</code></td>
+<td>Truncated stolen <code>_TOKEN</code> address.</td>
+</tr>
+<tr class="odd">
+<td>Q5</td>
+<td><code>2:0xa616a</code></td>
+<td>ImpersonationLevel and <code>_TOKEN.AuthenticationId</code>.</td>
+</tr>
+<tr class="even">
+<td>Q6</td>
+<td><code>4968</code></td>
+<td>Thread carrying the stolen token.</td>
+</tr>
+<tr class="odd">
+<td>Q7</td>
+<td><code>svc_bkup$:S-1-5-21-2253468260-689643353-167204612-1140</code></td>
+<td>NTDS machine account record.</td>
+</tr>
+<tr class="even">
+<td>Q8</td>
+<td><code>S-1-5-21-3066635835-107521988-671693545</code></td>
+<td>Root domain SID derived from the PAC Extra SID.</td>
+</tr>
+<tr class="odd">
+<td>Q9</td>
+<td><code>0x3f213b:3</code></td>
+<td>RBCD modification session and LogonType.</td>
+</tr>
+<tr class="even">
+<td>Q10</td>
+<td><code>0x17c514:0x17c569</code></td>
+<td>Password preparation and reset sessions.</td>
+</tr>
+</tbody>
+</table>
+
+<p class="holmes-related"><strong>More from Holmes CTF 2026:</strong> <a href="/silent-passenger.html">Silent Passenger</a></p>
+
+</div>
+<footer class="post-footer">
+</footer>
+</article>
+</main>
+<footer class="footer"><span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot; <span>Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp; <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a></span></footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"></path></svg></a>
+<script>
+let menu=document.getElementById("menu");if(menu){const p=localStorage.getItem("menu-scroll-position");if(p)menu.scrollLeft=parseInt(p,10);menu.onscroll=()=>localStorage.setItem("menu-scroll-position",menu.scrollLeft)}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();const id=this.getAttribute("href").substring(1);document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});if(id==="top")history.replaceState(null,null," ");else history.pushState(null,null,`#${id}`)}));
+let topButton=document.getElementById("top-link");window.onscroll=()=>{if(document.body.scrollTop>800||document.documentElement.scrollTop>800){topButton.style.visibility="visible";topButton.style.opacity="1"}else{topButton.style.visibility="hidden";topButton.style.opacity="0"}};
+document.getElementById("theme-toggle").addEventListener("click",()=>{const html=document.documentElement;if(html.dataset.theme==="dark"){html.dataset.theme="light";localStorage.setItem("pref-theme","light")}else{html.dataset.theme="dark";localStorage.setItem("pref-theme","dark")}});
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

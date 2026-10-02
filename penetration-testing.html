@@ -70,6 +70,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
 <link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Source+Code+Pro:wght@400;500;600&family=Tomorrow:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/penetration-testing.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Penetration Testing">
@@ -151,8 +153,8 @@
     </nav>
 </header>
 
-<main class="main">
-<article class="post-single">
+<main class="main penetration-index-main">
+<article class="post-single penetration-index">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Penetration Testing</h1>
     <div class="post-description">Offensive security investigations across applications, identity, systems, binaries, cloud, and AI.</div>
@@ -171,21 +173,30 @@
 <h2>Featured investigations</h2>
 
 <ul>
-<li><a href="/agentic-security-harness.html"><strong>Agentic Security Harness</strong></a>: Over the past few weeks, I turned a Proxmox Fedora VM into an agentic security harness built around CyberStrike.</li>
-<li><a href="/operation-endgame.html"><strong>Operation Endgame</strong></a>: Active Directory attack chain using Kerberoasting, credential spraying, BloodHound, targeted Kerberoasting, and SMB execution to SYSTEM.</li>
-<li><a href="/sequence.html"><strong>Sequence</strong></a>: Stored XSS, cookie theft, CSRF privilege escalation, parameter manipulation, web-shell upload, and Docker socket abuse to host root.</li>
-<li><a href="/voyage.html"><strong>Voyage</strong></a>: Joomla API credential disclosure, internal discovery, SSH tunneling, insecure pickle deserialization, and a Linux capability escape from containers to the host.</li>
-<li><a href="/gatekeeper.html"><strong>Gatekeeper</strong></a>: Windows buffer-overflow development, local exploit validation, credential extraction, and SMB execution to SYSTEM.</li>
-<li><a href="/ironhold.html"><strong>IronHold</strong></a>: Spring Boot source analysis, SQL injection, role overposting, and Java deserialization leading to remote code execution.</li>
-<li><a href="/containment-ctf.html"><strong>ContAInment</strong></a>: PCAP analysis, prompt-injection reconstruction, LLM jailbreak analysis, and encrypted evidence recovery.</li>
+<li><a href="/agentic-security-harness.html"><strong>Agentic Security Harness</strong></a><span class="card-punctuation">:</span> Over the past few weeks, I turned a Proxmox Fedora VM into an agentic security harness built around CyberStrike.</li>
+<li><a href="/operation-endgame.html"><strong>Operation Endgame</strong></a><span class="card-punctuation">:</span> Active Directory attack chain using Kerberoasting, credential spraying, BloodHound, targeted Kerberoasting, and SMB execution to SYSTEM.</li>
+<li><a href="/sequence.html"><strong>Sequence</strong></a><span class="card-punctuation">:</span> Stored XSS, cookie theft, CSRF privilege escalation, parameter manipulation, web-shell upload, and Docker socket abuse to host root.</li>
+<li><a href="/voyage.html"><strong>Voyage</strong></a><span class="card-punctuation">:</span> Joomla API credential disclosure, internal discovery, SSH tunneling, insecure pickle deserialization, and a Linux capability escape from containers to the host.</li>
+<li><a href="/gatekeeper.html"><strong>Gatekeeper</strong></a><span class="card-punctuation">:</span> Windows buffer-overflow development, local exploit validation, credential extraction, and SMB execution to SYSTEM.</li>
+<li><a href="/ironhold.html"><strong>IronHold</strong></a><span class="card-punctuation">:</span> Spring Boot source analysis, SQL injection, role overposting, and Java deserialization leading to remote code execution.</li>
+<li><a href="/containment-ctf.html"><strong>ContAInment</strong></a><span class="card-punctuation">:</span> PCAP analysis, prompt-injection reconstruction, LLM jailbreak analysis, and encrypted evidence recovery.</li>
 </ul>
 
 <h2>Authorized training labs</h2>
 
 <ul>
 
-<li><a href="/sliver-lateral-movement-persistence.html"><strong>Sliver C2, Lateral Movement, and Persistence</strong></a>: Authorized Red Siege lab work using Sliver to move laterally into SQL01, gain <code>SYSTEM</code> access, establish service and WMI persistence, and clean up afterward.</li>
+<li><a href="/sliver-lateral-movement-persistence.html"><strong>Sliver C2, Lateral Movement, and Persistence</strong></a><span class="card-punctuation">:</span> Authorized Red Siege lab work using Sliver to move laterally into SQL01, gain <code>SYSTEM</code> access, establish service and WMI persistence, and clean up afterward.</li>
 
+</ul>
+
+<h2>Hack The Box Holmes CTF 2026: The Reichenbach Directive</h2>
+
+<p>I completed two Sherlock investigations for the CIAT Cybersecurity Club: Silent Passenger at Hard difficulty and Last Light at Insane difficulty. I was named Team MVP.</p>
+
+<ul>
+<li><a href="/silent-passenger.html"><strong>Silent Passenger</strong></a><span class="card-punctuation">:</span> Android automotive firmware analysis tracing <code>TWCore</code> through MQTT, staged APKs, encrypted updates, and a custom relay protocol.</li>
+<li><a href="/last-light.html"><strong>Last Light</strong></a><span class="card-punctuation">:</span> Windows memory and Active Directory forensics covering C2 traffic, a forged Kerberos ticket, token theft, RBCD, and a two-session password attack.</li>
 </ul>
 
 <h2>Cyber Apocalypse 2026: The Salt Crown</h2>
@@ -193,15 +204,15 @@
 <p>Completed Hack The Box Cyber Apocalypse writeups:</p>
 
 <ul>
-<li><a href="/the-emptiness-machine.html"><strong>The Emptiness Machine</strong></a>: Two profoundly cursed <code>scanf()</code> calls led to a FILE-structure attack hiding inside the process's standard streams.</li>
-<li><a href="/the-raven-that-landed-twice.html"><strong>The Raven That Landed Twice</strong></a>: OSINT investigation. The raven only landed twice in the paperwork.</li>
-<li><a href="/mement0.html"><strong>Mement0</strong></a>: Recovered a deleted malicious Claude skill, traced its persistent project instructions, and reconstructed encrypted payload fragments from Git history.</li>
-<li><a href="/assay.html"><strong>Assay</strong></a>: Cloned a black-box classifier, transferred a constrained adversarial example, recovered a hidden backdoor specification, and forged a composite model.</li>
-<li><a href="/the-cinder-engine.html"><strong>The Cinder Engine</strong></a>: Recovered a custom virtual machine from a stripped ARM64 binary, built a Python disassembler and emulator, and inverted its eight-round validation transform.</li>
-<li><a href="/corpsyncaudit.html"><strong>CorpSyncAudit</strong></a>: Reversed a compromised Windows audit client and reconstructed a 396-byte x64 payload from fabricated timestamp and region records.</li>
-<li><a href="/archonyx.html"><strong>Archonyx</strong></a>: Chained an authenticated bot, query-parser differential, unsafe ZIP extraction, database replacement, and local Less plugin into server-side execution.</li>
-<li><a href="/signetry.html"><strong>Signetry</strong></a>: Chained token forgery, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a race condition to reach code execution.</li>
-<li><a href="/overstrike.html"><strong>Overstrike</strong></a>: Reversed a Godot C# mobile application, proved its legitimate seal state unreachable, inverted its transformation, and decrypted the protected registry.</li>
+<li><a href="/the-emptiness-machine.html"><strong>The Emptiness Machine</strong></a><span class="card-punctuation">:</span> Two profoundly cursed <code>scanf()</code> calls led to a FILE-structure attack hiding inside the process's standard streams.</li>
+<li><a href="/the-raven-that-landed-twice.html"><strong>The Raven That Landed Twice</strong></a><span class="card-punctuation">:</span> OSINT investigation. The raven only landed twice in the paperwork.</li>
+<li><a href="/mement0.html"><strong>Mement0</strong></a><span class="card-punctuation">:</span> Recovered a deleted malicious Claude skill, traced its persistent project instructions, and reconstructed encrypted payload fragments from Git history.</li>
+<li><a href="/assay.html"><strong>Assay</strong></a><span class="card-punctuation">:</span> Cloned a black-box classifier, transferred a constrained adversarial example, recovered a hidden backdoor specification, and forged a composite model.</li>
+<li><a href="/the-cinder-engine.html"><strong>The Cinder Engine</strong></a><span class="card-punctuation">:</span> Recovered a custom virtual machine from a stripped ARM64 binary, built a Python disassembler and emulator, and inverted its eight-round validation transform.</li>
+<li><a href="/corpsyncaudit.html"><strong>CorpSyncAudit</strong></a><span class="card-punctuation">:</span> Reversed a compromised Windows audit client and reconstructed a 396-byte x64 payload from fabricated timestamp and region records.</li>
+<li><a href="/archonyx.html"><strong>Archonyx</strong></a><span class="card-punctuation">:</span> Chained an authenticated bot, query-parser differential, unsafe ZIP extraction, database replacement, and local Less plugin into server-side execution.</li>
+<li><a href="/signetry.html"><strong>Signetry</strong></a><span class="card-punctuation">:</span> Chained token forgery, stored client-side execution, Apache type-map subrequests, a privileged review bot, Java deserialization, and a race condition to reach code execution.</li>
+<li><a href="/overstrike.html"><strong>Overstrike</strong></a><span class="card-punctuation">:</span> Reversed a Godot C# mobile application, proved its legitimate seal state unreachable, inverted its transformation, and decrypted the protected registry.</li>
 </ul>
 
 <h2>Writeup index</h2>
@@ -212,6 +223,7 @@
 
 <ul>
 <li><a href="/operation-endgame.html">Operation Endgame</a></li>
+<li><a href="/last-light.html">Last Light</a></li>
 <li><a href="/ledger-ctf.html">Ledger</a></li>
 <li><a href="/ad-lateral-movement.html">Active Directory: Lateral Movement</a></li>
 <li><a href="/relevant.html">Relevant</a></li>
@@ -272,6 +284,12 @@
 <li><a href="/linux-privesc-cron.html">Cron Job Hijack</a></li>
 <li><a href="/linux-privesc-path.html">PATH Hijacking</a></li>
 <li><a href="/linux-privesc-nfs.html">NFS no_root_squash</a></li>
+</ul>
+
+<h3>Malware analysis, mobile, and firmware</h3>
+
+<ul>
+<li><a href="/silent-passenger.html">Silent Passenger</a></li>
 </ul>
 
 <h3>Binary exploitation, reversing, and cryptography</h3>

