@@ -212,6 +212,12 @@ code {
 
 <h2>Detection Engineering and Security Tooling</h2>
 
+<h3><a href="/harnestia-first-malware-analysis-ctf.html">Harnestia's First Malware Analysis CTF</a></h3>
+<p>Harnestia analyzed three TryHackMe Windows executables through hash-pinned grants, bounded byte reads, string extraction, evidence-backed reports, and separate Splunk monitoring. All three flags were accepted on the first submission, and none of the samples were executed.</p>
+
+<a href="/harnestia-first-malware-analysis-ctf.html"><img src="/images/harnestia-malware-analysis/figure-31.png" alt="Harnestia report identifying the exact Challenge 1 flag through pointer and MD5 evidence" class="incident-image"></a>
+<p class="image-caption">Harnestia followed the pointer to the flag, identified the MD5 input, recorded the evidence, and generated a report without running the sample.</p>
+
 <h3>Hayabusa MCP</h3>
 <p>Hayabusa MCP <code>v0.1.0</code> is a security-hardened Python MCP server for controlled EVTX analysis with Hayabusa 3.10.0. It runs the scanner through a dedicated non-login service identity with a fixed executable, working directory, argument structure, and allowlisted environment. Path containment, symlink rejection, isolated per-scan workspaces, bounded output, process-group timeouts, and sanitized failures restrict what an MCP client can ask the system to do.</p>
 
