@@ -1194,10 +1194,14 @@ button:focus-visible {
   border-bottom: 0;
 }
 
+.penetration-index .post-content > h3 + ul > li:nth-child(odd):last-child {
+  grid-column: 1 / -1;
+}
+
 .penetration-index .post-content > h3 + ul a {
   display: block;
   position: relative;
-  padding: 0.72rem 1.8rem 0.72rem 0;
+  padding: 0.72rem 0 0.72rem 1.45rem;
   color: var(--primary);
   line-height: 1.45;
   box-shadow: none;
@@ -1207,7 +1211,7 @@ button:focus-visible {
   content: ">";
   position: absolute;
   top: 0.72rem;
-  right: 0.35rem;
+  left: 0.15rem;
   color: var(--ui-cyan);
   font-family: "Space Mono", ui-monospace, monospace;
   font-weight: 700;
@@ -1536,7 +1540,7 @@ button:focus-visible {
 
 /* Security and Defense index */
 .security-index-main {
-  max-width: calc(1120px + (var(--gap) * 2));
+  max-width: calc(980px + (var(--gap) * 2));
 }
 
 .security-index {
