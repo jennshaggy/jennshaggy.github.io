@@ -1850,3 +1850,166 @@ button:focus-visible {
     transform: none;
   }
 }
+
+
+/* AI Security index */
+.ai-security-index-main {
+  max-width: calc(980px + (var(--gap) * 2));
+}
+
+.ai-security-index {
+  width: 100%;
+}
+
+.ai-security-index .post-header {
+  position: relative;
+  margin: 1.5rem 0 2.8rem;
+  padding: clamp(1.7rem, 4vw, 2.8rem);
+  overflow: hidden;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(217, 54, 184, 0.11),
+      transparent 44%,
+      rgba(85, 212, 210, 0.09)
+    ),
+    var(--ui-panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px var(--ui-shadow);
+}
+
+.ai-security-index .post-header::before {
+  content: "// MODEL & AGENT SECURITY";
+  display: block;
+  margin-bottom: 1rem;
+  color: var(--ui-cyan);
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.ai-security-index .post-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--ui-magenta),
+    var(--ui-violet),
+    var(--ui-cyan)
+  );
+}
+
+.ai-security-index .post-title {
+  margin: 0;
+  font-family: "Tomorrow", Inter, system-ui, sans-serif;
+  font-size: clamp(2.5rem, 7vw, 4.7rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.ai-security-index .post-description {
+  max-width: 790px;
+  margin-top: 1rem;
+  color: var(--secondary);
+  font-family: Inter, system-ui, sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.14rem);
+  line-height: 1.65;
+}
+
+.ai-security-index .post-content {
+  max-width: 900px;
+  margin-inline: auto;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.74;
+  letter-spacing: -0.005em;
+}
+
+.ai-security-index .post-content > p {
+  max-width: 78ch;
+}
+
+.ai-security-index .post-content > p:nth-of-type(-n + 2) {
+  font-size: 1.02rem;
+  line-height: 1.8;
+}
+
+.ai-security-index .post-content > hr {
+  height: 1px;
+  margin: 3.4rem 0 0;
+  background: var(--border);
+  border: 0;
+}
+
+.ai-security-index .post-content > h2 {
+  position: relative;
+  margin: 3.8rem 0 1.35rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  font-family: "Tomorrow", Inter, system-ui, sans-serif;
+  font-size: clamp(1.65rem, 3vw, 2.2rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.ai-security-index .post-content > hr + h2 {
+  margin-top: 1.15rem;
+}
+
+.ai-security-index .post-content > h2::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 72px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ui-magenta), var(--ui-cyan));
+}
+
+.ai-security-index .post-content > h2 a {
+  color: inherit;
+  box-shadow: none;
+}
+
+.ai-security-index .post-content > h2 a:hover,
+.ai-security-index .post-content > h2 a:focus-visible {
+  color: var(--ui-cyan);
+}
+
+.ai-security-index .post-content > p > strong:first-child {
+  display: block;
+  margin-top: 1.7rem;
+  color: var(--primary);
+  font-family: "Tomorrow", Inter, system-ui, sans-serif;
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ai-security-index .post-content > p > strong:first-child::before {
+  content: ">";
+  margin-right: 0.65rem;
+  color: var(--ui-cyan);
+  font-family: "Space Mono", ui-monospace, monospace;
+}
+
+.ai-security-index .post-content > p > strong:first-child a {
+  color: var(--ui-cyan);
+  box-shadow: none;
+}
+
+.ai-security-index .post-content > p > strong:first-child a:hover,
+.ai-security-index .post-content > p > strong:first-child a:focus-visible {
+  color: var(--ui-magenta);
+}
+
+.ai-security-index .post-content > img {
+  display: block;
