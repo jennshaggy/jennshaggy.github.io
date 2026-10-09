@@ -1,0 +1,187 @@
+/* Web resume: shared portfolio chrome with a compact document layout. */
+.resume-main {
+  max-width: calc(980px + (var(--gap) * 2));
+}
+
+.resume-page {
+  width: 100%;
+}
+
+.resume-page .post-header {
+  position: relative;
+  margin: 1.5rem 0 2.4rem;
+  padding: clamp(1.65rem, 3.5vw, 2.5rem);
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(85, 212, 210, 0.1), transparent 45%, rgba(217, 54, 184, 0.08)),
+    var(--ui-panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px var(--ui-shadow);
+}
+
+.resume-page .post-header::before {
+  content: "// EXPERIENCE & CAPABILITIES";
+  display: block;
+  margin-bottom: 0.85rem;
+  color: var(--ui-cyan);
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.resume-page .post-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ui-cyan), var(--ui-violet), var(--ui-magenta));
+}
+
+.resume-page .post-title {
+  margin: 0;
+  font-family: "Tomorrow", Inter, system-ui, sans-serif;
+  font-size: clamp(2.45rem, 6vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.resume-page .post-content {
+  max-width: 860px;
+  margin-inline: auto;
+  color: var(--primary);
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 0.99rem;
+  line-height: 1.65;
+}
+
+.resume-page .post-content > p:first-child {
+  margin: 0 0 2rem;
+}
+
+.resume-page .post-content > p:first-child a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.65rem 1rem;
+  color: var(--ui-cyan);
+  background: var(--ui-panel);
+  border: 1px solid var(--ui-cyan);
+  border-radius: 9px;
+  box-shadow: none;
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.resume-page .post-content > p:first-child a:hover,
+.resume-page .post-content > p:first-child a:focus-visible {
+  color: var(--ui-magenta);
+  border-color: var(--ui-magenta);
+}
+
+.resume-page .post-content > h2:first-of-type {
+  margin: 0;
+  font-family: "Tomorrow", Inter, system-ui, sans-serif;
+  font-size: clamp(1.9rem, 4vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.resume-page .post-content > h2:first-of-type + p {
+  margin: 0.8rem 0 2.5rem;
+  padding: 1rem 1.2rem;
+  background: var(--ui-panel);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--ui-cyan);
+  border-radius: 0 10px 10px 0;
+  color: var(--secondary);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.resume-page .post-content > h2:first-of-type + p strong {
+  color: var(--primary);
+}
+
+.resume-page .post-content > h3 {
+  position: relative;
+  margin: 2.65rem 0 1.2rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid var(--border);
+  font-family: "Tomorrow", Inter, system-ui, sans-serif;
+  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.resume-page .post-content > h3::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 56px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ui-cyan), var(--ui-magenta));
+}
+
+.resume-page .post-content > p {
+  max-width: 82ch;
+  margin: 0 0 0.9rem;
+}
+
+.resume-page .post-content > p > strong:first-child {
+  color: var(--primary);
+}
+
+.resume-page .post-content > p > em {
+  color: var(--secondary);
+  font-size: 0.93rem;
+}
+
+.resume-page .post-content > ul {
+  max-width: 82ch;
+  margin: 0.15rem 0 1.45rem;
+  padding-left: 1.45rem;
+  color: var(--secondary);
+}
+
+.resume-page .post-content > ul > li {
+  margin: 0.42rem 0;
+  padding-left: 0.15rem;
+}
+
+.resume-page .post-content > ul > li::marker {
+  color: var(--ui-cyan);
+}
+
+.resume-page .post-content a {
+  color: var(--ui-cyan);
+}
+
+.resume-page .post-content a:hover,
+.resume-page .post-content a:focus-visible {
+  color: var(--ui-magenta);
+}
+
+@media screen and (max-width: 768px) {
+  .resume-page .post-header {
+    margin-top: 0.9rem;
+    padding: 1.55rem 1.25rem;
+  }
+
+  .resume-page .post-title {
+    font-size: clamp(2.2rem, 12vw, 3.15rem);
+  }
+
+  .resume-page .post-content > h2:first-of-type + p {
+    padding: 0.9rem 1rem;
+  }
+}
