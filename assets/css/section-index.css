@@ -214,3 +214,37 @@
     font-size: 1rem;
   }
 }
+
+/* Networking index: reuse the section layout without changing its content. */
+.networking-index .post-header::before {
+  content: "// NETWORK ARCHITECTURE";
+}
+
+.networking-index .post-title {
+  font-size: clamp(2.4rem, 5.8vw, 4rem);
+}
+
+.networking-index .post-content > ul {
+  gap: 1.1rem 1.2rem;
+  margin-block: 1.5rem 2.35rem;
+}
+
+.networking-index .post-content > ul > li {
+  padding: 1.15rem 1.25rem;
+  box-shadow: inset 3px 0 0 var(--ui-cyan);
+}
+
+/* Give the first three Home Lab image/caption pairs their own rhythm. */
+.networking-index .post-content > img.network-image:nth-of-type(-n + 3) {
+  margin: 2.6rem 0 0.75rem;
+}
+
+.networking-index .post-content > img.network-image:nth-of-type(-n + 3) + .image-caption {
+  margin: 0 0 3rem;
+}
+
+@media screen and (max-width: 768px) {
+  .networking-index .post-title {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+}
