@@ -7,10 +7,10 @@
 <meta name="robots" content="index, follow">
 <title>Decryptify | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="TryHackMe CTF — JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
+<meta name="description" content="TryHackMe CTF - JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/decryptify.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,15 +68,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/decryptify.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Decryptify">
-<meta property="og:description" content="TryHackMe CTF — JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
+<meta property="og:description" content="TryHackMe CTF - JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Decryptify">
-<meta name="twitter:description" content="TryHackMe CTF — JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
+<meta name="twitter:description" content="TryHackMe CTF - JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.">
 </head>
 
 <body id="top">
@@ -105,6 +108,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -134,7 +138,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -143,10 +147,10 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Decryptify</h1>
-    <div class="post-description">TryHackMe CTF &mdash; JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.</div>
+    <div class="post-description">TryHackMe CTF - JavaScript deobfuscation, invite code brute force, user enumeration, and padding oracle attack.</div>
   </header>
 
   <div class="post-content">
@@ -161,7 +165,7 @@
 
 <img src="/images/decryptify/Screenshot 2026-03-31 at 7.08.37 AM.png" alt="Initial Nmap scan showing ports 22 and 1337" style="max-width:100%;margin:1rem 0;">
 
-<p>The login portal had two forms — username/invite code and email/invite code. Two attack surfaces before I'd done anything. Page source referenced <code>/api.php</code>, which had its own login. Gobuster flagged some timeouts on a few paths. Noted, filed away, moved on.</p>
+<p>The login portal had two forms: username/invite code and email/invite code. Two attack surfaces before I'd done anything. Page source referenced <code>/api.php</code>, which had its own login. Gobuster flagged some timeouts on a few paths. Noted, filed away, moved on.</p>
 
 <img src="/images/decryptify/Screenshot 2026-03-31 at 7.12.40 AM.png" alt="Login portal page source revealing /api.php reference" style="max-width:100%;margin:1rem 0;">
 
@@ -204,9 +208,9 @@ $invite_code = base64_encode($random);</code></pre>
 
 <h2>User Enumeration</h2>
 
-<p>While hunting for the constant I tested the login forms for behavioral differences. Submitting a fake email returned an explicit error. Submitting <code>admin@decryptify.local</code> with a bad code returned nothing — just silence. That difference is meaningful.</p>
+<p>While hunting for the constant I tested the login forms for behavioral differences. Submitting a fake email returned an explicit error. Submitting <code>admin@decryptify.local</code> with a bad code returned nothing, just silence. That difference is meaningful.</p>
 
-<img src="/images/decryptify/Screenshot 2026-03-31 at 7.55.42 AM.png" alt="User enumeration leak — different error responses per email" style="max-width:100%;margin:1rem 0;">
+<img src="/images/decryptify/Screenshot 2026-03-31 at 7.55.42 AM.png" alt="User enumeration leak, different error responses per email" style="max-width:100%;margin:1rem 0;">
 
 <p>The email form leaked whether an account existed. The username form didn't. I needed the actual domain. Looped through likely candidates:</p>
 
@@ -218,9 +222,9 @@ $invite_code = base64_encode($random);</code></pre>
   echo
 done</code></pre>
 
-<img src="/images/decryptify/Screenshot 2026-03-31 at 9.23.28 AM.png" alt="Email enumeration loop — admin@fake.thm returns no error" style="max-width:100%;margin:1rem 0;">
+<img src="/images/decryptify/Screenshot 2026-03-31 at 9.23.28 AM.png" alt="Email enumeration loop, admin@fake.thm returns no error" style="max-width:100%;margin:1rem 0;">
 
-<p><code>admin@fake.thm</code> — no error. That's the one.</p>
+<p><code>admin@fake.thm</code>: no error. That's the one.</p>
 
 <hr>
 
@@ -248,7 +252,7 @@ echo "invite_code: $invite_code\n";
 
 <img src="/images/decryptify/Screenshot 2026-03-31 at 8.48.42 AM.png" alt="Custom PHP invite code generator script" style="max-width:100%;margin:1rem 0;">
 
-<p>Automated the brute force — generate a code per constant value, submit it, stop when the response changes. No hits with the first interpretation. Wrote a second generator using string concatenation instead of integer addition.</p>
+<p>Automated the brute force: generate a code per constant value, submit it, stop when the response changes. No hits with the first interpretation. Wrote a second generator using string concatenation instead of integer addition.</p>
 
 <img src="/images/decryptify/Screenshot 2026-03-31 at 9.34.21 AM.png" alt="Second generator script with alternate seed construction" style="max-width:100%;margin:1rem 0;">
 
@@ -256,7 +260,7 @@ echo "invite_code: $invite_code\n";
 
 <hr>
 
-<h2>Finding the Constant &mdash; /logs/</h2>
+<h2>Finding the Constant: /logs/</h2>
 
 <p>Reran Nmap properly this time, with <code>--script=http-enum</code>:</p>
 
@@ -282,9 +286,9 @@ echo "invite_code: $invite_code\n";
 
 <hr>
 
-<h2>Padding Oracle &mdash; Command Execution</h2>
+<h2>Padding Oracle: Command Execution</h2>
 
-<p>The dashboard at <code>/dashboard.php</code> accepted a <code>date</code> parameter — a base64-encoded ciphertext the server decrypted server-side to figure out what shell command to run for the footer date display.</p>
+<p>The dashboard at <code>/dashboard.php</code> accepted a <code>date</code> parameter, a base64-encoded ciphertext the server decrypted server-side to figure out what shell command to run for the footer date display.</p>
 
 <p>Modifying the parameter produced a very specific error:</p>
 
@@ -293,7 +297,7 @@ EVP_DecryptFinal_ex:wrong final block length</code></pre>
 
 <p>That error is the oracle. The server was leaking whether the padding on my ciphertext was valid. That's all <code>padre</code> needs.</p>
 
-<p>Step 1 — decrypt the original value to confirm the behavior:</p>
+<p>Step 1: decrypt the original value to confirm the behavior:</p>
 
 <pre><code>./padre -u 'http://TARGET:1337/dashboard.php?date=$' \
   -cookie 'PHPSESSID=bmsj2b5btlphctiundj21o4ggl' \
@@ -301,9 +305,9 @@ EVP_DecryptFinal_ex:wrong final block length</code></pre>
 
 <p>Output: <code>date +%Y</code></p>
 
-<p>The original ciphertext decrypted to <code>date +%Y</code> — exactly how the app was printing the current year in the footer. The <code>date</code> parameter wasn't a date string. It was an encrypted shell command.</p>
+<p>The original ciphertext decrypted to <code>date +%Y</code>, exactly how the app was printing the current year in the footer. The <code>date</code> parameter wasn't a date string. It was an encrypted shell command.</p>
 
-<p>Step 2 — encrypt a new command:</p>
+<p>Step 2: encrypt a new command:</p>
 
 <pre><code>./padre -u 'http://TARGET:1337/dashboard.php?date=$' \
   -cookie 'PHPSESSID=bmsj2b5btlphctiundj21o4ggl' \
@@ -399,6 +403,9 @@ EVP_DecryptFinal_ex:wrong final block length</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

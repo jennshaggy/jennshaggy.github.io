@@ -6,10 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Injects | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe CTF — SQLi client-side filter bypass, recursive keyword obfuscation, mail.log credential recovery, database table drop, admin access, SSTI via Twig CVE-2024-45411, RCE.">
+<meta name="description" content="TryHackMe CTF - SQLi client-side filter bypass, recursive keyword obfuscation, mail.log credential recovery, database table drop, admin access, SSTI via Twig CVE-2024-45411, RCE.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/injects-ctf.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -67,6 +67,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/injects-ctf.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Injects">
@@ -104,6 +107,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -133,7 +137,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -142,10 +146,10 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Injects</h1>
-    <div class="post-description">TryHackMe CTF &mdash; Use your injection skills to take control of a web app. &ldquo;Injects&rdquo; does actually kind of rhyme with &ldquo;Olympics.&rdquo;</div>
+    <div class="post-description">TryHackMe CTF - Use your injection skills to take control of a web app. &ldquo;Injects&rdquo; does actually kind of rhyme with &ldquo;Olympics.&rdquo;</div>
   </header>
 
   <div class="post-content">
@@ -158,13 +162,13 @@
 
 <pre><code>nmap -T4 -n -sC -sV -Pn -p- 10.146.148.157</code></pre>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 7.59.47 PM.png" alt="nmap basic scan — ports 22 and 80 open" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 7.59.47 PM.png" alt="nmap basic scan, ports 22 and 80 open" style="max-width:100%;margin:1rem 0;">
 
 <p>Port 22 and Port 80. Started with a site visit, and also ran the full vuln scan in parallel:</p>
 
 <pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.146.148.157</code></pre>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.05.39 PM.png" alt="vuln scan — CVEs, enumerated subdomains, discovered credentials, known exploits" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.05.39 PM.png" alt="vuln scan, CVEs, enumerated subdomains, discovered credentials, known exploits" style="max-width:100%;margin:1rem 0;">
 
 <p>The output of the above Nmap is a bit lengthy to post here. Why is it my favorite Nmap syntax? It lists all of the CVEs and CNVDs, their severity, and available exploits. In this case: possible HTTP access points, enumerated subdomains that felt like key evidence, discoverable credentials, and more known vulnerabilities than necessary. Filed away for later.</p>
 
@@ -172,21 +176,21 @@
 
 <h2>Site Reconnaissance</h2>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.13.47 PM.png" alt="Target web app landing page — Olympics-themed" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.13.47 PM.png" alt="Target web app landing page, Olympics-themed" style="max-width:100%;margin:1rem 0;">
 
-<p>Most nav menu items were dead links. Two that weren't: <code>/login</code> and <code>/adminLogin007.php</code> — that second one surfaced during the vuln scan.</p>
+<p>Most nav menu items were dead links. Two that weren't: <code>/login</code> and <code>/adminLogin007.php</code>. That second one surfaced during the vuln scan.</p>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.15.33 PM.png" alt="adminLogin007.php — restricted area" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.15.33 PM.png" alt="adminLogin007.php, restricted area" style="max-width:100%;margin:1rem 0;">
 
 <p>Restricted area. Any time I see a restricted area, it's like a button labeled "Don't Touch." I have honed the art of self-control.</p>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.18.03 PM.png" alt="login.php — standard login form" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.18.03 PM.png" alt="login.php, standard login form" style="max-width:100%;margin:1rem 0;">
 
 <p>View Source on <code>/login.php</code> showed a client-side filter living at <code>/script.js</code>. That's the first real lead.</p>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.45.13 PM.png" alt="script.js — client-side filter blocking SQL keywords before POST" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 8.45.13 PM.png" alt="script.js, client-side filter blocking SQL keywords before POST" style="max-width:100%;margin:1rem 0;">
 
-<p><code>script.js</code> blocked a specific keyword list — <code>or</code>, <code>and</code>, <code>union</code>, <code>select</code>, <code>"</code>, <code>'</code> — before any POST request reached <code>functions.php</code>. Client-side only. The filter didn't exist server-side. That's the opening.</p>
+<p><code>script.js</code> blocked a specific keyword list (<code>or</code>, <code>and</code>, <code>union</code>, <code>select</code>, <code>"</code>, <code>'</code>) before any POST request reached <code>functions.php</code>. Client-side only. The filter didn't exist server-side. That's the opening.</p>
 
 <p>Ran Gobuster while planning the bypass:</p>
 
@@ -194,25 +198,25 @@
 -x html,js,txt,php,db,json,log \
 -u http://10.146.148.157</code></pre>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 9.06.35 PM.png" alt="Gobuster running — directories and file types enumerated" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 9.06.35 PM.png" alt="Gobuster running, directories and file types enumerated" style="max-width:100%;margin:1rem 0;">
 
 <hr>
 
-<h2>SQLi &mdash; Login Bypass</h2>
+<h2>SQLi: Login Bypass</h2>
 
 <p>Intercepted the login POST in Burp Suite and sent it to Repeater:</p>
 
 <img src="/images/injects-ctf/Screenshot 2026-04-09 at 9.19.27 PM.png" alt="Burp Suite intercepted POST to functions.php" style="max-width:100%;margin:1rem 0;">
 
-<p>The client-side filter blocked <code>OR</code> — but the filter was JavaScript, not server-side. Burp bypasses it entirely. The payload that worked:</p>
+<p>The client-side filter blocked <code>OR</code>, but the filter was JavaScript, not server-side. Burp bypasses it entirely. The payload that worked:</p>
 
 <pre><code>username=a' || 1=1; -- -&password=a&function=login</code></pre>
 
-<p><code>||</code> instead of <code>OR</code>. The original attempt with <code>OR</code> failed. That distinction matters — the server was doing some filtering of its own, just not catching the pipe operator.</p>
+<p><code>||</code> instead of <code>OR</code>. The original attempt with <code>OR</code> failed. The server was doing some filtering of its own, just not catching the pipe operator.</p>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 9.33.31 PM.png" alt="Burp Repeater — SQLi payload in username field" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 9.33.31 PM.png" alt="Burp Repeater, SQLi payload in username field" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 9.34.17 PM.png" alt="dashboard.php — authenticated" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 9.34.17 PM.png" alt="dashboard.php, authenticated" style="max-width:100%;margin:1rem 0;">
 
 <p>In. Gobuster hadn't finished yet, but <code>mail.log</code> was already visible in the results. Filed away.</p>
 
@@ -220,29 +224,29 @@
 
 <hr>
 
-<h2>Database Manipulation &mdash; Recursive Filter Bypass</h2>
+<h2>Database Manipulation: Recursive Filter Bypass</h2>
 
-<p>The dashboard had an editable leaderboard. Each edit generated a POST to <code>/edit_leaderboards.php</code>. The input was reaching the database — confirmed by updating medal counts and watching the changes propagate, including one that changed China's data instead of USA's, which was clarifying in its own way.</p>
+<p>The dashboard had an editable leaderboard. Each edit generated a POST to <code>/edit_leaderboards.php</code>. The input was reaching the database, confirmed by updating medal counts and watching the changes propagate, including one that changed China's data instead of USA's, which was clarifying in its own way.</p>
 
-<p>The real discovery came from testing what the server would actually accept. Strings worked — confirmed by updating a country name to <code>"ME"</code> and watching it stick. Look at me. I won all of these medals by myself. Very impressive, me.</p>
+<p>The real discovery came from testing what the server would actually accept. Strings worked, confirmed by updating a country name to <code>"ME"</code> and watching it stick. Look at me. I won all of these medals by myself. Very impressive, me.</p>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 10.05.44 PM.png" alt="Leaderboard showing country updated to ME — string injection confirmed" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 10.05.44 PM.png" alt="Leaderboard showing country updated to ME, string injection confirmed" style="max-width:100%;margin:1rem 0;">
 
-<p>The server was filtering SQL keywords server-side as well. Standard payloads came back blank. The breakthrough was realizing the filter was doing a simple string match — so nesting the keyword inside itself bypassed it:</p>
+<p>The server was filtering SQL keywords server-side as well. Standard payloads came back blank. The breakthrough was realizing the filter was doing a simple string match, so nesting the keyword inside itself bypassed it:</p>
 
 <pre><code>seSELECTlect</code></pre>
 
 <p>When <code>SELECT</code> was stripped by the filter, <code>seSELECTlect</code> collapsed into <code>select</code>. Plain sight obfuscation.</p>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 10.35.23 PM.png" alt="Recursive keyword bypass confirmed — seSELECTlect surviving filter" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 10.35.23 PM.png" alt="Recursive keyword bypass confirmed, seSELECTlect surviving filter" style="max-width:100%;margin:1rem 0;">
 
 <img src="/images/injects-ctf/Screenshot 2026-04-09 at 10.46.38 PM.png" alt="Gobuster complete results" style="max-width:100%;margin:1rem 0;">
 
 <hr>
 
-<h2>mail.log &mdash; Credential Recovery and Table Drop</h2>
+<h2>mail.log: Credential Recovery and Table Drop</h2>
 
-<p><code>mail.log</code> contained the instruction to DROP the table — and the admin credentials. The recursive bypass made the final payload possible:</p>
+<p><code>mail.log</code> contained the instruction to DROP the table and the admin credentials. The recursive bypass made the final payload possible:</p>
 
 <pre><code>rank=1&country=&gold=22; DROP TABLE users -- -&silver=21&bronze=12345</code></pre>
 
@@ -252,7 +256,7 @@
 
 <img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.00.27 PM.png" alt="Admin login with mail.log credentials" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.02.59 PM.png" alt="Admin dashboard — Flag 1 visible, database alterations confirmed" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.02.59 PM.png" alt="Admin dashboard, Flag 1 visible, database alterations confirmed" style="max-width:100%;margin:1rem 0;">
 
 <p>Flag 1. And my database alterations were still visible, which made it that much sweeter.</p>
 
@@ -262,9 +266,9 @@
 
 <hr>
 
-<h2>SSTI &mdash; Twig CVE-2024-45411</h2>
+<h2>SSTI: Twig CVE-2024-45411</h2>
 
-<p>The admin account had an additional nav item: Profile. A photo upload field — the kind that deserves immediate scrutiny.</p>
+<p>The admin account had an additional nav item: Profile. A photo upload field, the kind that deserves immediate scrutiny.</p>
 
 <img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.07.24 PM.png" alt="Admin profile page with photo upload field" style="max-width:100%;margin:1rem 0;">
 
@@ -274,19 +278,19 @@
 
 <img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.08.41 PM.png" alt="Profile field with {{7x7}} submitted" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.09.08 PM.png" alt="Output: 49 — SSTI confirmed, input executed as code not treated as string" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.09.08 PM.png" alt="Output: 49, SSTI confirmed, input executed as code not treated as string" style="max-width:100%;margin:1rem 0;">
 
 <p><code>{{7x7}}</code> was not treated as a string. It returned <code>49</code>. That's SSTI confirmed.</p>
 
-<p>Remember that massive vuln Nmap from the beginning? That's coming in handy right now. The web app runs Twig v2.14.0 — exploitable via CVE-2024-45411, a sandbox bypass vulnerability. The math really maths.</p>
+<p>Remember that massive vuln Nmap from the beginning? That's coming in handy right now. The web app runs Twig v2.14.0, exploitable via CVE-2024-45411, a sandbox bypass vulnerability. The math really maths.</p>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.20.23 PM.png" alt="Twig v2.14.0 identified — CVE-2024-45411 sandbox bypass" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.20.23 PM.png" alt="Twig v2.14.0 identified, CVE-2024-45411 sandbox bypass" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.20.49 PM.png" alt="SSTI payload executing — www-data shell context confirmed" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.20.49 PM.png" alt="SSTI payload executing, www-data shell context confirmed" style="max-width:100%;margin:1rem 0;">
 
 <p>RCE achieved. From here the path to <code>/flags</code> is yours to find.</p>
 
-<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.49.25 PM.png" alt="Terminal prompt — you know what to do from here" style="max-width:100%;margin:1rem 0;">
+<img src="/images/injects-ctf/Screenshot 2026-04-09 at 11.49.25 PM.png" alt="Terminal prompt, you know what to do from here" style="max-width:100%;margin:1rem 0;">
 
 <hr>
 
@@ -373,6 +377,9 @@
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
