@@ -6,10 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Upload Vulnerabilities | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe — Six file upload abuse patterns from basic overwrite to Node/Express black-box exploitation via client-side bypass, extension blacklist, magic number spoofing, and path traversal.">
+<meta name="description" content="TryHackMe: Six file upload abuse patterns from basic overwrite to Node/Express black-box exploitation via client-side bypass, extension blacklist, magic number spoofing, and path traversal.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/upload-vulnerabilities.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -67,6 +67,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/upload-vulnerabilities.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Upload Vulnerabilities">
@@ -104,6 +107,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -133,7 +137,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -142,10 +146,10 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Upload Vulnerabilities</h1>
-    <div class="post-description">TryHackMe — Six file upload abuse patterns. The most important progression: successful upload does not automatically mean successful execution.</div>
+    <div class="post-description">TryHackMe. Six file upload abuse patterns. The most important lesson: successful upload does not automatically mean successful execution.</div>
   </header>
 
   <div class="post-content">
@@ -154,7 +158,13 @@
 
 <hr>
 
-<h2>1. Basic Webshell Upload</h2>
+<h2>1. Overwrite Existing File</h2>
+
+<p>The page source revealed the displayed image filename: <code>mountains.jpg</code>. A normal image was renamed to <code>mountains.jpg</code> and uploaded through the form. The existing server image was overwritten successfully.</p>
+
+<hr>
+
+<h2>2. Basic Webshell Upload</h2>
 
 <p>Gobuster identified the upload location. Uploaded a tiny PHP webshell:</p>
 
@@ -162,19 +172,19 @@
 
 <p>The uploaded shell was reachable and executable. <code>whoami</code> returned <code>www-data</code>. Flag retrieved from <code>/var/www/flag.txt</code>.</p>
 
-<p>The file wasn't just stored — it was being interpreted server-side as executable PHP. That distinction matters.</p>
+<p>The file was stored <em>and</em> interpreted server-side as executable PHP.</p>
 
 <hr>
 
-<h2>2. Client-Side Filter Bypass</h2>
+<h2>3. Client-Side Filter Bypass</h2>
 
-<p>Page source referenced <code>client-side-filter.js</code> — a JavaScript file enforcing image upload restrictions in the browser. Browser-side validation is not validation.</p>
+<p>The page source referenced <code>client-side-filter.js</code>, which is a JavaScript file enforcing image upload restrictions in-browser. My point? Browser-side validation is not validation.</p>
 
 <p>The PHP webshell was renamed to <code>shell.png</code> to pass the file picker. Then in Burp:</p>
 
 <ul>
-<li>filename changed from <code>shell.png</code> to <code>shell.php</code></li>
-<li>content type changed from <code>image/png</code> to <code>text/x-php</code></li>
+<li>Filename changed from <code>shell.png</code> to <code>shell.php</code></li>
+<li>Content type changed from <code>image/png</code> to <code>text/x-php</code></li>
 </ul>
 
 <p>Upload succeeded. Shell executed from <code>/images/shell.php</code>.</p>
@@ -189,9 +199,9 @@
 
 <hr>
 
-<h2>3. Extension Blacklist Bypass</h2>
+<h2>4. Extension Blacklist Bypass</h2>
 
-<p>Server-side extension blacklist blocked common PHP extensions. The PentestMonkey reverse shell was renamed to <code>php-reverse-shell.jpg.php5</code> — the blacklist didn't cover <code>.php5</code>, which still executed.</p>
+<p>Server-side extension blacklist blocked common PHP extensions. The PentestMonkey reverse shell was renamed to <code>php-reverse-shell.jpg.php5</code>. The blacklist didn't cover <code>.php5</code>, which still executed.</p>
 
 <p>The upload interface used CLI-style commands rather than a standard form. After upload, the file landed in <code>/privacy/</code> with a randomized timestamp prefix. Triggered it directly. Reverse shell connected back.</p>
 
@@ -201,13 +211,13 @@
 
 <hr>
 
-<h2>4. Magic Number Bypass</h2>
+<h2>5. Magic Number Bypass</h2>
 
-<p>Server-side validation checked the file's magic bytes rather than the extension. Modified the payload in <code>hexeditor</code> to begin with the GIF magic number:</p>
+<p>Server-side validation checked the file's magic bytes instead of the extension. Modified the payload in <code>hexeditor</code> to begin with the GIF magic number:</p>
 
 <pre><code>47 49 46 38 39 61  →  GIF89a</code></pre>
 
-<p>The <code>file</code> command confirmed the spoofed type. Upload accepted. Retrieved the flag via the known path using a webshell instead of a reverse shell for simplicity.</p>
+<p>The spoofed type was confirmed by the <code>file</code> command. Upload accepted. I used the webshell to retrieve the flag instead of setting up a reverse shell.</p>
 
 <img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 10.37.40 AM.png" alt="hexeditor showing GIF magic bytes prepended to PHP payload" style="max-width:100%;margin:1rem 0;">
 
@@ -217,13 +227,13 @@
 
 <hr>
 
-<h2>5. Black-Box Node/Express Exploitation — Jewel</h2>
+<h2>6. Black-Box Node/Express Exploitation: Jewel</h2>
 
-<p>The hardest challenge. The upload and execution paths were completely separate, and the backend wasn't PHP.</p>
+<p>The hardest challenge. The upload and execution paths were completely separate. The backend wasn't PHP, either.</p>
 
-<p>The upload endpoint response contained <code>X-Powered-By: Express</code>. That was the key clue. A PHP payload was the wrong fit entirely.</p>
+<p>The upload endpoint response beheld a crucial clue: <code>X-Powered-By: Express</code>. A PHP payload had no place here.</p>
 
-<p>Gobuster identified three directories: <code>/admin</code>, <code>/content/</code>, <code>/modules/</code>. Uploaded files landed in <code>/content/</code> with randomized short filenames. Retrieving them with <code>curl</code> showed the raw payload — they were being served, not executed.</p>
+<p>Gobuster identified three directories: <code>/admin</code>, <code>/content/</code>, <code>/modules/</code>. Uploaded files landed in <code>/content/</code> with randomized short filenames. A <code>curl</code> request returned the raw payload from <code>/content/</code>, so executing it there was off the table.</p>
 
 <img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 3.27.51 PM.png" alt="Gobuster identifying /admin, /content/, /modules/ and curl showing raw payload in /content/" style="max-width:100%;margin:1rem 0;">
 
@@ -236,24 +246,24 @@ body: cmd=...</code></pre>
 
 <img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 1.54.09 PM.png" alt="Burp correcting admin POST request line and supplying traversal path to /content/" style="max-width:100%;margin:1rem 0;">
 
-<p>A JS reverse shell payload wrapped to satisfy JPEG client-side checks was uploaded, the randomized filename identified, and the corrected admin request fired. Root shell connected back.</p>
+<p>I wrapped a JavaScript reverse shell to pass the JPEG checks and uploaded it. Once I found its randomized filename, I corrected the admin request in Burp and fired it. Root shell connected back.</p>
 
-<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 2.41.53 PM.png" alt="Root shell via Node/Express upload chain — flag retrieved from /var/www/" style="max-width:100%;margin:1rem 0;">
+<img src="/images/upload-vulnerabilities/Screenshot 2026-03-30 at 2.41.53 PM.png" alt="Root shell via Node/Express upload chain; flag retrieved from /var/www/" style="max-width:100%;margin:1rem 0;">
 
 <hr>
 
-<h2>What This Room Actually Teaches</h2>
+<h2>Lessons Learned</h2>
 
 <p>The biggest conceptual shifts across all six challenges:</p>
 
 <ul>
-<li>Don't trust the upload path to also be the execution path</li>
-<li>Recognize when the backend invalidates your payload choice</li>
-<li>Use Burp to correct or reshape requests, not just bypass browser restrictions</li>
-<li>Treat small enumeration details as execution clues rather than noise</li>
+<li>Don't trust the upload path to also be the execution path.</li>
+<li>Recognize when the backend invalidates your payload choice.</li>
+<li>Use Burp to correct or reshape requests, not just bypass browser restrictions.</li>
+<li>Treat small enumeration details as execution clues rather than noise.</li>
 </ul>
 
-<p>The Jewel challenge especially reinforced that the right answer is often not "try more payloads" but "better understand how the application routes uploaded content."</p>
+<p>Jewel made the point: stop trying more payloads until you know where the application sends them.</p>
 
   </div>
   <footer class="post-footer"></footer>
@@ -326,6 +336,9 @@ body: cmd=...</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

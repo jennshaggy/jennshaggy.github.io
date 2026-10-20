@@ -6,10 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>CyberCrafted | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe CTF — subdomain enumeration, steganography detour, differential error user enumeration, SQLi credential dump, SSH key theft, john passphrase crack, plaintext password in Minecraft plugin log, screen sudo privesc to root.">
+<meta name="description" content="TryHackMe CTF: subdomain enumeration, steganography detour, differential error user enumeration, SQLi credential dump, SSH key theft, john passphrase crack, plaintext password in Minecraft plugin log, screen sudo privesc to root.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/cybercrafted.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -67,15 +67,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/cybercrafted.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="CyberCrafted">
-<meta property="og:description" content="TryHackMe CTF — SQLi credential dump, SSH key theft, Minecraft plugin log plaintext password, screen sudo privesc to root.">
+<meta property="og:description" content="TryHackMe CTF: SQLi credential dump, SSH key theft, Minecraft plugin log plaintext password, screen sudo privesc to root.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CyberCrafted">
-<meta name="twitter:description" content="TryHackMe CTF — SQLi credential dump, SSH key theft, Minecraft plugin log plaintext password, screen sudo privesc to root.">
+<meta name="twitter:description" content="TryHackMe CTF: SQLi credential dump, SSH key theft, Minecraft plugin log plaintext password, screen sudo privesc to root.">
 </head>
 
 <body id="top">
@@ -104,6 +107,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -133,7 +137,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -142,10 +146,10 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">CyberCrafted</h1>
-    <div class="post-description">TryHackMe CTF &mdash; Target is an in-development Minecraft server. I know nothing about Minecraft, but unleash me on some Windows 97 Minesweeper any day of the week and these kids won&rsquo;t know what to think.</div>
+    <div class="post-description">TryHackMe CTF. Target is an in-development Minecraft server. I know nothing about Minecraft, but unleash me on some Windows 97 Minesweeper any day of the week and these kids won&rsquo;t know what to think.</div>
   </header>
 
   <div class="post-content">
@@ -154,13 +158,13 @@
 
 <h2>Port Enumeration</h2>
 
-<p>Added the target IP to <code>/etc/hosts</code> first. Then nmap:</p>
+<p>Let's Nmap it out. First, I added our <code>TARGET_IP</code> to <code>/etc/hosts</code>.</p>
 
 <pre><code>nmap -p- -A -T4 -sV -sC TARGET_IP</code></pre>
 
 <img src="/images/cybercrafted/Screenshot 2026-04-21 at 10.47.41 AM.png" alt="nmap scan showing three open ports" style="max-width:100%;margin:2rem 0;">
 
-<p>SSH open. Now the details, via rustscan for the full port range:</p>
+<p>Not bad. SSH is open. Now, the details. Good ole' rustscan:</p>
 
 <pre><code>rustscan -r 1-65535 -a TARGET_IP -- -sV -sC -T4</code></pre>
 
@@ -184,11 +188,11 @@
 
 <img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.01.57 AM.png" alt="dirbuster running in headless mode" style="max-width:100%;margin:2rem 0;">
 
-<p>While it ran, I was already intrigued by what it was surfacing.</p>
+<p>dirbuster is still running, but now I am intrigued...</p>
 
 <img src="/images/cybercrafted/Screenshot 2026-04-21 at 11.08.22 AM.png" alt="dirbuster surfacing /secret/ directory" style="max-width:100%;margin:2rem 0;">
 
-<p><code>/secret/</code>. It&rsquo;s like a button labeled &ldquo;don&rsquo;t touch.&rdquo;</p>
+<p>...it's like a button labeled, "don't touch." Well hello there, <code>/secret/</code>. I won't tell. Keeping this tab open.</p>
 
 <p>Traversed up to the parent directory. Excellent background image, by the way.</p>
 
@@ -226,7 +230,7 @@
 
 <p>Decoded the Base32. It led nowhere in the context of this room. The Herobrine filename is a creepypasta reference (Minecraft lore built entirely on misdirection) and the decoded string never tied back to any credential, endpoint, or flag I encountered downstream. Classified as a red herring, almost certainly planted. Documented and moved on.</p>
 
-<p>Worth saying: chasing an off-path steganography hunch like this belongs in a CTF, not a scoped engagement. Time boxed, out-of-scope indicators flagged, and back to the actual target.</p>
+<p>Worth saying: chasing an off-path steganography hunch like this belongs in a CTF. I'd never do this in a scoped engagement, but I digress.</p>
 
 <p>Back on track.</p>
 
@@ -386,7 +390,7 @@ john hash.txt --wordlist=/usr/share/wordlists/rockyou.txt</code></pre>
 
 <pre><code>cat ~/user.txt</code></pre>
 
-<p>Minecraft server flag retrieved: <code>THM{ba93767ae3db9f5b8399680040a0c99e}</code></p>
+<p>Minecraft server flag retrieved: <code>REDACTED</code></p>
 
 <hr>
 
@@ -416,7 +420,7 @@ cat ~/user.txt</code></pre>
 
 <img src="/images/cybercrafted/Screenshot 2026-04-21 at 3.47.44 PM.png" alt="second user flag retrieved" style="max-width:100%;margin:2rem 0;">
 
-<p>User flag: <code>THM{b4aa20aaf08f174473ab0325b24a45ca}</code></p>
+<p>User flag: <code>REDACTED</code></p>
 
 <hr>
 
@@ -533,6 +537,9 @@ cat ~/user.txt</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

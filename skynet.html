@@ -10,7 +10,7 @@
 <meta name="description" content="TryHackMe CTF: SMB anonymous access, Burp Intruder wordlist crack on Squirrelmail, email-leaked Samba creds, Cuppa CMS LFI to RFI reverse shell, tar wildcard cron abuse to root.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/skynet.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,7 +68,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/skynet.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Skynet">
@@ -106,6 +108,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -135,7 +138,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -144,15 +147,13 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Skynet</h1>
     <div class="post-description">TryHackMe CTF. A vulnerable Terminator themed Linux machine. Hasta la vista, baby.</div>
   </header>
 
   <div class="post-content">
-
-<p>A vulnerable Terminator themed Linux machine. Hasta la vista, baby.</p>
 
 <hr>
 
@@ -186,11 +187,13 @@
 
 <p>It had to be done. Leave me alone.</p>
 
-<p>In-browser:</p>
+<p>Let's take a peek in-browser and assess further.</p>
 
 <img src="/images/skynet/Screenshot 2026-06-04 at 9.08.03 PM.png" alt="Skynet homepage in browser" style="max-width:100%;margin:2rem 0;">
 
 <p>We definitely have a Google copyright infringement, but I&rsquo;ll save that for my spare time.</p>
+
+<p>Very simple source code. Out of curiosity, I tried visiting <code>/admin/</code>. It does exist.</p>
 
 <p>Time to enumerate directories via feroxbuster:</p>
 
@@ -204,6 +207,8 @@
 <li><code>/ai/</code> serving 301</li>
 <li><code>/squirrelmail/</code> serving 301</li>
 </ul>
+
+<p>There's a lengthy list of Squirrelmail directories, and they're primarily serving 200.</p>
 
 <p>I&rsquo;m familiar with Squirrelmail. When I bought my first domain from MyDomain.com (RIP), their free email service was Squirrelmail. Archaic and nostalgic even up to around 2020. I thought I was just waxing poetic down memory lane, but I&rsquo;m going to take a walk that way instead.</p>
 
@@ -388,7 +393,7 @@ nc -lvnp 1234                    # terminal 2: catch the shell</code></pre>
 
 <img src="/images/skynet/Screenshot 2026-06-05 at 7.02.40 AM.png" alt="user.txt flag in milesdyson's home directory" style="max-width:100%;margin:2rem 0;">
 
-<p><strong>User flag:</strong> <code>7ce5c2109a40f958099283600a9ae807</code></p>
+<p><strong>User flag:</strong> <code>REDACTED</code></p>
 
 <hr>
 
@@ -416,7 +421,7 @@ touch "/var/www/html/--checkpoint-action=exec=sh shell.sh"</code></pre>
 
 <img src="/images/skynet/Screenshot 2026-06-05 at 7.56.56 AM.png" alt="root flag read from /tmp/rootflag.txt after cron fires" style="max-width:100%;margin:2rem 0;">
 
-<p><strong>Root flag:</strong> <code>3f0372db24753accc7179a282cd6a949</code></p>
+<p><strong>Root flag:</strong> <code>REDACTED</code></p>
 
 <p>Fin.</p>
 
@@ -533,6 +538,9 @@ cat /tmp/rootflag.txt</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>

