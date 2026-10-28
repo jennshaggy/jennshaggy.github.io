@@ -6,10 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>What's Your Name | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe CTF — JavaScript inspection, SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
+<meta name="description" content="TryHackMe CTF. JavaScript inspection, SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/whats-your-name.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -67,15 +67,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/whats-your-name.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="What's Your Name">
-<meta property="og:description" content="TryHackMe CTF — SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
+<meta property="og:description" content="TryHackMe CTF. SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="What's Your Name">
-<meta name="twitter:description" content="TryHackMe CTF — SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
+<meta name="twitter:description" content="TryHackMe CTF. SQLi auth bypass, XSS cookie theft chained across moderator and admin, CSRF via chat XSS to force admin password reset.">
 </head>
 
 <body id="top">
@@ -104,6 +107,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -133,7 +137,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -142,15 +146,13 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">What&rsquo;s Your Name</h1>
-    <div class="post-description">TryHackMe CTF &mdash; Client-side exploitation challenge built around JavaScript inspection, cookie manipulation, and XSS chaining. The synopsis warns against clicking links from unknown sources. If I can&rsquo;t pull off the very thing I&rsquo;m being warned about, I have a much bigger problem. Let&rsquo;s go.</div>
+    <div class="post-description">TryHackMe CTF. SQLi, JavaScript inspection, cookie manipulation, and XSS chaining. The synopsis warns against clicking links from unknown sources. If I can&rsquo;t pull off the very thing I&rsquo;m being warned about, I have a much bigger problem. Let&rsquo;s go.</div>
   </header>
 
   <div class="post-content">
-
-<hr>
 
 <h2>Recon</h2>
 
@@ -170,7 +172,7 @@
 
 <p>Sneaky, Port 53. I see you.</p>
 
-<p>Open ports: 22 (SSH), 53, 80 (HTTP), 8081 (HTTP). Port 8081 is the non-standard one. Worth fuzzing.</p>
+<p>Open ports: 22 (SSH), 53 (DNS), 80 (HTTP), and 8081 (HTTP). Port 8081 is the non-standard one. Worth fuzzing.</p>
 
 <pre><code>feroxbuster -u http://TARGET_IP -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt -t 50 -o ferox_out.txt</code></pre>
 
@@ -197,8 +199,6 @@
 
 <p>Given the synopsis hints at JS inspection, cookie manipulation, and XSS, the cookie angle is the most likely path.</p>
 
-<hr>
-
 <h2>Setup.php and the Database Reset</h2>
 
 <p>Visiting <code>setup.php</code> re-initialized the entire database. View source confirmed a <code>users</code> table and a <code>messages</code> table, with default accounts inserted.</p>
@@ -206,8 +206,6 @@
 <img src="/images/whats-your-name/Screenshot 2026-04-25 at 10.29.46 AM.png" alt="setup.php source revealing schema" style="max-width:100%;margin:2rem 0;">
 
 <p>A clean slate with predictable defaults. Worth a phpMyAdmin attempt before pivoting to the main app.</p>
-
-<hr>
 
 <h2>phpMyAdmin Tangent</h2>
 
@@ -217,8 +215,6 @@
 
 <p>This felt like a mind-honeypot. The lab&rsquo;s stated focus was JS inspection and cookie manipulation, not a MySQL credential brute force. Tab stayed open just in case. Pivoting to the main app.</p>
 
-<hr>
-
 <h2>SQLi at login.php</h2>
 
 <pre><code>http://worldwap.thm:8081/login.php</code></pre>
@@ -227,9 +223,7 @@
 
 <img src="/images/whats-your-name/Screenshot 2026-04-26 at 11.16.49 AM.png" alt="login.php interface" style="max-width:100%;margin:2rem 0;">
 
-<p>Intercepted a login request via Burp with <code>admin:password</code>. The failed login returned a 200, not a 302, meaning it re-renders the login page rather than redirecting. PHPSESSID was set on failed login, which is normal PHP behavior and not directly manipulable. The cookie hint clearly applied after a successful login.</p>
-
-<p>In summary, find a successful login.</p>
+<p>Intercepted a login request via Burp with <code>admin:password</code>. The failed login returned a 200, not a 302, meaning it re-renders the login page rather than redirecting. PHPSESSID was set on the failed login, but that session alone didn&rsquo;t get me into an account. I needed a login that worked before the cookie trail went anywhere.</p>
 
 <p>Sent the request to Repeater and tried a SQLi auth bypass:</p>
 
@@ -239,15 +233,13 @@
 
 <p>302 redirect to <code>profile.php</code>. Bypass confirmed.</p>
 
-<hr>
-
 <h2>Recognizing the XSS Vector</h2>
 
 <p>Visited <code>worldwap.thm:80</code> and clicked the register button.</p>
 
 <img src="/images/whats-your-name/Screenshot 2026-04-26 at 11.43.02 AM.png" alt="registration page with reviewed by moderator notice" style="max-width:100%;margin:2rem 0;">
 
-<p>The &ldquo;Reviewed by the site moderator&rdquo; notice is the entire game. Translation:</p>
+<p>The &ldquo;Reviewed by the site moderator&rdquo; notice caught my attention. If the moderator opens a registration containing an XSS payload, here&rsquo;s what could happen:</p>
 
 <ol>
 <li>Register with an XSS payload in a field, like Name</li>
@@ -256,8 +248,6 @@
 <li>Payload exfiltrates their session cookie to my listener</li>
 <li>I hijack the moderator session</li>
 </ol>
-
-<hr>
 
 <h2>Stage 1: Hijacking the Moderator</h2>
 
@@ -289,13 +279,9 @@
 
 <pre><code>curl -b "PHPSESSID=0edomi6olajr10e5rr8292gg8u" http://TARGET_IP/profile.php</code></pre>
 
-<img src="/images/whats-your-name/Screenshot 2026-04-26 at 12.17.14 PM.png" alt="curl returning moderator profile with flag" style="max-width:100%;margin:2rem 0;">
+<img src="/images/whats-your-name/Screenshot 2026-04-26 at 12.17.14 PM-redacted.png" alt="curl returning moderator profile with the flag value redacted" style="max-width:100%;margin:2rem 0;">
 
 <p>Look at me predicting the future. Pwned, indeed.</p>
-
-<p><strong>Moderator flag:</strong> <code>ModP@wnEd</code></p>
-
-<hr>
 
 <h2>Stage 2: Hijacking the Admin</h2>
 
@@ -315,7 +301,7 @@
 
 <ul>
 <li>The form POSTs to <code>chat.php</code> with a <code>message</code> field</li>
-<li>The receiving JS does <code>messageDiv.innerHTML = msg.message</code>. Raw HTML rendering, no sanitization. XSS confirmed.</li>
+<li>The receiving JS does <code>messageDiv.innerHTML = msg.message</code>. Raw HTML rendering with no sanitization gives us another XSS opening.</li>
 </ul>
 
 <p>With the listener still running, fired the payload as a chat message:</p>
@@ -331,8 +317,6 @@
 <p><code>PHPSESSID=17rnjlupi9ljoej9gaofua8p1j</code> was the admin ticket.</p>
 
 <p>But hitting <code>admin.php</code> with the admin cookie still didn&rsquo;t return the flag. Cookie alone wasn&rsquo;t enough. The admin panel was protected by something the cookie didn&rsquo;t satisfy on its own.</p>
-
-<hr>
 
 <h2>Stage 3: CSRF for Admin Password Reset</h2>
 
@@ -360,13 +344,11 @@
 
 <p>In as admin. Three-stage chain complete.</p>
 
-<hr>
-
 <h2>Full Attack Chain</h2>
 
 <pre><code>nmap + feroxbuster &rarr; port 8081, /setup.php, /phpmyadmin, /chat.php, /change_password.php
 &rarr; setup.php confirmed schema reset and predictable default accounts
-&rarr; phpMyAdmin honeypot identified, parked
+&rarr; phpMyAdmin credential detour parked
 &rarr; login.php SQLi auth bypass: admin'-- - &rarr; 302 to profile.php
 &rarr; Registration "Reviewed by moderator" tell &rarr; XSS in Name field
 &rarr; Python listener + document.cookie payload &rarr; moderator PHPSESSID stolen
@@ -450,6 +432,9 @@
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
