@@ -10,7 +10,7 @@
 <meta name="description" content="TryHackMe CTF: anonymous FTP backup source leak, SSRF through /preview to localhost-only admin, SSH creds from admin notes, tar wildcard privilege escalation to root.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/operation-coldstart.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,7 +68,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/operation-coldstart.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Operation Coldstart">
@@ -106,6 +108,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -135,7 +138,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -144,7 +147,7 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Operation Coldstart</h1>
     <div class="post-description">TryHackMe CTF. Volt Labs suspects an old staging server has rotted into an exposed liability. Anonymous FTP, source code leak, SSRF to localhost admin, SSH creds, tar wildcard to root.</div>
@@ -155,8 +158,6 @@
 <p>Volt Labs is a small SaaS shop. They suspect an old staging server has rotted into an exposed liability. Mara assigned the engagement: find a way in and demonstrate full compromise.</p>
 
 <p>Let&rsquo;s wake up the staging server everyone left behind.</p>
-
-<hr>
 
 <h2>Fingerprinting the sleeping box</h2>
 
@@ -176,73 +177,96 @@
 
 <p>Thank you, wappalyzer.</p>
 
-<p>I set Nmap running and did browser recon while it worked.</p>
+<p>I set Nmap running, and we can do further recon while it works.</p>
 
 <pre><code class="language-bash">nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP</code></pre>
 
-<p>A visit in-browser:</p>
+<p>A quick visit in-browser:</p>
 
 <img src="/images/operation-coldstart/Screenshot 2026-05-30 at 6.32.18 PM.png" alt="staging app in browser with footer reading do not expose externally" style="max-width:100%;margin:2rem 0;">
 
-<p>The footer says &ldquo;do not expose externally.&rdquo; All lowercase. Why would that be there? The &ldquo;internal tool&rdquo; label and its vagueness are equally interesting.</p>
+<p>I don&rsquo;t want to make assumptions yet, but I&rsquo;m seeing some clear signs and paths. The footer stating &ldquo;do not expose externally&rdquo; has piqued my curiosity. First, it&rsquo;s in all lowercase. Second, why would that be there? The &ldquo;internal tool&rdquo; label and its mystique are equally interesting.</p>
 
-<p>A staging server is built to be an exact or near-exact replica of production. It&rsquo;s the final checkpoint before deployment, the place to confirm features work in an environment that mirrors live. Which means whatever&rsquo;s running here is probably running there too.</p>
+<p>We know this is a staging server. What is a staging server? I&rsquo;m glad you asked.</p>
 
-<p>Nmap results:</p>
+<p>A staging server is designed to be an exact or almost exact replica of a live production server. Frequently used in dev testing environments, it&rsquo;s the final checkpoint to confirm features work in a system that mirrors the live environment before deployment.</p>
+
+<p>Let&rsquo;s check out the Nmap results before we start probing.</p>
 
 <img src="/images/operation-coldstart/Screenshot 2026-05-30 at 6.40.23 PM.png" alt="nmap scan results showing ports 21 FTP, 22 SSH, 80 HTTP Gunicorn" style="max-width:100%;margin:2rem 0;">
 
 <p><strong>Open ports:</strong></p>
 <ul>
-<li>21 FTP. That could come in handy.</li>
-<li>22 SSH</li>
-<li>80 HTTP, Gunicorn confirmed again</li>
+<li>Port 21: FTP. That could come in handy.</li>
+<li>Port 22: SSH</li>
+<li>Port 80: HTTP. Gunicorn confirmed again.</li>
 </ul>
 
-<p>Wide-open anonymous FTP on a staging server. Let&rsquo;s see if we can walk in.</p>
+<p>We don&rsquo;t yet know the Gunicorn WSGI version. I don&rsquo;t see indicators of a Flask app via Gunicorn yet, but any exposed debuggers are a good find. I&rsquo;d like to find the <code>.env</code> to see if any hardcoded credentials are exposed.</p>
+
+<p>Since we have wide open, supposedly anonymous FTP on a staging server, let&rsquo;s see if we can access it:</p>
 
 <img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.03.37 AM.png" alt="FTP anonymous login succeeding" style="max-width:100%;margin:2rem 0;">
 
 <p>Suspiciously easy. Hopefully not a red herring.</p>
 
-<p><code>ls -la</code> works on this FTP box. Traversing into <code>pub</code>:</p>
+<p>For anyone not familiar with FTP commands, knowledge is power:</p>
+
+<pre><code>pwd             # show current remote directory
+ls              # list files
+dir             # more detailed listing
+cd foldername   # move into a folder
+cd ..           # move up one level
+get filename    # download a file
+prompt          # toggle confirmation prompts before using mget
+mget *          # download multiple files
+binary          # use for binaries, archives, images, and databases
+ascii           # use for plain text; binary is usually safer overall
+passive         # toggle passive mode if listings or downloads hang
+bye             # exit</code></pre>
+
+<p>To grab folders, use <code>wget</code> instead of FTP. More on that bridge should we cross it.</p>
+
+<p><code>ls -la</code> works on this FTP box.</p>
 
 <img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.08.21 AM.png" alt="FTP pub directory listing showing backup.tar.gz" style="max-width:100%;margin:2rem 0;">
 
-<p><code>backup.tar.gz</code>. I&rsquo;ll be taking that to-go, please and thank you.</p>
+<p>Traversing into <code>pub</code>, <code>ls -la</code> reveals <code>backup.tar.gz</code>.</p>
+
+<p>I&rsquo;ll be taking that to go, please and thank you. Here&rsquo;s how:</p>
 
 <pre><code>binary
 get backup.tar.gz
 bye</code></pre>
 
+<p>I do appreciate its pleasantries.</p>
+
 <hr>
 
 <h2>Inspect before you extract</h2>
 
-<p>We are not extracting this blind. Inspect locally first, and only then extract into a contained folder.</p>
+<p>Let&rsquo;s extract this into a local folder and take a closer look.</p>
 
 <pre><code class="language-bash">mkdir ftp_backup
 tar -xzf backup.tar.gz -C ftp_backup
 cd ftp_backup
 find . -maxdepth 4 -type f -ls</code></pre>
 
-<p>Sweep for anything useful:</p>
+<p>Sweep for anything useful...</p>
 
 <pre><code class="language-bash">grep -RniE "password|passwd|secret|token|key|admin|user|username|ssh|db|database|env|debug|flask|gunicorn" .</code></pre>
 
-<p>And a sweep for hidden files:</p>
+<p>...and sweep for hidden files:</p>
 
 <pre><code class="language-bash">find . -name ".*" -ls</code></pre>
 
-<p>This is why we inspect first.</p>
+<p>This right here is why we inspect first:</p>
 
 <img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.22.47 AM.png" alt="source inspection output with the standout line about admin routes gated to localhost only" style="max-width:100%;margin:2rem 0;">
 
-<p>The standout line:</p>
+<p>The standout line is, <code>Admin routes are gated by source-IP check (localhost only).</code></p>
 
-<pre><code>Admin routes are gated by source-IP check (localhost only).</code></pre>
-
-<p>The archive is the full Flask/Gunicorn source for the staging app. Instead of guessing endpoints from the browser, the source tells us everything.</p>
+<p>The archive is the full Flask/Gunicorn source for the staging app. We&rsquo;re going to take a tip from the room synopsis and inspect <code>app.py</code> around the admin route, as well as any helper functions above it:</p>
 
 <pre><code class="language-bash">sed -n '1,180p' voltlabs-preview/app.py
 grep -nE "route|admin|request|remote_addr|X-Forwarded|headers|localhost|127|abort|open" voltlabs-preview/app.py</code></pre>
@@ -265,26 +289,35 @@ grep -nE "route|admin|request|remote_addr|X-Forwarded|headers|localhost|127|abor
 
 <h2>Confirm the front door is locked</h2>
 
-<pre><code class="language-bash">curl -i http://TARGET_IP/admin/
-curl -i http://TARGET_IP/admin/notes</code></pre>
+<p>Let&rsquo;s investigate if direct admin access is blocked:</p>
+
+<pre><code class="language-bash">curl -i http://TARGET_IP/admin/</code></pre>
+
+<p>Confirmed. Direct admin access is blocked. The 403 aligns with what we found in the source: <code>/admin/</code> is only accessible locally.</p>
+
+<p>We also need to confirm that the more sensitive admin notes route is blocked from direct external access before testing the preview/SSRF path.</p>
+
+<pre><code class="language-bash">curl -i http://TARGET_IP/admin/notes</code></pre>
 
 <img src="/images/operation-coldstart/Screenshot 2026-05-31 at 7.48.20 AM.png" alt="curl to /admin/ and /admin/notes both returning 403 Forbidden" style="max-width:100%;margin:2rem 0;">
 
-<p>Both return 403 Forbidden. Direct admin access is blocked, exactly as the source said.</p>
+<p><code>/admin/</code> and <code>/admin/notes</code> both returned <code>403 Forbidden</code>.</p>
 
 <hr>
 
 <h2>SSRF through the side door</h2>
 
-<p>The source is clear: <code>kestrel.thm</code> is allowed and resolves to 127.0.0.1 on the target. The admin route allows <code>127.x.x.x</code>. So <code>/preview</code> should bridge us into <code>/admin/</code>.</p>
+<p>In a more polished environment, we could do further verification of whether the preview endpoint can make the server request its own localhost-only address. For the sake of our live environment, we&rsquo;ll move forward.</p>
+
+<p>The source code is clear: <code>kestrel.thm</code> is allowed and resolves to <code>127.0.0.1</code> on the target. The admin route allows <code>127.x.x.x</code>. Following this logic, <code>/preview</code> should bridge into <code>/admin/</code>.</p>
 
 <pre><code class="language-bash">curl -i "http://TARGET_IP/preview?url=http://kestrel.thm/admin/"</code></pre>
 
 <img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.14.08 AM.png" alt="SSRF via /preview returning the /admin/ page that was blocked directly" style="max-width:100%;margin:2rem 0;">
 
-<p>SSRF to local admin confirmed. <code>/admin/</code> was blocked directly, but the server fetched it for us through <code>/preview</code>.</p>
+<p>We&rsquo;ve confirmed SSRF to local admin. <code>/admin/</code> was blocked, but <code>/preview</code> successfully fetched it. In other words, the server can reach the admin page for us.</p>
 
-<p>Now the notes file:</p>
+<p>Next:</p>
 
 <pre><code class="language-bash">curl -i "http://TARGET_IP/preview?url=http://kestrel.thm/admin/notes"</code></pre>
 
@@ -292,7 +325,7 @@ curl -i http://TARGET_IP/admin/notes</code></pre>
 
 <img src="/images/operation-coldstart/Screenshot 2026-05-31 at 8.18.43 AM.png" alt="/admin/notes via SSRF leaking staging SSH credentials" style="max-width:100%;margin:2rem 0;">
 
-<p>The SSRF exposed staging SSH credentials.</p>
+<p>The SSRF exposed staging SSH credentials. Let&rsquo;s SSH in.</p>
 
 <hr>
 
@@ -514,6 +547,9 @@ sleep 70
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
