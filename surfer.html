@@ -6,10 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>Surfer | Jenn Shagrin</title>
-<meta name="description" content="TryHackMe CTF — default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
+<meta name="description" content="TryHackMe CTF. Default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/surfer.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -67,15 +67,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/surfer.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Surfer">
-<meta property="og:description" content="TryHackMe CTF — default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
+<meta property="og:description" content="TryHackMe CTF. Default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Surfer">
-<meta name="twitter:description" content="TryHackMe CTF — default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
+<meta name="twitter:description" content="TryHackMe CTF. Default credential login, SSRF via export PDF button with hidden form input manipulation to fetch restricted internal endpoint.">
 </head>
 
 <body id="top">
@@ -104,6 +107,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -133,7 +137,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -142,15 +146,13 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Surfer</h1>
-    <div class="post-description">TryHackMe CTF &mdash; Surfer-bro themed web app with internal-only functionality and an <code>export PDF</code> button that reads server-side URLs. The synopsis says only some functionality is internal-use, but if you catch the right wave, you can probably find the sweet stuff. Challenge accepted.</div>
+    <div class="post-description">TryHackMe CTF. Surfer bro themed web app with internal-only functionality and an <code>export PDF</code> button that reads server-side URLs. The synopsis says only some functionality is internal-use, but if you catch the right wave, you can probably find the sweet stuff. Challenge accepted.</div>
   </header>
 
   <div class="post-content">
-
-<hr>
 
 <h2>Recon</h2>
 
@@ -160,11 +162,13 @@
 
 <p>Open ports:</p>
 <ul>
-<li>22 (SSH)</li>
-<li>80 (HTTP). Shoutout to <code>robots.txt</code> and <code>/backup/chat.txt</code> here, as well as <code>login.php</code>. Let&rsquo;s tango.</li>
+<li>Port 22: SSH</li>
+<li>Port 80: HTTP</li>
 </ul>
 
-<p>Deeper enumeration with feroxbuster:</p>
+<p>Shoutout to <code>robots.txt</code> and <code>/backup/chat.txt</code> here, as well as <code>login.php</code>. Let&rsquo;s tango.</p>
+
+<p>With port 80 open, I ran a deeper enumeration of the web app with feroxbuster, aka Ferric Oxide:</p>
 
 <pre><code>feroxbuster -u http://TARGET_IP -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt -t 50 -o ferox_surfer_out.txt</code></pre>
 
@@ -172,23 +176,7 @@
 
 <p>I love watching this run.</p>
 
-<p>The scan kept running while I started poking at what it had already found.</p>
-
-<hr>
-
-<h2>Robots.txt and the Backup Chat</h2>
-
-<pre><code>http://TARGET_IP/robots.txt</code></pre>
-
-<img src="/images/surfer/Screenshot 2026-04-27 at 8.08.28 AM.png" alt="robots.txt contents" style="max-width:100%;margin:2rem 0;">
-
-<pre><code>http://TARGET_IP/backup/chat.txt</code></pre>
-
-<img src="/images/surfer/Screenshot 2026-04-27 at 8.47.22 AM.png" alt="chat.txt contents revealing admin admin" style="max-width:100%;margin:2rem 0;">
-
-<p><code>backup/chat.txt</code> revealed the admin panel uses <code>admin:admin</code> defaults. Been there, done that. Checked off the list.</p>
-
-<hr>
+<p>Ferox scan isn&rsquo;t complete yet, but we&rsquo;ll evaluate the results once it is. We have plenty to get started with.</p>
 
 <h2>Auto-Pwned Admin Dashboard</h2>
 
@@ -200,23 +188,21 @@
 
 <img src="/images/surfer/Screenshot 2026-04-27 at 8.15.36 AM.png" alt="admin dashboard interior" style="max-width:100%;margin:2rem 0;">
 
-<p>On the same page, hosting information sat in plain sight, and an <code>export pdf</code> button was right there waiting.</p>
+<p>On the same page, we have hosting information in plain sight, and an <code>export pdf</code> button.</p>
 
 <img src="/images/surfer/Screenshot 2026-04-27 at 8.18.44 AM.png" alt="hosting info and export PDF button" style="max-width:100%;margin:2rem 0;">
 
-<hr>
-
 <h2>SysAdmin Profile Recon</h2>
 
-<p>I clicked through to the SysAdmin&rsquo;s profile.</p>
+<p>Now we investigate the SysAdmin&rsquo;s profile.</p>
 
 <img src="/images/surfer/Screenshot 2026-04-27 at 8.19.58 AM.png" alt="SysAdmin profile showing Antarctica location" style="max-width:100%;margin:2rem 0;">
 
 <p>No wonder the dude cannot protect his account. He lives in Antarctica. Pretty sure they haven&rsquo;t laid fiber to the curb there yet.</p>
 
-<p>His profile reads like an uneducated heathen. No wonder they put you at the south pole branch, my man. It does say he loves to &ldquo;generate reports in pdf with the coolest tool I wrote.&rdquo; That brought my attention back to the <code>export pdf</code> button on the admin dashboard. To be fair, I&rsquo;d probably love the same if I lived at the south pole.</p>
+<p>His profile reads like an uneducated heathen. No wonder they put you at the south pole branch, my man. It does say he loves to &ldquo;generate reports in pdf with the coolest tool I wrote.&rdquo; This brings my attention back to the <code>export pdf</code> button on the admin dashboard. To be fair, I&rsquo;d probably love the same if I lived at the south pole.</p>
 
-<p>View Source on the Admin profile revealed quite a bit:</p>
+<p>Let&rsquo;s detonate the button in a VM because safety first. Before I head back to the dashboard, I do a quick View Source on the Admin profile. Quite a bit noted here:</p>
 
 <img src="/images/surfer/Screenshot 2026-04-27 at 8.27.34 AM.png" alt="view source on admin profile" style="max-width:100%;margin:2rem 0;">
 
@@ -224,19 +210,27 @@
 
 <img src="/images/surfer/Screenshot 2026-04-27 at 8.30.20 AM.png" alt="source revealing export2pdf and 127.0.0.1 loopback" style="max-width:100%;margin:2rem 0;">
 
-<p>A loopback IP. The PDF generator is fetching server-side URLs and rendering them. That&rsquo;s an SSRF primitive sitting right in the open.</p>
-
-<hr>
+<p>So we have a loopback IP, and feroxbuster is still not done. <code>/internal</code> is what I&rsquo;m looking for. I&rsquo;ll have to run this with a new wordlist because I don&rsquo;t have that kind of time.</p>
 
 <h2>Identifying the Internal Endpoint</h2>
-
-<p>Feroxbuster was still running but slow. Switched to a tighter wordlist to find what I was actually after:</p>
 
 <pre><code>feroxbuster -u http://TARGET_IP -w /usr/share/seclists/Discovery/Web-Content/common.txt --quiet -s 200</code></pre>
 
 <img src="/images/surfer/Screenshot 2026-04-27 at 8.44.06 AM.png" alt="feroxbuster finding /internal" style="max-width:100%;margin:2rem 0;">
 
-<p><code>/internal</code> confirmed.</p>
+<p>Well hello there...</p>
+
+<p>At <code>http://TARGET_IP/robots.txt</code>:</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.08.28 AM.png" alt="robots.txt contents" style="max-width:100%;margin:2rem 0;">
+
+<p>I quickly check out <code>backup/chat.txt</code>:</p>
+
+<img src="/images/surfer/Screenshot 2026-04-27 at 8.47.22 AM.png" alt="chat.txt contents revealing admin admin" style="max-width:100%;margin:2rem 0;">
+
+<p>This must have pertained to the <code>admin:admin</code> login. Been there, done that. Checked off the list.</p>
+
+<p>Back to our little friend, <code>internal/admin.php</code>.</p>
 
 <pre><code>http://TARGET_IP/internal/admin.php</code></pre>
 
@@ -244,50 +238,25 @@
 
 <p>Very clear message here. All roads point to local access.</p>
 
-<p>So the chain is:</p>
-<ul>
-<li><code>/internal/admin.php</code> is restricted to local requests</li>
-<li>The PDF generator (<code>/export2pdf.php</code>) makes server-side requests</li>
-<li>The PDF generator&rsquo;s source URL is controlled by a hidden form input</li>
-</ul>
-
-<p>If I can swap that input, the server fetches <code>/internal/admin.php</code> on my behalf and renders it inside a PDF I&rsquo;m allowed to download.</p>
-
-<hr>
-
 <h2>Exploiting the SSRF</h2>
 
-<p>Right-clicked the <code>export pdf</code> button on the admin dashboard and clicked Inspect.</p>
+<p>I head back to the generated PDF to Inspect. Since dude is so proud of his tool (I heard how that sounded after I typed it, but it stays unedited), let&rsquo;s see why. On the dashboard, right clicked on the <code>export pdf</code> button, then clicked Inspect:</p>
 
 <img src="/images/surfer/Screenshot 2026-04-27 at 9.01.22 AM.png" alt="DevTools inspecting export PDF button" style="max-width:100%;margin:2rem 0;">
 
-<p>The form&rsquo;s hidden input pointed at <code>http://127.0.0.1/server-info.php</code>. Altered it to <code>http://127.0.0.1/internal/admin.php</code>.</p>
+<p>Now we&rsquo;re cookin&rsquo;. The form input already points at a local URL. I alter it to point to <code>internal/admin.php</code> hoping this allows for viewing it. Let&rsquo;s find out.</p>
 
 <img src="/images/surfer/Screenshot 2026-04-27 at 9.03.49 AM.png" alt="DevTools showing modified input pointing at internal admin" style="max-width:100%;margin:2rem 0;">
 
-<p>Clicked Export PDF.</p>
+<p>Well would you look at that:</p>
 
-<img src="/images/surfer/Screenshot 2026-04-27 at 9.05.31 AM.png" alt="rendered PDF showing internal admin contents and flag" style="max-width:100%;margin:2rem 0;">
+<img src="/images/surfer/Screenshot 2026-04-27 at 9.05.31 AM-redacted.png" alt="rendered PDF showing internal admin contents with the flag value redacted" style="max-width:100%;margin:2rem 0;">
 
 <p>If I were getting paid, this was easy money.</p>
-
-<hr>
 
 <h2>Closing Notes</h2>
 
 <p>We learned a valuable lesson today: MFA becomes a little tricky if you live at the south pole, and always sanitize/validate your inputs.</p>
-
-<hr>
-
-<h2>Full Attack Chain</h2>
-
-<pre><code>nmap + feroxbuster &rarr; ports 22, 80; robots.txt + /backup/chat.txt
-&rarr; chat.txt leaked admin:admin defaults
-&rarr; admin login &rarr; dashboard with export PDF button
-&rarr; View source on SysAdmin profile &rarr; export PDF generator pulls 127.0.0.1/server-info.php
-&rarr; Feroxbuster /internal directory &rarr; /internal/admin.php restricted to local-only
-&rarr; DevTools modify hidden form input &rarr; swap server-info.php for /internal/admin.php
-&rarr; Export PDF &rarr; server fetches restricted endpoint via loopback &rarr; flag rendered in PDF</code></pre>
 
   </div>
   <footer class="post-footer"></footer>
@@ -360,6 +329,9 @@
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
