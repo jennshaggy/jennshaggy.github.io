@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Honeypot Operations: Trailing .34 Through the Cowrie Logs | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Cowrie SSH logs connect a September Mirai capture and October Gafgyt payload delivery through the same infrastructure.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/honeypot-operations-trailing-34.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
+<link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript><style>#theme-toggle,.top-link{display:none}</style></noscript>
+<script>
+if(localStorage.getItem("pref-theme")==="dark"){document.documentElement.dataset.theme="dark"}else if(localStorage.getItem("pref-theme")==="light"){document.documentElement.dataset.theme="light"}else if(window.matchMedia("(prefers-color-scheme: dark)").matches){document.documentElement.dataset.theme="dark"}else{document.documentElement.dataset.theme="light"}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<meta property="og:url" content="https://jennshaggy.github.io/honeypot-operations-trailing-34.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="Honeypot Operations: Trailing .34 Through the Cowrie Logs">
+<meta property="og:description" content="Cowrie SSH logs connect a September Mirai capture and October Gafgyt payload delivery through the same infrastructure.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Honeypot Operations: Trailing .34 Through the Cowrie Logs">
+<meta name="twitter:description" content="Cowrie SSH logs connect a September Mirai capture and October Gafgyt payload delivery through the same infrastructure.">
+<style>
+.cowrie-evidence{margin:2rem 0 2.5rem}
+.cowrie-evidence img{display:block;max-width:100%;height:auto;border:1px solid var(--border);border-radius:8px}
+.cowrie-evidence figcaption{margin-top:.65rem;color:var(--secondary);font-size:.9rem;text-align:center;font-style:italic}
+</style>
+</head>
+<body id="top">
+<header class="header">
+<nav class="nav">
+<div class="logo">
+<a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+<div class="logo-switches">
+<button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+<svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+</button>
+<button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+</div>
+</div>
+<ul id="menu">
+            <li><a href="/security-defense/" title="Security &amp; Defense"><span class="active">Security &amp; Defense</span></a></li>
+            <li><a href="/networking.html" title="Networking"><span>Networking</span></a></li>
+            <li><a href="/systems-foundation.html" title="Systems"><span>Systems</span></a></li>
+            <li><a href="/penetration-testing.html" title="Penetration Testing"><span>Penetration Testing</span></a></li>
+            <li><a href="/platforms-training.html" title="Training"><span>Training</span></a></li>
+            <li><a href="/ai-security/" title="AI Security"><span>AI Security</span></a></li>
+</ul>
+</nav>
+</header>
+<main class="main">
+<article class="post-single technical-writeup">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">Honeypot Operations: Trailing .34 Through the Cowrie Logs</h1>
+<div class="post-description">Cowrie SSH logs connect a September Mirai capture and October Gafgyt payload delivery through the same infrastructure.</div>
+</header>
+<div class="post-content">
+<p>I checked the Cowrie dashboard this morning and found another staggering number. I’d already confirmed a Mirai sample in the honeypot’s captures. After reading a recent article about Mirai activity, I went back to the SSH logs to see if the known hash reappeared and what scene the surrounding sessions set.</p>
+<p>The hash showed up eight times across four sessions: six captures from <code>45.198.224.184</code> on September 21, 2026, and two from <code>45.198.224.34</code> on September 27, 2026.</p>
+<figure class="cowrie-evidence"><img loading="lazy" src="/images/honeypot-operations-trailing-34/Screenshot%202026-10-29%20at%209.16.27%20AM.png" alt="Mirai hash captures from .184 and .34 in four Cowrie sessions"><figcaption>Eight captures of the confirmed Mirai hash across four sessions.</figcaption></figure>
+<p>I searched for more recently indexed downloads and found an outlier: 945 capture events across 945 sessions and 748 source IPs.</p>
+<p>Exciting? Absolutely. Mirai? I needed an IoC.</p>
+<p>I pulled a raw event and reconstructed its session. The visitor wrote an SSH public key to <code>~/.ssh/authorized_keys</code> in Cowrie’s decoy SSH environment. Cowrie recorded the redirected file contents as downloads and marked later copies as duplicates. By now I could state with certainty that 945 events did not represent 945 unique malware files.</p>
+<p>Well, there goes my dramatic dashboard moment. Onward.</p>
+<h2>The October pair</h2>
+<p>Two other hashes caught my attention. In a search across all records, they only appeared together in 76 sessions in 152 total events.</p>
+<p>Time to text the family group chat. It’s twins.</p>
+<p>After reconstructing a session, I could see each twin’s assignment. Commands created an SSH private key and client configuration, then attempted to fetch and run a script. The paired hashes came from that repeated activity. I set them aside as unconfirmed malware samples and returned to the hunt.</p>
+<p>Next, I checked addresses in <code>45.198.224.0/24</code>. Cowrie recorded SSH activity from <code>.184</code>, <code>.34</code>, <code>.48</code>, and <code>.119</code> between September 21 and October 28, but I found no SSH activity for <code>.169</code> in that search.</p>
+<p>That doesn’t mean <code>.169</code> isn’t making HTTP requests somewhere else. Running on my <code>honeypot01</code> VM, Cowrie records interactions with its decoy SSH service but doesn’t show HTTP requests to other servers.</p>
+<p>In the September logs, the hash I’d confirmed as Mirai connected <code>.184</code> and <code>.34</code>. In October, <code>.48</code> and <code>.119</code> downloaded a different set of files. I found no payload hash shared between the September and October groups.</p>
+<p>I moved from matching files to commands.</p>
+<p>The SSH sessions from <code>.48</code> and <code>.119</code> included commands to download <code>snypesh.sh</code> and <code>snype.*</code> files hosted at <code>.34</code>.</p>
+<figure class="cowrie-evidence"><img loading="lazy" src="/images/honeypot-operations-trailing-34/Screenshot%202026-10-29%20at%2010.41.50%20AM.png" alt="Cowrie commands from .48 and .119 fetching scripts and payloads from .34"><figcaption>Commands from .48 and .119 referencing the .34 host.</figcaption></figure>
+<p>Cowrie captured a download of <code>snype.mipsel</code> from that address. The saved file is a statically linked, 32-bit MIPS ELF. Its SHA-256 has a public <a href="https://bazaar.abuse.ch/sample/803019eb9738e9a702164b59072de81e29598371e73b80e3c4d6c9adf2041275/" rel="noopener noreferrer">MalwareBazaar record identifying it as Gafgyt</a>.</p>
+<h2>Same URL, different script</h2>
+<p>Cowrie saved two versions of <code>snypesh.sh</code> from the same URL. The earlier version appeared in captures from <code>.48</code> and <code>.119</code> on October 11 and 12. On October 12, a different version appeared in captures from <code>.119</code>.</p>
+<p>I compared the saved scripts. The earlier architecture download syntax used <code>wget</code>. The later ones append <code>curl -O</code>: <code>wget &lt;URL_HERE&gt; ; curl -O &lt;URL_HERE&gt;</code>. The semicolon separating them means <code>curl</code> will run regardless of <code>wget</code>’s success or failure.</p>
+<figure class="cowrie-evidence"><img loading="lazy" src="/images/honeypot-operations-trailing-34/Screenshot%202026-10-29%20at%2011.44.41%20AM.png" alt="Diff of the earlier and later snypesh.sh downloader scripts"><figcaption>The later script adds curl -O after wget in its architecture download lines.</figcaption></figure>
+<p>I dug into 95 Cowrie download events from <code>.48</code> and <code>.119</code>. Throughout their captured events, six <code>snype.*</code> URLs returned one hash each. Two variations of their URLs surfaced, <code>snype.mpsl</code> and <code>snype.mipsel</code>, and returned identical bytes. I isolated a change in the downloader script, but the downloaded payloads remained the same.</p>
+<figure class="cowrie-evidence"><img loading="lazy" src="/images/honeypot-operations-trailing-34/Screenshot%202026-10-29%20at%2011.50.15%20AM.png" alt="Cowrie download counts and SHA-256 hashes for six snype URLs"><figcaption>Six snype URLs returned one hash each across 95 captured download events.</figcaption></figure>
+<h2>Back to September</h2>
+<p>At first, I described <code>.34</code> as taking on a new role in October. Going back through the September session, I discovered that I needed to retract my own statement.</p>
+<p>On September 27, <code>.34</code> connected to Cowrie, fetched <code>/ssh</code> from its own address, and issued a command for it to run. Cowrie subsequently recorded five distinct payload hashes downloaded from <code>5.182.210.174</code>, including the first Mirai hash I uncovered.</p>
+<p>In October, other addresses fetched <code>snypesh.sh</code> and the <code>snype.*</code> payloads from <code>.34</code>.</p>
+<p>My correction: <code>.34</code> was also serving a loader in September. The scripts and payload sources differ between the two periods, but the <code>.34</code> IP appears as delivery infrastructure in both. That much is crystal clear from the captured commands and downloads. The operator and campaign details remain enshrouded in mystery.</p>
+<p><a href="https://www.sophos.com/en-us/blog/proof-of-concept-exploit-released-for-php-vulnerabilities-109618-109619" rel="noopener noreferrer">Sophos’s PHP2Shell reporting</a> identified <code>.169</code> in the same <code>45.198.224.0/24</code> range as a source of PHP2Shell attempts. Sophos also published a Potassium sample hash and staging address. I searched my Cowrie SSH records for that hash and address and found no match. Cowrie’s SSH records do not show whether <code>.169</code> made HTTP requests elsewhere. My captured SSH sessions do not establish a connection to the PHP2Shell attempts Sophos reported.</p>
+<p>What I can contribute is the sequence Cowrie recorded, the payload hashes, and the change I captured in a downloader served from the same URL. The <a href="https://github.com/jennshaggy/honeypot-research/releases/tag/cowrie-mirai-gafgyt-2026-10-29" rel="noopener noreferrer">evidence archive on GitHub</a> contains the brief and timestamped screenshots. The dataset also has a <a href="https://doi.org/10.5281/zenodo.23788192" rel="noopener noreferrer">Zenodo DOI</a>.</p>
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+<footer class="footer"><span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot; <span>Powered by <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp; <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a></span></footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"></path></svg></a>
+<script>
+let menu=document.getElementById("menu");if(menu){const p=localStorage.getItem("menu-scroll-position");if(p)menu.scrollLeft=parseInt(p,10);menu.onscroll=()=>localStorage.setItem("menu-scroll-position",menu.scrollLeft)}
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();const id=this.getAttribute("href").substring(1);document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});if(id==="top")history.replaceState(null,null," ");else history.pushState(null,null,`#${id}`)}));
+let topButton=document.getElementById("top-link");window.onscroll=()=>{if(document.body.scrollTop>800||document.documentElement.scrollTop>800){topButton.style.visibility="visible";topButton.style.opacity="1"}else{topButton.style.visibility="hidden";topButton.style.opacity="0"}};
+document.getElementById("theme-toggle").addEventListener("click",()=>{const html=document.documentElement;if(html.dataset.theme==="dark"){html.dataset.theme="light";localStorage.setItem("pref-theme","light")}else{html.dataset.theme="dark";localStorage.setItem("pref-theme","dark")}});
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
